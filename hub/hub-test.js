@@ -49,6 +49,7 @@ function send(socket, info, address, port) {
     });
 }
 
+/*
 send(socketSubscriber, {type: 'subscribe', topics: ['test']}, '127.0.0.1', 8091);
 setTimeout(function () {
     send(socketPublisher, {type: 'message', topic: 'test', data: 'payload'}, '127.0.0.1', 8091);
@@ -61,3 +62,18 @@ setTimeout(function () {
 setTimeout(function () {
     send(socketPublisher, {type: 'message', topic: 'test', data: 'payload2'}, '127.0.0.1', 8091);
 }, 3000);
+
+*/
+
+send(socketPublisher, {type: 'message', topic: 'hardware', command: 'fs:0'}, '127.0.0.1', 8091);
+setTimeout(function () {
+    send(socketPublisher, {type: 'message', topic: 'hardware', command: 'speeds:0:0:0:0:0'}, '127.0.0.1', 8091);
+}, 1000);
+
+setTimeout(function () {
+    send(socketPublisher, {type: 'message', topic: 'hardware', command: 'speeds:100:0:0:0:0'}, '127.0.0.1', 8091);
+}, 5000);
+
+setTimeout(function () {
+    send(socketPublisher, {type: 'message', topic: 'hardware', command: 'speeds:0:0:0:0:0'}, '127.0.0.1', 8091);
+}, 10000);
