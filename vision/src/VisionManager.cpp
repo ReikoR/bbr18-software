@@ -231,7 +231,8 @@ void VisionManager::sendState() {
 
 	nlohmann::json j;
 
-	j["type"] = "vision";
+	j["type"] = "message";
+	j["topic"] = "vision";
 	j["blobs"] = nlohmann::json::object();
 
 	for (int colorIndex = 0; colorIndex < blobber->getColorCount(); colorIndex++) {
