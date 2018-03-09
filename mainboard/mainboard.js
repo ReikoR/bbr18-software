@@ -1,23 +1,25 @@
 const dgram = require('dgram');
-const socketMainBoard = dgram.createSocket('udp4');
+const socketMainboard = dgram.createSocket('udp4');
 const socketModule = dgram.createSocket('udp4');
 
-socketMainBoard.on('error', (err) => {
+socketMainboard.on('error', (err) => {
     console.log(`socketPublisher error:\n${err.stack}`);
     socketPublisher.close();
 });
 
-socketMainBoard.on('message', (message, rinfo) => {
-    console.log(`socketMainBoard got: ${message} from ${rinfo.address}:${rinfo.port}`);
+socketMainboard.on('message', (message, rinfo) => {
+    console.log(`socketMainboard got: ${message} from ${rinfo.address}:${rinfo.port}`);
+
+    handleMainboardMessage(message.toString());
 });
 
-socketMainBoard.on('listening', () => {
-    const address = socketMainBoard.address();
-    console.log(`socketMainBoard listening ${address.address}:${address.port}`);
+socketMainboard.on('listening', () => {
+    const address = socketMainboard.address();
+    console.log(`socketMainboard listening ${address.address}:${address.port}`);
 });
 
-socketMainBoard.bind(8041, () => {
-    socketMainBoard.setMulticastInterface('127.0.0.1');
+socketMainboard.bind(8041, () => {
+    socketMainboard.setMulticastInterface('127.0.0.1');
 });
 
 socketModule.on('error', (err) => {
@@ -43,20 +45,25 @@ socketModule.bind(8093, () => {
 
 function handleInfo(info, address, port) {
     console.log('handleInfo', info);
-    if (info.topic === 'hardware') {
-        sendToMainBoard(info.command);
+    if (info.topic === 'hardware_command') {
+        sendToMainboard(info.command);
     }
 }
 
-function sendToMainBoard(command) {
+function sendToMainboard(command) {
     const message = Buffer.from(command);
     console.log('send:', command, 'to', '192.168.4.1', 8042);
 
-    socketMainBoard.send(message, 8042, '192.168.4.1', (err) => {
+    socketMainboard.send(message, 8042, '192.168.4.1', (err) => {
         if (err) {
             console.error(err);
         }
     });
+}
+
+function handleMainboardMessage(message) {
+    const info = {type: 'message', topic: 'mainboard_feedback', message: message};
+    sendToHub(info);
 }
 
 function sendToHub(info) {
@@ -70,4 +77,4 @@ function sendToHub(info) {
     });
 }
 
-sendToHub({type: 'subscribe', topics: ['hardware']});
+sendToHub({type: 'subscribe', topics: ['hardware_command']});
