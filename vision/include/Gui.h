@@ -62,6 +62,7 @@ public:
 	Button* createButton(std::string text, int x, int y, int width = 0, int type = 0, bool visible = true, void* data = NULL);
 	void processFrame(unsigned char* bgr);
 	void drawElements(unsigned char* image, int width, int height);
+	void drawCenterLine(unsigned char* image, int width, int height);
 	void drawMouse(CameraTranslator* cameraTranslator, unsigned char* image, int width, int height);
 	bool isMouseOverElement(int x, int y);
 	bool update();

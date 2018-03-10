@@ -220,6 +220,16 @@ void Gui::drawElements(unsigned char* image, int width, int height) {
 	}
 }
 
+void Gui::drawCenterLine(unsigned char* image, int width, int height) {
+	Canvas canvas;
+
+	canvas.width = width;
+	canvas.height = height;
+	canvas.data = image;
+
+	canvas.drawLine(width / 2, 0, width / 2, height - 1);
+}
+
 void Gui::drawMouse(CameraTranslator* cameraTranslator, unsigned char* image, int width, int height) {
 	/*Canvas canvas;
 
@@ -297,6 +307,7 @@ void Gui::setFrontImages(unsigned char* rgb, unsigned char* rgbData) {
 
 	drawElements(rgb, width, height);
 	drawElements(segmentedRgb, width, height);
+	drawCenterLine(rgb, width, height);
 	//drawMouse(frontCameraTranslator, rgb, width, height);
 
 	//if (activeWindow == frontClassification || activeWindow == frontRGB) {
