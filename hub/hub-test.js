@@ -65,15 +65,15 @@ setTimeout(function () {
 
 */
 
-send(socketPublisher, {type: 'message', topic: 'hardware_command', command: 'fs:0'}, '127.0.0.1', 8091);
+send(socketPublisher, {type: 'message', topic: 'mainboard_command', command: 'fs:0'}, '127.0.0.1', 8091);
 setTimeout(function () {
-    send(socketPublisher, {type: 'message', topic: 'hardware_command', command: 'speeds:0:0:0:0:0'}, '127.0.0.1', 8091);
+    send(socketPublisher, {type: 'message', topic: 'mainboard_command', command: 'speeds:0:0:0:0:0'}, '127.0.0.1', 8091);
 }, 1000);
 
 setTimeout(function () {
-    send(socketPublisher, {type: 'message', topic: 'hardware_command', command: 'speeds:100:0:0:0:0'}, '127.0.0.1', 8091);
+    send(socketPublisher, {type: 'message', topic: 'mainboard_command', command: 'speeds:100:0:0:0:0'}, '127.0.0.1', 8091);
 }, 5000);
 
 setTimeout(function () {
-    send(socketPublisher, {type: 'message', topic: 'hardware_command', command: 'speeds:0:0:0:0:0'}, '127.0.0.1', 8091);
+    send(socketPublisher, {type: 'message', topic: 'mainboard_command', command: 'speeds:0:0:0:0:0'}, '127.0.0.1', 8091);
 }, 10000);

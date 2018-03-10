@@ -45,14 +45,14 @@ socketModule.bind(8093, () => {
 
 function handleInfo(info, address, port) {
     console.log('handleInfo', info);
-    if (info.topic === 'hardware_command') {
+    if (info.topic === 'mainboard_command') {
         sendToMainboard(info.command);
     }
 }
 
 function sendToMainboard(command) {
     const message = Buffer.from(command);
-    console.log('send:', command, 'to', '192.168.4.1', 8042);
+    //console.log('send:', command, 'to', '192.168.4.1', 8042);
 
     socketMainboard.send(message, 8042, '192.168.4.1', (err) => {
         if (err) {
@@ -68,7 +68,7 @@ function handleMainboardMessage(message) {
 
 function sendToHub(info) {
     const message = Buffer.from(JSON.stringify(info));
-    console.log('send:', info, 'to', '127.0.0.1', 8091);
+    //console.log('send:', info, 'to', '127.0.0.1', 8091);
 
     socketModule.send(message, 8091, '127.0.0.1', (err) => {
         if (err) {
@@ -77,4 +77,4 @@ function sendToHub(info) {
     });
 }
 
-sendToHub({type: 'subscribe', topics: ['hardware_command']});
+sendToHub({type: 'subscribe', topics: ['mainboard_command']});
