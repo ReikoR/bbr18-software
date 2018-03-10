@@ -1,6 +1,7 @@
 const dgram = require('dgram');
 const socket = dgram.createSocket('udp4');
 const omniMotion = require('./omni-motion');
+const thrower = require('./thrower');
 
 /**
  * @enum {string}
@@ -49,13 +50,18 @@ const frameCenterX = frameWidth / 2;
 
 const speedsPattern = /<speeds:(\d):(\d):(\d):(\d):(\d)>/;
 const ballPattern = /<ball:(\d):(\d)>/;
+const tfMiniPattern = /<tfm:(\d+)>/;
 
 let motionState = motionStates.FIND_BALL;
 let throwerState = throwerStates.IDLE;
 
 let visionState = {};
 let processedVisionState = {closestBall: null, basket: null};
-let mainboardState = {speeds: [0, 0, 0, 0, 0], balls: [0, 0], prevBalls: [0, 0], ballThrown: false};
+let mainboardState = {
+    speeds: [0, 0, 0, 0, 0],
+    balls: [0, 0], prevBalls: [0, 0], ballThrown: false,
+    lidarDistance: 0
+};
 let aiState = {speeds: [0, 0, 0, 0, 0]};
 
 let basketColour = basketColours.blue;
@@ -78,49 +84,83 @@ socket.on('listening', () => {
 });
 
 socket.bind(8094, () => {
+    //socket.setMulticastInterface('127.0.0.1');
     socket.setMulticastInterface('127.0.0.1');
 });
 
 function handleInfo(info) {
-    if (info.topic === 'vision') {
-        processVisionInfo(info);
-    } else if (info.topic === 'mainboard_feedback') {
-        const match = speedsPattern.exec(info.message);
+    let shouldUpdate = false;
 
-        if (match) {
-            if (match.length === 6) {
+    switch (info.topic) {
+        case 'vision':
+            processVisionInfo(info);
+            shouldUpdate = true;
+            break;
+        case 'mainboard_feedback':
+            let match = speedsPattern.exec(info.message);
+
+            if (match) {
+                if (match.length !== 6) {
+                    break;
+                }
+
                 for (let i = 1; i < match.length; i++) {
                     mainboardState.speeds[i - 1] = match[i];
                 }
+
+                shouldUpdate = true;
+
+                break;
             }
-        } else {
-            const match = ballPattern.exec(info.message);
+
+            match = ballPattern.exec(info.message);
 
             if (match) {
-                if (match.length === 3) {
-                    mainboardState.prevBalls = mainboardState.balls.slice();
-
-                    for (let i = 1; i < match.length; i++) {
-                        mainboardState.balls[i - 1] = parseInt(match[i], 10);
-                    }
-
-                    if (
-                        !mainboardState.ballThrown
-                        && mainboardState.prevBalls[1] === 1
-                        && mainboardState.balls[1] === 0
-                    ) {
-                        mainboardState.ballThrown = true;
-                    }
-
-                    console.log(
-                        'Ball state:', mainboardState.prevBalls, mainboardState.balls, mainboardState.ballThrown
-                    );
+                if (match.length !== 3) {
+                    break;
                 }
+
+                mainboardState.prevBalls = mainboardState.balls.slice();
+
+                for (let i = 1; i < match.length; i++) {
+                    mainboardState.balls[i - 1] = parseInt(match[i], 10);
+                }
+
+                if (
+                    !mainboardState.ballThrown
+                    && mainboardState.prevBalls[1] === 1
+                    && mainboardState.balls[1] === 0
+                ) {
+                    mainboardState.ballThrown = true;
+                }
+
+                console.log(
+                    'Ball state:', mainboardState.prevBalls, mainboardState.balls, mainboardState.ballThrown
+                );
+
+                break;
             }
-        }
+
+            match = tfMiniPattern.exec(info.message);
+
+            if (match) {
+                if (match.length !== 2) {
+                    break;
+                }
+
+                mainboardState.lidarDistance = parseInt(match[1]);
+
+                //console.log('lidarDistance: ', mainboardState.lidarDistance);
+
+                break;
+            }
+
+            break;
     }
 
-    update();
+    if (shouldUpdate) {
+        update();
+    }
 }
 
 function processVisionInfo(info) {
@@ -136,7 +176,8 @@ function sendToHub(info) {
     const message = Buffer.from(JSON.stringify(info));
     //console.log('send:', info, 'to', '127.0.0.1', 8091);
 
-    socket.send(message, 8091, '127.0.0.1', (err) => {
+    //socket.send(message, 8091, '127.0.0.1', (err) => {
+    socket.send(message, 8091, '10.220.20.154', (err) => {
         if (err) {
             console.error(err);
         }
@@ -171,7 +212,7 @@ function handleMotionFindBall() {
     if (processedVisionState.closestBall) {
         setMotionState(motionStates.DRIVE_TO_BALL);
     } else {
-        setAiStateSpeeds(omniMotion.calculateSpeeds(0, 0, -0.1, true));
+        setAiStateSpeeds(omniMotion.calculateSpeeds(0, 0, -1, true));
     }
 }
 
@@ -183,12 +224,12 @@ function handleMotionDriveToBall() {
         const centerY = closestBall.cy;
         const errorX = centerX - frameCenterX;
         const errorY = 0.8 * frameHeight - centerY;
-        const forwardSpeed = errorY / 4000;
+        const forwardSpeed = errorY / 1000;
         const rotationSpeed = -errorX / 320;
 
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, forwardSpeed, rotationSpeed, true));
 
-        if (errorY <= 200) {
+        if (errorY <= 100) {
             setMotionState(motionStates.FIND_BASKET);
         }
     } else {
@@ -200,8 +241,8 @@ function handleMotionFindBasket() {
     const closestBall = processedVisionState.closestBall;
     const basket = processedVisionState.basket;
     const minRotationSpeed = 0.05;
-    let rotationSpeed = -0.5;
-    let xSpeed = rotationSpeed * 0.2;
+    let rotationSpeed = -1;
+    let xSpeed = 0;
     let forwardSpeed = 0;
     let isBasketErrorXSmallEnough = false;
 
@@ -210,15 +251,16 @@ function handleMotionFindBasket() {
 
 
     } else if (closestBall) {
-        //const ballCenterX = closestBall.cx;
+        const ballCenterX = closestBall.cx;
         const ballCenterY = closestBall.cy;
-        //const ballErrorX = ballCenterX - frameCenterX;
+        const ballErrorX = ballCenterX - frameCenterX;
         const ballErrorY = 0.8 * frameHeight - ballCenterY;
 
-        if (ballErrorY > 200) {
+        if (ballErrorY > 100) {
             setMotionState(motionStates.DRIVE_TO_BALL);
         } else {
-            forwardSpeed = ballErrorY / 4000;
+            forwardSpeed = ballErrorY / 1000;
+            //xSpeed = ballErrorX / 1000;
         }
     } else {
         setMotionState(motionStates.FIND_BALL);
@@ -239,7 +281,7 @@ function handleMotionFindBasket() {
         rotationSpeed = isBasketErrorXSmallEnough ? rotationSpeed : Math.sign(rotationSpeed) * minRotationSpeed;
     }
 
-    xSpeed = rotationSpeed * 0.2;
+    xSpeed = rotationSpeed * 0.14;
 
     setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(xSpeed, forwardSpeed, rotationSpeed, true));
 }
@@ -249,7 +291,7 @@ function handleThrowerIdle() {
 }
 
 function handleThrowerThrowBall() {
-    aiState.speeds[4] = 3000;
+    aiState.speeds[4] = thrower.getSpeed(mainboardState.lidarDistance);
 
     if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;
@@ -299,3 +341,5 @@ function update() {
 }
 
 sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback']});
+
+sendToHub({type: 'message', topic: 'mainboard_command', command: 'fs:1'});
