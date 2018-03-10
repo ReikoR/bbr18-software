@@ -283,9 +283,9 @@ void Canvas::setPixelAt(int x, int y, int red, int green, int blue) {
         return;
     }*/
 
-    data[index] = (char)red;
+    data[index] = (char)blue;
     data[index + 1] = (char)green;
-    data[index + 2] = (char)blue;
+    data[index + 2] = (char)red;
 }
 
 void Canvas::drawBox(int x, int y, int width, int height, int red, int green, int blue) {
