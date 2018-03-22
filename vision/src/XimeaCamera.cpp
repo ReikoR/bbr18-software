@@ -1,18 +1,23 @@
 #include "XimeaCamera.h"
 
 #include <iostream>
-#include <vector>
 
 XimeaCamera::XimeaCamera(int serial) : opened(false), acquisitioning(false), serialNumber(serial){
     image.size = sizeof(XI_IMG);
-    image.bp = NULL;
-    image.bp_size = 0;
-    device = NULL;
-    frame.data = NULL;
+    device = nullptr;
+
+	// setIntParam(XI_PRM_BUFFER_POLICY, XI_BP_SAFE) allows to use self-allocated buffer
+	// This allows to align buffer for Intel OpenCL CL_MEM_USE_HOST_PTR implementation.
+    frame.data = (unsigned char*)_aligned_malloc(1280 * 1024 * sizeof(char), 4096);
+
+	image.bp = frame.data;
+	image.bp_size = 1280 * 1024 * sizeof(char);
 }
 
 XimeaCamera::~XimeaCamera() {
     close();
+
+	_aligned_free(frame.data);
 }
 
 unsigned long XimeaCamera::getNumberDevices()
@@ -52,6 +57,10 @@ void XimeaCamera::open() {
 	if (found)
 	{
 		opened = true;
+
+		// Use self-allocated buffer
+		setIntParam(XI_PRM_BUFFER_POLICY, XI_BP_SAFE);
+
 		//xiSetParamInt(device, XI_PRM_EXPOSURE, 16000);
 		//xiSetParamInt(device, XI_PRM_IMAGE_DATA_FORMAT, XI_MONO8);
 		//xiSetParamInt(device, XI_PRM_IMAGE_DATA_FORMAT, XI_RGB24);
@@ -107,8 +116,8 @@ XimeaCamera::Frame* XimeaCamera::getFrame() {
         return NULL;
     }
 
-    frame.data = (unsigned char*)image.bp;
-    frame.size = image.bp_size;
+    //frame.data = (unsigned char*)image.bp;
+    //frame.size = image.bp_size;
     frame.number = image.nframe;
     frame.width = image.width;
     frame.height = image.height;
