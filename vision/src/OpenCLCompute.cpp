@@ -5,13 +5,22 @@
 #include "OpenCLCompute.h"
 
 OpenCLCompute::OpenCLCompute() {
-
+	inputBuffer = nullptr;
+	rgbOutBuffer = nullptr;
+	lookupBuffer = nullptr;
+	segmentedBuffer = nullptr;
 }
 
 OpenCLCompute::~OpenCLCompute() {
-	/*clReleaseKernel(deBayerKernel);
+	clReleaseMemObject(rgbOutBuffer);
+	clReleaseMemObject(inputBuffer);
+	clReleaseMemObject(lookupBuffer);
+	clReleaseMemObject(segmentedBuffer);
+
+	clReleaseCommandQueue(clQueue);
+	clReleaseKernel(deBayerKernel);
 	clReleaseProgram(deBayerProgram);
-	clReleaseContext(deBayerContext);*/
+	clReleaseContext(deBayerContext);
 }
 
 void OpenCLCompute::setup() {
@@ -199,85 +208,78 @@ void OpenCLCompute::setupDeBayer() {
 	//clQueue = clCreateCommandQueueWithProperties(deBayerContext, selectedDeviceIds[0], queueProperties, &error);
 	CheckError(error, "Create command queue");
 
-
+	clFinish(clQueue);
 }
 
-void OpenCLCompute::deBayer(unsigned char *frame, unsigned char *rgbOut, unsigned char* lookup, unsigned char* segmentedOut, int width, int height) {
+void OpenCLCompute::deBayer(
+		unsigned char *frame,
+		unsigned char *rgbOut,
+		unsigned char *lookup,
+		unsigned char *segmentedOut,
+		int width,
+		int height,
+		int colorsLookupSize
+) {
 	__int64 startTime = Util::timerStart();
 
 	cl_int error = CL_SUCCESS;
 
-	cl_mem inputBuffer = clCreateBuffer(
-			deBayerContext,
-			CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-			width * height * sizeof(char),
-			(void *)frame,
-			&error
-	);
+	if (inputBuffer == nullptr) {
+		inputBuffer = clCreateBuffer(
+				deBayerContext,
+				//CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+				CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,
+				width * height * sizeof(char),
+				(void *)frame,
+				&error
+		);
 
-	//CheckError(error);
+		CheckError(error, "Could not create inputBuffer");
+	}
 
-	cl_mem outputBuffer = clCreateBuffer(
-			deBayerContext,
-			//CL_MEM_WRITE_ONLY,
-			CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
-			3 * width * height * sizeof(char),
-			rgbOut,
-			&error
-	);
+	if (rgbOutBuffer == nullptr) {
+		rgbOutBuffer = clCreateBuffer(
+				deBayerContext,
+				//CL_MEM_WRITE_ONLY,
+				CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
+				3 * width * height * sizeof(char),
+				rgbOut,
+				&error
+		);
 
-	cl_mem lookupBuffer = clCreateBuffer(
-			deBayerContext,
-			CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,
-			0x1000000,
-			(void *)lookup,
-			&error
-	);
+		CheckError(error, "Could not create rgbOutBuffer");
+	}
 
-	/*cl_mem lookupBuffer = clCreateBuffer(
-			deBayerContext,
-			CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-			0x1000000,
-			(void *)lookup,
-			&error
-	);*/
+	if (lookupBuffer == nullptr) {
+		lookupBuffer = clCreateBuffer(
+				deBayerContext,
+				CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
+				static_cast<size_t>(colorsLookupSize),
+				(void *)lookup,
+				&error
+		);
 
-	cl_mem segmentedBuffer = clCreateBuffer(
-			deBayerContext,
-			CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,
-			width * height * sizeof(char),
-			segmentedOut,
-			&error
-	);
+		CheckError(error, "Could not create lookupBuffer");
+	}
 
-	/*void* mappedLookupBuffer = clEnqueueMapBuffer(
-			clQueue,
-			lookupBuffer,
-			CL_TRUE,
-			CL_MAP_READ,
-			0,
-			0x1000000,
-			0,
-			nullptr,
-			nullptr,
-			nullptr
-	);*/
+	if (segmentedBuffer == nullptr) {
+		segmentedBuffer = clCreateBuffer(
+				deBayerContext,
+				CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
+				width * height * sizeof(char),
+				segmentedOut,
+				&error
+		);
 
-	lookup = (unsigned char*)clEnqueueMapBuffer(
-			clQueue,
-			lookupBuffer,
-			CL_TRUE,
-			CL_MAP_READ,
-			0,
-			0x1000000,
-			0,
-			nullptr,
-			nullptr,
-			nullptr
-	);
+		CheckError(error, "Could not create segmentedBuffer");
+	}
+
+	/*clEnqueueUnmapMemObject(clQueue, rgbOutBuffer, rgbOut, 0, nullptr, nullptr);
+	clEnqueueUnmapMemObject(clQueue, segmentedBuffer, segmentedOut, 0, nullptr, nullptr);
+	clEnqueueUnmapMemObject(clQueue, lookupBuffer, lookup, 0, nullptr, nullptr);*/
 
 	clSetKernelArg(deBayerKernel, 0, sizeof(cl_mem), &inputBuffer);
-	clSetKernelArg(deBayerKernel, 1, sizeof(cl_mem), &outputBuffer);
+	clSetKernelArg(deBayerKernel, 1, sizeof(cl_mem), &rgbOutBuffer);
 	clSetKernelArg(deBayerKernel, 2, sizeof(cl_mem), &lookupBuffer);
 	clSetKernelArg(deBayerKernel, 3, sizeof(cl_mem), &segmentedBuffer);
 
@@ -286,24 +288,24 @@ void OpenCLCompute::deBayer(unsigned char *frame, unsigned char *rgbOut, unsigne
 	std::size_t size[3] = {static_cast<size_t>(width / 2), static_cast<size_t>(height / 2), 1};
 	/*CheckError(*/clEnqueueNDRangeKernel(clQueue, deBayerKernel, 2, offset, size, nullptr, 0, nullptr, nullptr)/*)*/;
 
-//	/*CheckError(*/clEnqueueReadBuffer(
-//			clQueue,
-//			outputBuffer,
-//			CL_TRUE,
-//			0,
-//			3 * width * height * sizeof(char),
-//			rgbOut,
-//			0,
-//			nullptr,
-//			nullptr
-//	)/*)*/;
-
-	//void* mappedOutputBuffer = clEnqueueMapBuffer(
-	rgbOut = (unsigned char*)clEnqueueMapBuffer(
+	/*lookup = (unsigned char*)clEnqueueMapBuffer(
 			clQueue,
-			outputBuffer,
+			lookupBuffer,
 			CL_TRUE,
 			CL_MAP_READ,
+			0,
+			static_cast<size_t>(colorsLookupSize),
+			0,
+			nullptr,
+			nullptr,
+			nullptr
+	);
+
+	rgbOut = (unsigned char*)clEnqueueMapBuffer(
+			clQueue,
+			rgbOutBuffer,
+			CL_TRUE,
+			CL_MAP_WRITE,
 			0,
 			3 * width * height * sizeof(char),
 			0,
@@ -312,41 +314,20 @@ void OpenCLCompute::deBayer(unsigned char *frame, unsigned char *rgbOut, unsigne
 			nullptr
 	);
 
-	//void* mappedSegmentedBuffer = clEnqueueMapBuffer(
 	segmentedOut = (unsigned char*)clEnqueueMapBuffer(
 			clQueue,
 			segmentedBuffer,
 			CL_TRUE,
-			CL_MAP_READ,
+			CL_MAP_WRITE,
 			0,
 			width * height * sizeof(char),
 			0,
 			nullptr,
 			nullptr,
 			nullptr
-	);
-
-	//__int64 startTime = Util::timerStart();
-
-	//memcpy(rgbOut, mappedOutputBuffer, 3 * width * height * sizeof(char));
-	//memcpy(segmentedOut, mappedSegmentedBuffer, width * height * sizeof(char));
-
-	//std::cout << "! memcpy time: " << Util::timerEnd(startTime) << std::endl;
-
-	//clEnqueueUnmapMemObject(clQueue, outputBuffer, mappedOutputBuffer, 0, nullptr, nullptr);
-	clEnqueueUnmapMemObject(clQueue, outputBuffer, rgbOut, 0, nullptr, nullptr);
-	//clEnqueueUnmapMemObject(clQueue, segmentedBuffer, mappedSegmentedBuffer, 0, nullptr, nullptr);
-	clEnqueueUnmapMemObject(clQueue, segmentedBuffer, segmentedOut, 0, nullptr, nullptr);
-	//clEnqueueUnmapMemObject(clQueue, lookupBuffer, mappedLookupBuffer, 0, nullptr, nullptr);
-	clEnqueueUnmapMemObject(clQueue, lookupBuffer, lookup, 0, nullptr, nullptr);
+	);*/
 
 	clFinish(clQueue);
-
-	//clReleaseMemObject(outputBuffer);
-	clReleaseMemObject(inputBuffer);
-	//clReleaseMemObject(lookupBuffer);
-	//clReleaseMemObject(segmentedBuffer);
-	//clReleaseCommandQueue(clQueue);
 
 	std::cout << "! deBayer time: " << Util::timerEnd(startTime) << std::endl;
 }

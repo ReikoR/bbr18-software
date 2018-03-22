@@ -5,24 +5,24 @@
 #include <iostream>
 #include <array>
 #include <cstring>
-#include <utility>
 #include <Blobber.h>
 #include <Util.h>
-#include "Blobber.h"
+
+const int Blobber::COLORS_LOOKUP_SIZE = 0x1000000;
 
 Blobber::Blobber() {
 	bpp = 1;
 	width = 0;
 	height = 0;
-	segmented = NULL;
-	bgr = NULL;
+	segmented = nullptr;
+	bgr = nullptr;
 	pout = (unsigned short *) malloc(10000 * 9 * sizeof(unsigned short));
 	run_c = 0;
 	region_c = 0;
 	max_area = 0;
 
 	//https://software.intel.com/en-us/articles/getting-the-most-from-opencl-12-how-to-increase-performance-by-minimizing-buffer-copies-on-intel-processor-graphics
-	colors_lookup = (unsigned char*)_aligned_malloc(0x1000000, 4096);
+	colors_lookup = (unsigned char*)_aligned_malloc((size_t) COLORS_LOOKUP_SIZE, 4096);
 	
 	int i;
 	for (i = 0; i < COLOR_COUNT; i++) {
@@ -75,6 +75,16 @@ Blobber::Blobber() {
 		pixel_active[i] = 1;
 	}
 
+	width = 1280;
+	height = 1024;
+
+	int size = width * width;
+
+	segmented = (unsigned char *)_aligned_malloc(size * sizeof(unsigned char), 4096);
+	memset(segmented, 0, size * sizeof(unsigned char));
+
+	bgr = (unsigned char *)_aligned_malloc(size * sizeof(unsigned char) * 3, 4096);
+
 	openCLCompute = new OpenCLCompute();
 
 	openCLCompute->setup();
@@ -88,13 +98,15 @@ Blobber::~Blobber() {
         std::cout << "! Colors not saved" << std::endl;
     }
 
-    if (segmented != NULL) {
-        free(segmented);
+    if (segmented != nullptr) {
+		_aligned_free(segmented);
     }
-    if (bgr != NULL) {
-        free(bgr);
+
+    if (bgr != nullptr) {
+		_aligned_free(bgr);
     }
-    if (pout != NULL) {
+
+    if (pout != nullptr) {
         free(pout);
     }
 
@@ -112,10 +124,7 @@ void Blobber::setColorMinArea(int color, int min_area) {
 }
 
 void Blobber::setColors(unsigned char *data) {
-	//set colortable
-	//unsigned long size = min2(0x1000000, (unsigned long)PyArray_NBYTES(lookup));
-	unsigned long size = 0x1000000;
-	memcpy(colors_lookup, data, size);
+	memcpy(colors_lookup, data, COLORS_LOOKUP_SIZE);
 }
 
 void Blobber::setPixelColor(unsigned char r, unsigned char g, unsigned char b, unsigned char color) {
@@ -144,20 +153,23 @@ void Blobber::refreshSize() {
 	//self->width = (int)self->image.width;
 	//self->height = (int)self->image.height;
 
-    width = 1280;
+    /*width = 1280;
     height = 1024;
 
 	int size = width * width;
 	
-	if (segmented != NULL) {
-		free(segmented);
+	if (segmented != nullptr) {
+		_aligned_free(segmented);
 	}
-	segmented = (unsigned char *)calloc(size, sizeof(unsigned char));
+
+	segmented = (unsigned char *)_aligned_malloc(size * sizeof(unsigned char), 4096);
+	memset(segmented, 0, size * sizeof(unsigned char));
 	
-	if (bgr != NULL) {
-		free(bgr);
+	if (bgr != nullptr) {
+		_aligned_free(bgr);
 	}
-	bgr = (unsigned char *)malloc(size * sizeof(unsigned char) * 3);
+
+	bgr = (unsigned char *)_aligned_malloc(size * sizeof(unsigned char) * 3, 4096);*/
 }
 
 void Blobber::start() {
@@ -475,14 +487,14 @@ void Blobber::analyse(unsigned char *frame) {
 	}
 	*/
 
-    unsigned char *f = frame;
+    //unsigned char *f = frame;
 
-	__int64 startTime = Util::timerStart();
+	//__int64 startTime = Util::timerStart();
 
-	int w = width;
-	int h = height;
+	/*int w = width;
+	int h = height;*/
 
-	openCLCompute->deBayer(f, bgr, colors_lookup, segmented, w, h);
+	openCLCompute->deBayer(frame, bgr, colors_lookup, segmented, width, height, COLORS_LOOKUP_SIZE);
 	
 	/*#pragma omp parallel for
 	for (int y = 1; y < h - 1; y += 2) {//threshold RGGB Bayer matrix
@@ -593,8 +605,7 @@ bool Blobber::saveColors(std::string filename) {
         return false;
     }
 
-    //fwrite(colors_lookup, sizeof(char), sizeof(colors_lookup), file);
-    fwrite(colors_lookup, sizeof(char), 0x1000000, file);
+    fwrite(colors_lookup, sizeof(char), COLORS_LOOKUP_SIZE, file);
 
     fclose(file);
 
@@ -613,13 +624,11 @@ bool Blobber::loadColors(std::string filename) {
     long fileSize = ftell (file);
     rewind(file);
 
-    //if (fileSize != sizeof(colors_lookup)) {
-    if (fileSize != 0x1000000) {
+    if (fileSize != COLORS_LOOKUP_SIZE) {
         return false;
     }
 
-    //fread(colors_lookup, sizeof(char), sizeof(colors_lookup), file);
-    fread(colors_lookup, sizeof(char), 0x1000000, file);
+    fread(colors_lookup, sizeof(char), COLORS_LOOKUP_SIZE, file);
 
     fclose(file);
 
@@ -645,12 +654,11 @@ Blobber::ColorClassState* Blobber::getColor(std::string name) {
 }
 
 void Blobber::clearColors() {
-	//memset(colors_lookup, 0, sizeof(colors_lookup));
-	memset(colors_lookup, 0, 0x1000000);
+	memset(colors_lookup, 0, COLORS_LOOKUP_SIZE);
 }
 
 void Blobber::clearColor(unsigned char colorIndex) {
-    for (int i = 0; i < 0x1000000; i++) {
+    for (int i = 0; i < COLORS_LOOKUP_SIZE; i++) {
         if (colors_lookup[i] == colorIndex) {
 			colors_lookup[i] = 0;
         }
@@ -664,7 +672,7 @@ void Blobber::clearColor(std::string colorName) {
         return;
     }
 
-	for (int i = 0; i < 0x1000000; i++) {
+	for (int i = 0; i < COLORS_LOOKUP_SIZE; i++) {
 		if (colors_lookup[i] == color->color) {
 			colors_lookup[i] = 0;
 		}

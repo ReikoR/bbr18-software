@@ -10,7 +10,16 @@ public:;
 	~OpenCLCompute();
 
 	void setup();
-	void deBayer(unsigned char* frame, unsigned char *rgbOut, unsigned char* lookup, unsigned char* segmentedOut, int width, int height);
+
+	void deBayer(
+			unsigned char* frame,
+			unsigned char* rgbOut,
+			unsigned char* lookup,
+			unsigned char* segmentedOut,
+			int width,
+			int height,
+			int colorsLookupSize
+	);
 
 private:
 	std::vector<cl_platform_id> selectedPlatformIds;
@@ -25,11 +34,17 @@ private:
 	std::string LoadKernel(const char *name);
 	cl_program CreateProgram(const std::string &source, cl_context context);
 
+	cl_mem inputBuffer;
+	cl_mem rgbOutBuffer;
+	cl_mem lookupBuffer;
+	cl_mem segmentedBuffer;
+
 	cl_command_queue clQueue;
 
 	cl_context deBayerContext;
 	cl_program deBayerProgram;
 	cl_kernel deBayerKernel;
+
 	void setupDeBayer();
 };
 

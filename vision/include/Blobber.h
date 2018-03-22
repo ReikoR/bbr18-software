@@ -24,27 +24,12 @@
 		__typeof__ (b) _b = (b); \
 		_a < _b ? _a : _b; })
 
-/*typedef struct {
-    unsigned char colors_lookup[0x1000000];//all possible bgr combinations lookup table/
-    unsigned char pixel_active[MAX_WIDTH * MAX_HEIGHT];//0=ignore in segmentation, 1=use pixel
-    unsigned char *segmented;//segmented image buffer 0-9
-    unsigned char *bgr;//BGR buffer
-    unsigned short *pout;//Temp out buffer (for blobs)
-    int width, height, bpp;
-
-    BlobberRun rle[MAX_RUNS];
-    BlobberRegion regions[MAX_REG];
-    color_class_state colors[COLOR_COUNT];
-    int run_c;
-    int region_c;
-    int max_area;
-    int passes;
-} Camera;*/
-
 class Blobber {
 public:
 	Blobber();
 	~Blobber();
+
+	static const int COLORS_LOOKUP_SIZE;
 
 	typedef struct {
 		short x, y, width;
