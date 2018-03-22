@@ -2,20 +2,19 @@ __kernel void debayerAndSegment(
     __global uchar* input,
     __global uchar* output,
     __global uchar* lookup,
-    __global uchar* segmented,
-    int width,
-    int height
+    __global uchar* segmented
 ) {
     int x = get_global_id(0);
     int y = get_global_id(1);
 
-    // 4 pixels per call, 2 pixels of 2 lines
-    int sourcePixelIndex = (2 * y) * width + 2 * x - width;
+    int width = 2 * get_global_size(0);
 
-    int destWidth = 2 * get_global_size(0);
     int destY     = 2 * y;
     int destX     = 2 * x;
     int xy = destY * width + destX;
+
+    // 4 pixels per call, 2 pixels of 2 lines
+    int sourcePixelIndex = xy - width;
 
     uchar4 line_0;
     uchar4 line_1;
@@ -74,7 +73,7 @@ __kernel void debayerAndSegment(
     ushort red_11    = (line_1.y + line_1.w + line_3.y + line_3.w) / 4;
 
     // first pixel first line
-    int destPixelIndex = (destY * destWidth + destX) * 3;
+    int destPixelIndex = (destY * width + destX) * 3;
     output[destPixelIndex]    = blue_00;
     output[destPixelIndex+1]  = green_00;
     output[destPixelIndex+2]  = red_00;
@@ -87,7 +86,7 @@ __kernel void debayerAndSegment(
     segmented[xy + 1] = lookup[blue_01 + (green_01 << 8) + (red_01 << 16)];
 
     // first pixel second line
-    destPixelIndex += destWidth * 3;
+    destPixelIndex += width * 3;
     output[destPixelIndex]    = blue_10;
     output[destPixelIndex+1]  = green_10;
     output[destPixelIndex+2]  = red_10;

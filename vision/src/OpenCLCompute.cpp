@@ -280,8 +280,6 @@ void OpenCLCompute::deBayer(unsigned char *frame, unsigned char *rgbOut, unsigne
 	clSetKernelArg(deBayerKernel, 1, sizeof(cl_mem), &outputBuffer);
 	clSetKernelArg(deBayerKernel, 2, sizeof(cl_mem), &lookupBuffer);
 	clSetKernelArg(deBayerKernel, 3, sizeof(cl_mem), &segmentedBuffer);
-	clSetKernelArg(deBayerKernel, 4, sizeof(int), &width);
-	clSetKernelArg(deBayerKernel, 5, sizeof(int), &height);
 
 	// http://www.khronos.org/registry/cl/sdk/1.1/docs/man/xhtml/clEnqueueNDRangeKernel.html
 	std::size_t offset[3] = {0};
