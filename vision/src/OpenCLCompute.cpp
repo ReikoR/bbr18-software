@@ -75,6 +75,9 @@ bool OpenCLCompute::findDevice(std::string platformName, std::string deviceVendo
 				) {
 					selectedDeviceIds.push_back(deviceIds[j]);
 					std::cout << "\tMatch" << std::endl;
+
+					LogDeviceSVM(deviceIds[j]);
+
 					break;
 				}
 			}
@@ -137,6 +140,34 @@ int OpenCLCompute::GetDeviceType(cl_device_id id) {
 
 	return deviceType;
 }
+
+void OpenCLCompute::LogDeviceSVM(cl_device_id id) {
+	cl_device_svm_capabilities caps;
+
+	cl_int err = clGetDeviceInfo(
+			id,
+			CL_DEVICE_SVM_CAPABILITIES,
+			sizeof(cl_device_svm_capabilities),
+			&caps,
+			nullptr
+	);
+
+	if (err == CL_INVALID_VALUE) {
+		std::cout << "No SVM support" << std::endl;
+	} else if (err == CL_SUCCESS && (caps & CL_DEVICE_SVM_COARSE_GRAIN_BUFFER)) {
+		std::cout << "Coarse-grained buffer" << std::endl;
+	} else if (err == CL_SUCCESS && (caps & CL_DEVICE_SVM_FINE_GRAIN_BUFFER)) {
+		std::cout << "Fine-grained buffer" << std::endl;
+	} else if (err == CL_SUCCESS && (caps & CL_DEVICE_SVM_FINE_GRAIN_BUFFER) && (caps & CL_DEVICE_SVM_ATOMICS)) {
+		std::cout << "Fine-grained buffer with atomics" << std::endl;
+	} else if (err == CL_SUCCESS && (caps & CL_DEVICE_SVM_FINE_GRAIN_SYSTEM)) {
+		std::cout << "Fine-grained system" << std::endl;
+	} else if (err == CL_SUCCESS && (caps & CL_DEVICE_SVM_FINE_GRAIN_SYSTEM) && (caps & CL_DEVICE_SVM_ATOMICS)) {
+		std::cout << "Fine-grained system with atomics" << std::endl;
+	}
+}
+
+
 
 void OpenCLCompute::CheckError(cl_int error, std::string message) {
 	if (error != CL_SUCCESS) {

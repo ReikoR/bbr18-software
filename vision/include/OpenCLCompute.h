@@ -30,6 +30,7 @@ private:
 	std::string GetDeviceName(cl_device_id id);
 	std::string GetDeviceVendor(cl_device_id id);
 	int GetDeviceType(cl_device_id id);
+	void LogDeviceSVM(cl_device_id id);
 	void CheckError(cl_int error, std::string message);
 	std::string LoadKernel(const char *name);
 	cl_program CreateProgram(const std::string &source, cl_context context);
