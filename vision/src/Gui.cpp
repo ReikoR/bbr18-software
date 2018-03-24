@@ -209,8 +209,8 @@ void Gui::processFrame(unsigned char* bgr) {
         }
     }*/
 
-	rgb = bgr;
-    memcpy(rgbData, rgb, static_cast<size_t>(3 * width * height));
+	rgbData = bgr;
+	memcpy(rgb, rgbData, static_cast<size_t>(3 * width * height));
 }
 
 
