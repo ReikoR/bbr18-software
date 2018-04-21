@@ -2,6 +2,9 @@ const dgram = require('dgram');
 const socketMainboard = dgram.createSocket('udp4');
 const socketModule = dgram.createSocket('udp4');
 
+const mbedPort = 8042;
+const mbedAddress = '192.168.4.1';
+
 socketMainboard.on('error', (err) => {
     console.log(`socketPublisher error:\n${err.stack}`);
     socketPublisher.close();
@@ -10,15 +13,17 @@ socketMainboard.on('error', (err) => {
 socketMainboard.on('message', (message, rinfo) => {
     console.log(`socketMainboard got: ${message} from ${rinfo.address}:${rinfo.port}`);
 
-    handleMainboardMessage(message.toString());
+    handleMainboardMessage(message);
 });
 
 socketMainboard.on('listening', () => {
     const address = socketMainboard.address();
     console.log(`socketMainboard listening ${address.address}:${address.port}`);
+
+    sendCommandToMainboard([0, 0, 0, 0, 0]);
 });
 
-socketMainboard.bind(8041, () => {
+socketMainboard.bind(8042, () => {
     socketMainboard.setMulticastInterface('127.0.0.1');
 });
 
@@ -46,7 +51,7 @@ socketModule.bind(8093, () => {
 function handleInfo(info, address, port) {
     console.log('handleInfo', info);
     if (info.topic === 'mainboard_command') {
-        sendToMainboard(info.command);
+        sendCommandToMainboard(info.command);
     }
 }
 
@@ -54,15 +59,45 @@ function sendToMainboard(command) {
     const message = Buffer.from(command);
     //console.log('send:', command, 'to', '192.168.4.1', 8042);
 
-    socketMainboard.send(message, 8042, '192.168.4.1', (err) => {
+    socketMainboard.send(message, mbedPort, mbedAddress, (err) => {
         if (err) {
             console.error(err);
         }
     });
 }
 
+/**
+ *
+ * @param {Array.<number>} speeds
+ */
+function sendCommandToMainboard(speeds) {
+    const command = new Int16Array(5);
+
+    for (let i = 0; i < speeds.length && i < command.length; i++) {
+        command[i] = speeds[i];
+    }
+
+    let message = new Buffer.from(command.buffer);
+    socketMainboard.send(message, 0, message.length, mbedPort, mbedAddress);
+}
+
 function handleMainboardMessage(message) {
-    const info = {type: 'message', topic: 'mainboard_feedback', message: message};
+    const data = {
+        speed1: message.readInt16LE(0),
+        speed2: message.readInt16LE(2),
+        speed3: message.readInt16LE(4),
+        speed4: message.readInt16LE(6),
+        speed5: message.readInt16LE(8),
+        ball1: message.readUInt8(10) === 1,
+        ball2: message.readUInt8(11) === 1,
+        distance: message.readUInt16LE(12),
+        isSpeedChanged: message.readUInt8(14) === 1,
+        time: message.readInt32LE(15)
+    };
+
+    console.log(data);
+
+    const info = {type: 'message', topic: 'mainboard_feedback', message: data};
     sendToHub(info);
 }
 
