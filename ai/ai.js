@@ -4,6 +4,21 @@ const omniMotion = require('./omni-motion');
 const thrower = require('./thrower');
 
 /**
+ * @name MainboardFeedback
+ * @type object
+ * @property {number} speed1
+ * @property {number} speed2
+ * @property {number} speed3
+ * @property {number} speed4
+ * @property {number} speed5
+ * @property {boolean} ball1
+ * @property {boolean} ball2
+ * @property {number} distance
+ * @property {boolean} isSpeedChanged
+ * @property {number} time
+ */
+
+/**
  * @enum {string}
  */
 const motionStates = {
@@ -48,10 +63,6 @@ const frameHeight = 1024;
 const frameWidth = 1280;
 const frameCenterX = frameWidth / 2;
 
-const speedsPattern = /<speeds:(\d):(\d):(\d):(\d):(\d)>/;
-const ballPattern = /<ball:(\d):(\d)>/;
-const tfMiniPattern = /<tfm:(\d+)>/;
-
 let motionState = motionStates.FIND_BALL;
 let throwerState = throwerStates.IDLE;
 
@@ -59,7 +70,7 @@ let visionState = {};
 let processedVisionState = {closestBall: null, basket: null};
 let mainboardState = {
     speeds: [0, 0, 0, 0, 0],
-    balls: [0, 0], prevBalls: [0, 0], ballThrown: false,
+    balls: [false, false], prevBalls: [false, false], ballThrown: false,
     lidarDistance: 0
 };
 let aiState = {speeds: [0, 0, 0, 0, 0]};
@@ -68,11 +79,11 @@ let basketColour = basketColours.blue;
 
 socket.on('error', (err) => {
     console.log(`socketPublisher error:\n${err.stack}`);
-    socketPublisher.close();
+    socket.close();
 });
 
 socket.on('message', (message, rinfo) => {
-    //console.log(`socket got: ${message} from ${rinfo.address}:${rinfo.port}`);
+    console.log(`socket got: ${message} from ${rinfo.address}:${rinfo.port}`);
 
     const info = JSON.parse(message.toString());
     handleInfo(info);
@@ -88,6 +99,12 @@ socket.bind(8094, () => {
     socket.setMulticastInterface('127.0.0.1');
 });
 
+/**
+ *
+ * @param {object} info
+ * @param {string} info.topic
+ * @param {MainboardFeedback} info.message
+ */
 function handleInfo(info) {
     let shouldUpdate = false;
 
@@ -97,63 +114,29 @@ function handleInfo(info) {
             shouldUpdate = true;
             break;
         case 'mainboard_feedback':
-            let match = speedsPattern.exec(info.message);
-
-            if (match) {
-                if (match.length !== 6) {
-                    break;
-                }
-
-                for (let i = 1; i < match.length; i++) {
-                    mainboardState.speeds[i - 1] = match[i];
-                }
-
+            /*if (info.message.isSpeedChanged) {
                 shouldUpdate = true;
+            }*/
 
-                break;
+            mainboardState.speeds[0] = info.message.speed1;
+            mainboardState.speeds[1] = info.message.speed2;
+            mainboardState.speeds[2] = info.message.speed3;
+            mainboardState.speeds[3] = info.message.speed4;
+            mainboardState.speeds[4] = info.message.speed5;
+
+            mainboardState.prevBalls = mainboardState.balls.slice();
+            mainboardState.balls[0] = info.message.ball1;
+            mainboardState.balls[1] = info.message.ball2;
+
+            if (
+                !mainboardState.ballThrown
+                && mainboardState.prevBalls[1] === true
+                && mainboardState.balls[1] === false
+            ) {
+                mainboardState.ballThrown = true;
             }
 
-            match = ballPattern.exec(info.message);
-
-            if (match) {
-                if (match.length !== 3) {
-                    break;
-                }
-
-                mainboardState.prevBalls = mainboardState.balls.slice();
-
-                for (let i = 1; i < match.length; i++) {
-                    mainboardState.balls[i - 1] = parseInt(match[i], 10);
-                }
-
-                if (
-                    !mainboardState.ballThrown
-                    && mainboardState.prevBalls[1] === 1
-                    && mainboardState.balls[1] === 0
-                ) {
-                    mainboardState.ballThrown = true;
-                }
-
-                console.log(
-                    'Ball state:', mainboardState.prevBalls, mainboardState.balls, mainboardState.ballThrown
-                );
-
-                break;
-            }
-
-            match = tfMiniPattern.exec(info.message);
-
-            if (match) {
-                if (match.length !== 2) {
-                    break;
-                }
-
-                mainboardState.lidarDistance = parseInt(match[1]);
-
-                //console.log('lidarDistance: ', mainboardState.lidarDistance);
-
-                break;
-            }
+            mainboardState.lidarDistance = info.message.distance;
 
             break;
     }
@@ -177,7 +160,7 @@ function sendToHub(info) {
     //console.log('send:', info, 'to', '127.0.0.1', 8091);
 
     //socket.send(message, 8091, '127.0.0.1', (err) => {
-    socket.send(message, 8091, '10.220.20.154', (err) => {
+    socket.send(message, 8091, '10.220.20.158', (err) => {
         if (err) {
             console.error(err);
         }
@@ -185,13 +168,7 @@ function sendToHub(info) {
 }
 
 function formatSpeedCommand(wheelRPMs) {
-    let command = 'speeds';
-
-    for (let i = 0; i < 5; i++) {
-        command += (':' + Math.floor(wheelRPMs[i] || 0));
-    }
-
-    return command;
+    return wheelRPMs.slice();
 }
 
 /**
@@ -342,4 +319,4 @@ function update() {
 
 sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback']});
 
-sendToHub({type: 'message', topic: 'mainboard_command', command: 'fs:1'});
+//sendToHub({type: 'message', topic: 'mainboard_command', command: 'fs:1'});
