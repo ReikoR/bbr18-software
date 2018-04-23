@@ -19,6 +19,3 @@ Everything should be for Windows and 64-bit
 # Building
 * Set Clion to use msys2 mingw64
   * Use `C:\msys64\mingw64\bin\cmake.exe` instead of embedded cmake
-* Copy `xiapi64.dll` and `libboost_system-mt.dll` to build folder
-  * `xiApi\xiapi64.dll`
-  * `C:\msys64\mingw64\bin\libboost_system-mt.dll`
