@@ -27,10 +27,12 @@ file(GLOB SOURCE_FILES
         lib/*.hpp
         )
 
-add_executable(ximea_test ${SOURCE_FILES})
-target_link_libraries(ximea_test winmm.lib)
-target_link_libraries(ximea_test xiapi64.lib)
-target_link_libraries(ximea_test ws2_32 ${Boost_LIBRARIES})
-target_link_libraries(ximea_test ${OPENCL_LIBRARY})
 configure_file(xiApi/xiapi64.dll xiapi64.dll COPYONLY)
 configure_file(${Boost_LIBRARY_DIRS}/../bin/libboost_system-mt.dll libboost_system-mt.dll COPYONLY)
+
+add_executable(bbr18_vision ${SOURCE_FILES})
+
+target_link_libraries(bbr18_vision winmm.lib)
+target_link_libraries(bbr18_vision xiapi64.lib)
+target_link_libraries(bbr18_vision ws2_32 ${Boost_LIBRARIES})
+target_link_libraries(bbr18_vision ${OPENCL_LIBRARY})
