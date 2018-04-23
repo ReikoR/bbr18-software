@@ -6,8 +6,8 @@ const mbedPort = 8042;
 const mbedAddress = '192.168.4.1';
 
 socketMainboard.on('error', (err) => {
-    console.log(`socketPublisher error:\n${err.stack}`);
-    socketPublisher.close();
+    console.log(`socketMainboard error:\n${err.stack}`);
+	socketMainboard.close();
 });
 
 socketMainboard.on('message', (message, rinfo) => {
@@ -28,8 +28,8 @@ socketMainboard.bind(8042, () => {
 });
 
 socketModule.on('error', (err) => {
-    console.log(`socketSubscriber error:\n${err.stack}`);
-    socketSubscriber.close();
+    console.log(`socketModule error:\n${err.stack}`);
+	socketModule.close();
 });
 
 socketModule.on('message', (message, rinfo) => {
