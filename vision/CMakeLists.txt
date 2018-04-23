@@ -32,6 +32,9 @@ configure_file(${Boost_LIBRARY_DIRS}/../bin/libboost_system-mt.dll libboost_syst
 
 add_executable(bbr18_vision ${SOURCE_FILES})
 
+set(CMAKE_EXE_LINKER_FLAGS " -static")
+target_link_libraries(bbr18_vision -static-libgcc -static-libstdc++)
+
 target_link_libraries(bbr18_vision winmm.lib)
 target_link_libraries(bbr18_vision xiapi64.lib)
 target_link_libraries(bbr18_vision ws2_32 ${Boost_LIBRARIES})
