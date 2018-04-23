@@ -7,11 +7,11 @@ using boost::asio::ip::udp;
 
 class HubCom {
 public:
-    HubCom(std::string ipAddress, unsigned short port, unsigned short serverPort) :
-            ipAddress(ipAddress),
+    HubCom(unsigned short port, std::string serverAddress, unsigned short serverPort) :
             port(port),
-            socket(ioService, udp::endpoint(boost::asio::ip::address::from_string(ipAddress), port)),
-            serverEndpoint(udp::endpoint(boost::asio::ip::address::from_string(ipAddress), serverPort))
+			serverAddress(serverAddress),
+			socket(ioService, udp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), port)),
+            serverEndpoint(udp::endpoint(boost::asio::ip::address::from_string(serverAddress), serverPort))
     {
 
     }
@@ -21,9 +21,9 @@ public:
     void send(char* data, std::size_t length);
 
 private:
-    std::string ipAddress;
     unsigned short port;
-    boost::asio::io_service ioService;
+	std::string serverAddress;
+	boost::asio::io_service ioService;
     udp::socket socket;
     udp::endpoint serverEndpoint;
     enum {

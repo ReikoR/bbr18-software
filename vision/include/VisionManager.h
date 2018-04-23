@@ -5,6 +5,7 @@
 #include "FpsCounter.h"
 #include "HubCom.h"
 #include <string>
+#include <json.hpp>
 
 class XimeaCamera;
 class Blobber;
@@ -30,6 +31,7 @@ public:
 	bool showGui;
 
 private:
+	void loadConf();
 	void setupXimeaCamera(std::string name, XimeaCamera* camera);
 
 	XimeaCamera* frontCamera;
@@ -37,6 +39,8 @@ private:
 	Blobber* blobber;
 	FpsCounter* fpsCounter;
 	HubCom* hubCom;
+
+	nlohmann::json conf;
 
 	bool running;
 	float dt;
