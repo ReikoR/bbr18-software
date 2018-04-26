@@ -36,11 +36,11 @@ VisionManager::~VisionManager() {
 }
 
 void VisionManager::loadConf() {
-	std::ifstream infile("../conf.json");
+	std::ifstream infile("../public-conf.json");
 
 	if (infile.fail()) {
 		std::cout << "! Parsing command line options" << std::endl;
-		throw std::runtime_error("Could not open conf.json");
+		throw std::runtime_error("Could not open public-conf.json");
 	}
 
 	infile >> conf;
@@ -48,6 +48,8 @@ void VisionManager::loadConf() {
 
 void VisionManager::setup() {
 	loadConf();
+
+	std::cout << conf.dump() << std::endl;
 
 	setupCameras();
 	setupVision();
@@ -175,6 +177,8 @@ void VisionManager::setupGui() {
 void VisionManager::setupCameras() {
 	std::cout << "! Setting up cameras" << std::endl;
 
+	//frontCamera = new XimeaCamera(374363729);
+	//frontCamera = new XimeaCamera(857769553);
 	frontCamera = new XimeaCamera(conf["cameraSerial"].get<int>());
 	frontCamera->open();
 
@@ -235,7 +239,7 @@ void VisionManager::setupVision() {
 
 void VisionManager::setupHubCom() {
 	hubCom = new HubCom(
-			conf["visionPort"],
+			conf["port"],
 			conf["hubIpAddress"],
 			conf["hubPort"]
 	);
