@@ -100,7 +100,7 @@ app.put('/conf/:name', (request, response) => {
         return response.sendStatus(400);
     }
 
-    fs.writeFile(`../${request.params.name}/public-conf.json`, JSON.stringify(request.body, null, 4), 'utf8', function (err) {
+    fs.writeFile(`../${request.params.name}/public-conf.json`, JSON.stringify(request.body, null, 2), 'utf8', function (err) {
         if (err) {
             console.error(err);
             return response.sendStatus(404);

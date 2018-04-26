@@ -42,24 +42,67 @@ function renderComponents(components) {
         if (!component.ui) {
             component.ui = {
                 container: document.createElement('div'),
+                header: document.createElement('div'),
+                content: document.createElement('div'),
                 name: document.createElement('div'),
-                startButton: document.createElement('button')
+                startButton: document.createElement('button'),
+                loadConfButton: document.createElement('button'),
+                saveConfButton: document.createElement('button'),
+                confTextArea: document.createElement('div')
             };
 
-            const { container, name, startButton } = component.ui;
+            const {
+                container,
+                header,
+                content,
+                name,
+                startButton,
+                loadConfButton,
+                saveConfButton,
+                confTextArea
+            } = component.ui;
 
             container.classList.add('component');
+            header.classList.add('component-header');
+            content.classList.add('component-content');
             name.classList.add('component-name');
+            confTextArea.classList.add('component-conf');
+
+            confTextArea.setAttribute('contenteditable', '');
 
             name.innerText = component.name;
 
-            container.classList.add('component');
-            name.classList.add('component-name');
+            loadConfButton.innerText = 'Load';
+            saveConfButton.innerText = 'Save';
 
-            container.appendChild(startButton);
-            container.appendChild(name);
+            header.appendChild(startButton);
+            header.appendChild(name);
+            header.appendChild(loadConfButton);
+            header.appendChild(saveConfButton);
+            content.appendChild(confTextArea);
+
+            container.appendChild(header);
+            container.appendChild(content);
 
             elComponents.appendChild(container);
+
+            loadConfButton.addEventListener('click', function () {
+                fetch('/conf/' + id).then(function (response) {
+                    return response.json();
+                }).then(function (data) {
+                    confTextArea.innerText = JSON.stringify(data, null, 2);
+                });
+            });
+
+            saveConfButton.addEventListener('click', function () {
+                fetch('/conf/' + id, {
+                    body: confTextArea.innerText,
+                    headers: {'content-type': 'application/json'},
+                    method: 'PUT'
+                }).then(function (response) {
+                    console.log(response);
+                });
+            });
 
             startButton.addEventListener('click', function () {
                 if (component.isRunning) {

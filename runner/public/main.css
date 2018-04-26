@@ -4,10 +4,22 @@ button {
 }
 
 .component {
+    margin-bottom: 10px;
+}
+
+.component-header {
     display: flex;
     align-items: center;
 }
 
 .component-name {
     margin-left: 10px;
+    width: 75px;
+}
+
+.component-conf {
+    margin-top: 5px;
+    padding-bottom: 10px;
+    white-space: pre;
+    border-bottom: 1px lightgray solid;
 }
