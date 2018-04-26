@@ -1,9 +1,10 @@
 const dgram = require('dgram');
 const socketMainboard = dgram.createSocket('udp4');
 const socketModule = dgram.createSocket('udp4');
+const publicConf = require('./public-conf');
 
-const mbedPort = 8042;
-const mbedAddress = '192.168.4.1';
+const mbedPort = publicConf.mbedPort;
+const mbedAddress = publicConf.mbedIpAddress;
 
 socketMainboard.on('error', (err) => {
     console.log(`socketMainboard error:\n${err.stack}`);
@@ -23,7 +24,7 @@ socketMainboard.on('listening', () => {
     sendCommandToMainboard([0, 0, 0, 0, 0]);
 });
 
-socketMainboard.bind(8042, () => {
+socketMainboard.bind(publicConf.mbedPort, () => {
     socketMainboard.setMulticastInterface('127.0.0.1');
 });
 
@@ -44,7 +45,7 @@ socketModule.on('listening', () => {
     console.log(`socketModule listening ${address.address}:${address.port}`);
 });
 
-socketModule.bind(8093, () => {
+socketModule.bind(publicConf.port, () => {
     socketModule.setMulticastInterface('127.0.0.1');
 });
 
@@ -105,7 +106,7 @@ function sendToHub(info) {
     const message = Buffer.from(JSON.stringify(info));
     //console.log('send:', info, 'to', '127.0.0.1', 8091);
 
-    socketModule.send(message, 8091, '127.0.0.1', (err) => {
+    socketModule.send(message, publicConf.hubPort, publicConf.hubIpAddress, (err) => {
         if (err) {
             console.error(err);
         }

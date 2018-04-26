@@ -21,6 +21,4 @@ for (let i = 0; i < wheelsConf.length; i++) {
     wheelConf.linearSpeedToMotorRPM = (wheelConf.motorReduction * 60) / (wheelConf.radius * 2 * Math.PI);
 }
 
-console.log(wheelConf);
-
 module.exports = conf;

@@ -2,6 +2,7 @@ const dgram = require('dgram');
 const socket = dgram.createSocket('udp4');
 const omniMotion = require('./omni-motion');
 const thrower = require('./thrower');
+const publicConf = require('./public-conf.json');
 
 /**
  * @name MainboardFeedback
@@ -94,7 +95,7 @@ socket.on('listening', () => {
     console.log(`socket listening ${address.address}:${address.port}`);
 });
 
-socket.bind(8094, () => {
+socket.bind(publicConf.port, () => {
     //socket.setMulticastInterface('127.0.0.1');
     socket.setMulticastInterface('127.0.0.1');
 });
@@ -159,8 +160,7 @@ function sendToHub(info) {
     const message = Buffer.from(JSON.stringify(info));
     //console.log('send:', info, 'to', '127.0.0.1', 8091);
 
-    //socket.send(message, 8091, '127.0.0.1', (err) => {
-    socket.send(message, 8091, '10.220.20.158', (err) => {
+    socket.send(message, publicConf.hubPort, publicConf.hubIpAddress, (err) => {
         if (err) {
             console.error(err);
         }

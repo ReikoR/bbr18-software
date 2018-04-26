@@ -1,0 +1,7 @@
+{
+  "port": 8093,
+  "hubIpAddress": "127.0.0.1",
+  "hubPort": 8091,
+  "mbedIpAddress": "192.168.4.1",
+  "mbedPort": 8042
+}

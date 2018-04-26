@@ -1,6 +1,7 @@
 const dgram = require('dgram');
 const socket = dgram.createSocket('udp4');
 let topicTargets = {};
+const publicConf = require('./public-conf');
 
 socket.on('error', (err) => {
     console.log(`socket error:\n${err.stack}`);
@@ -76,7 +77,7 @@ function handleInfo(info, address, port) {
     }
 }
 
-socket.bind(8091, () => {
+socket.bind(publicConf.port, () => {
     socket.setMulticastInterface('127.0.0.1');
 });
 
