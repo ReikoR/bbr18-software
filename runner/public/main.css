@@ -1,0 +1,13 @@
+body,
+button {
+    font-family: monospace;
+}
+
+.component {
+    display: flex;
+    align-items: center;
+}
+
+.component-name {
+    margin-left: 10px;
+}
