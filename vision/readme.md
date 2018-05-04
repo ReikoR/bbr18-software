@@ -19,3 +19,8 @@ Everything should be for Windows and 64-bit
 # Building
 * Set Clion to use msys2 mingw64
   * Use `C:\msys64\mingw64\bin\cmake.exe` instead of embedded cmake
+
+# Based on
+* https://github.com/kallaspriit/soccervision
+  * https://github.com/zidik/soccervision
+* https://github.com/lwd8cmd/pyXiQ
