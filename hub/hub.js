@@ -1,11 +1,27 @@
+/**
+ * @typedef {Object} TopicTarget
+ * @property {string} address
+ * @property {number} port
+ */
+
+/**
+ * @typedef {Object} HubMessage
+ * @property {string} type
+ * @property {string} [topic]
+ * @property {string[]} [topics]
+ */
+
 const dgram = require('dgram');
 const socket = dgram.createSocket('udp4');
+/**
+ * @type {Object.<string, TopicTarget[]>}
+ */
 let topicTargets = {};
 const publicConf = require('./public-conf');
 
 socket.on('error', (err) => {
     console.log(`socket error:\n${err.stack}`);
-socket.close();
+    socket.close();
 });
 
 socket.on('message', (message, rinfo) => {
@@ -20,6 +36,11 @@ socket.on('listening', () => {
     console.log(`socket listening ${address.address}:${address.port}`);
 });
 
+/**
+ * @param {HubMessage} info
+ * @param {string} address 
+ * @param {number} port 
+ */
 function handleInfo(info, address, port) {
     let type = info.type;
 
@@ -27,31 +48,42 @@ function handleInfo(info, address, port) {
         let topics = info.topics;
         let target = {address: address, port: port};
 
-        topics.forEach(function (topic) {
-            let targets = topicTargets[topic];
-            if (Array.isArray(targets)) {
-                for (let i = 0; i < targets.length; i++) {
-                    let existingTargetIndex = targets.findIndex(function (topicTarget) {
-                        return topicTarget.address === address && topicTarget.port === port
-                    });
+        if (isNonEmptyArray(topics)) {
+            topics.forEach(function (topic) {
+                /** @type {TopicTarget[]} */
+                let targets = topicTargets[topic];
 
-                    if (existingTargetIndex === -1) {
-                        targets.append(target);
+                if (Array.isArray(targets)) {
+                    if (targets.length > 0) {
+                        for (let i = 0; i < targets.length; i++) {
+                            let existingTargetIndex = targets.findIndex(function (topicTarget) {
+                                return topicTarget.address === address && topicTarget.port === port;
+                            });
+
+                            if (existingTargetIndex === -1) {
+                                targets.push(target);
+                            }
+                        }
+                    } else {
+                        targets.push(target);
                     }
+
+                } else {
+                    topicTargets[topic] = [target];
                 }
-            } else {
-                topicTargets[topic] = [target];
-            }
-        });
+            });
+        }
+
         console.log('topicTargets:', topicTargets);
     }
 
     else if (type === 'unsubscribe') {
         let topics = info.topics;
-        let isNonEmptyArray = Array.isArray(topics) && topics.length > 0;
 
-        (isNonEmptyArray ? topics : Object.keys(topicTargets)).forEach(function (topic) {
+        (isNonEmptyArray(topics) ? topics : Object.keys(topicTargets)).forEach(function (topic) {
+            /** @type {TopicTarget[]} */
             let targets = topicTargets[topic];
+
             if (Array.isArray(targets)) {
                 for (let i = 0; i < targets.length;) {
                     if (targets[i].address === address && targets[i].port === port) {
@@ -62,14 +94,16 @@ function handleInfo(info, address, port) {
                 }
             }
         });
+
         console.log('topicTargets:', topicTargets);
     }
 
     else if (type === 'message') {
         let topic = info.topic;
+        /** @type {TopicTarget[]} */
         let targets = topicTargets[topic];
 
-        if (Array.isArray(targets) && targets.length > 0) {
+        if (isNonEmptyArray(targets)) {
             for (let i = 0; i < targets.length; i++) {
                 send(info, targets[i].address, targets[i].port);
             }
@@ -91,3 +125,36 @@ function send(info, address, port) {
         }
     });
 }
+
+process.on('SIGINT', close);
+
+process.on('message', (message) => {
+    console.log('CHILD got message:', message);
+
+    if (message.type === 'close') {
+        close();
+    }
+});
+
+function close() {
+    console.log('closing');
+    socket.close(function () {
+        if (process.connected) {
+            process.exit();
+        }
+    });
+}
+
+/**
+ * @param {Array} array
+ * @returns {boolean}
+ */
+function isNonEmptyArray(array) {
+    return Array.isArray(array) && array.length > 0;
+}
+
+module.exports = {
+    handleInfo,
+    topicTargets,
+    close
+};

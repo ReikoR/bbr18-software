@@ -1,2 +1,6 @@
 .idea/
 runner/node_modules/
+hub/node_modules/
+node_modules/
+hub/test/coverage/
+hub/coverage/

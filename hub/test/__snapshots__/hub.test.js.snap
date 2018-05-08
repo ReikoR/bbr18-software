@@ -1,0 +1,55 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`subscribe and unsubscribe 1`] = `
+Object {
+  "test": Array [
+    Object {
+      "address": "127.0.0.1",
+      "port": 8092,
+    },
+  ],
+}
+`;
+
+exports[`subscribe and unsubscribe 2`] = `
+Object {
+  "test": Array [
+    Object {
+      "address": "127.0.0.1",
+      "port": 8092,
+    },
+    Object {
+      "address": "127.0.0.1",
+      "port": 8093,
+    },
+  ],
+}
+`;
+
+exports[`subscribe and unsubscribe 3`] = `
+Object {
+  "test": Array [
+    Object {
+      "address": "127.0.0.1",
+      "port": 8092,
+    },
+  ],
+}
+`;
+
+exports[`subscribe and unsubscribe 4`] = `
+Object {
+  "test": Array [],
+}
+`;
+
+exports[`subscribe and unsubscribe 5`] = `
+Object {
+  "test": Array [
+    Object {
+      "address": "127.0.0.1",
+      "port": 8092,
+    },
+  ],
+}
+`;
