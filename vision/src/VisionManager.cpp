@@ -77,6 +77,8 @@ void VisionManager::run() {
 		while (running) {
 			Sleep(100);
 
+			handleCommunicationMessages();
+
 			if (SignalHandler::exitRequested) {
 				running = false;
 			}
@@ -149,6 +151,8 @@ void VisionManager::run() {
 		}*/
 
 		sendState();
+
+		handleCommunicationMessages();
 
 		lastStepTime = time;
 
@@ -245,6 +249,15 @@ void VisionManager::setupHubCom() {
 	);
 
 	hubCom->run();
+
+	/*auto jsonString = R"(
+	  {
+		"type": "subscribe",
+		"topics": ["vision_close"]
+	  }
+	)"_json.dump();
+
+	hubCom->send(const_cast<char *>(jsonString.c_str()), jsonString.length());*/
 }
 
 void VisionManager::sendState() {
@@ -300,4 +313,24 @@ void VisionManager::sendState() {
 	//std::cout << "! JSON time: " << Util::timerEnd(startTime) << std::endl;
 
 	hubCom->send(const_cast<char *>(jsonString.c_str()), jsonString.length());
+}
+
+void VisionManager::handleCommunicationMessages() {
+	std::string message;
+
+	while (hubCom->gotMessages()) {
+		message = hubCom->dequeueMessage();
+
+		handleCommunicationMessage(message);
+	}
+}
+
+void VisionManager::handleCommunicationMessage(std::string message) {
+	auto jsonMessage = nlohmann::json::parse(message);
+
+	std::cout << "JSON: " << jsonMessage.dump() << std::endl;
+
+	if ((jsonMessage["topic"] == "vision_close")) {
+		running = false;
+	}
 }

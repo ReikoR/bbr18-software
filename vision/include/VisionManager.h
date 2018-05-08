@@ -49,6 +49,8 @@ private:
 	Dir debugCameraDir;
 
 	void sendState();
+	void handleCommunicationMessages();
+	void handleCommunicationMessage(std::string message);
 };
 
 #endif
