@@ -1,0 +1,22 @@
+{
+  "name": "bbr18-software",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ReikoR/bbr18-software.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ReikoR/bbr18-software/issues"
+  },
+  "homepage": "https://github.com/ReikoR/bbr18-software#readme",
+  "devDependencies": {
+    "eslint": "^4.19.1"
+  }
+}
