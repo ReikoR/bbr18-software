@@ -7,6 +7,9 @@ const state = {
 const socketReconnectDelay = new BackOffDelay();
 
 function onSocketMessage(message) {
+    if (message === 'updated') {
+        fetchComponents();
+    }
 }
 
 function onSocketOpened() {
@@ -166,7 +169,6 @@ function renderComponents(components) {
                 if (component.isRunning) {
                     fetch('/stop/' + id).then(function (response) {
                         console.log(response.body);
-                        fetchComponents();
                     });
                 } else {
                     fetch('/start/' + id).then(function (response) {
