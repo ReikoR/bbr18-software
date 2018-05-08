@@ -1,6 +1,8 @@
 const childProcess = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const dgram = require('dgram');
+const socket = dgram.createSocket('udp4');
 const http = require('http');
 const express = require('express');
 const WebSocket = require('ws');
@@ -9,6 +11,11 @@ const app = express();
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
+
+socket.on('error', (err) => {
+    console.log(`socket error:\n${err.stack}`);
+    socket.close();
+});
 
 const components = {
     hub: {
@@ -49,7 +56,7 @@ app.get('/components', (request, response) => {
         componentInfo[id] = {
             name: component.name,
             isRunning: component.process !== null
-        }
+        };
     }
 
     response.json(componentInfo);
@@ -72,18 +79,12 @@ app.get('/conf/:name', (request, response) => {
         return response.sendStatus(404);
     }
 
-    fs.readFile(`../${request.params.name}/public-conf.json`, 'utf8', (err, data) => {
+    readComponentConf(request.params.name, (err, conf) => {
         if (err) {
-            console.error(err);
             return response.sendStatus(404);
         }
 
-        try {
-            response.json(JSON.parse(data));
-        } catch (e) {
-            console.error(err);
-            return response.sendStatus(404);
-        }
+        response.json(conf);
     });
 });
 
@@ -118,6 +119,14 @@ wss.on('connection', function connection(ws, req) {
     ws.send('something');
 });
 
+wss.broadcast = function broadcast(data) {
+    wss.clients.forEach(function each(client) {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(data);
+        }
+    });
+};
+
 server.listen(8079, function listening() {
     console.log('Listening on %d', server.address().port);
 });
@@ -126,16 +135,18 @@ function startComponent(name) {
     const component = components[name];
 
     if (component && component.process === null) {
-        console.log(path.dirname(path.resolve(__dirname, component.path)));
+        const absolutePath = path.join(__dirname, component.path);
 
         if (component.type === 'exe') {
-            component.process = childProcess.spawn(path.resolve(__dirname, component.path), {
-                cwd: path.dirname(path.resolve(__dirname, component.path))
+            component.process = childProcess.spawn(absolutePath, {
+                cwd: path.dirname(absolutePath),
+                shell: true
             });
 
         } else if (component.type === 'node') {
-            component.process = childProcess.spawn('node', [path.resolve(__dirname, component.path)], {
-                cwd: path.dirname(path.resolve(__dirname, component.path))
+            component.process = childProcess.fork(absolutePath, [], {
+                cwd: path.dirname(absolutePath),
+                silent: true
             });
         }
 
@@ -154,6 +165,10 @@ function startComponent(name) {
 
             component.process.on('exit', function (code, signal) {
                 console.log(`${component.name} exited with code ${code} and signal ${signal}`);
+
+                component.process = null;
+
+                wss.broadcast('updated');
             });
         }
     }
@@ -163,7 +178,49 @@ function stopComponent(name) {
     const component = components[name];
 
     if (component && component.process !== null) {
-        component.process.kill();
-        component.process = null;
+        if (component.type === 'node') {
+            component.process.send({type: 'close'});
+        } else {
+            readComponentConf(name, (err, conf) => {
+                if (err) {
+                    component.process.kill();
+                    return;
+                }
+
+                sendUDPMessage('127.0.0.1', conf.port, {type: 'message', topic: name + '_close'});
+            });
+        }
     }
+}
+
+function readComponentConf(name, callback) {
+    fs.readFile(`../${name}/public-conf.json`, 'utf8', (err, data) => {
+        if (err) {
+            console.error(err);
+            callback(err);
+            return;
+        }
+
+        try {
+            callback(null, JSON.parse(data));
+
+        } catch (e) {
+            console.error(e);
+            callback(e);
+        }
+    });
+}
+
+function sendUDPMessage(ipAddress, port, info, onSent) {
+    const message = Buffer.from(JSON.stringify(info));
+
+    socket.send(message, port, ipAddress, (err) => {
+        if (err) {
+            console.error(err);
+        }
+
+        if (typeof onSent === 'function') {
+            onSent(err);
+        }
+    });
 }
