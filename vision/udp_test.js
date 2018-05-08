@@ -15,12 +15,12 @@ socket.on('listening', () => {
     console.log(`socket listening ${address.address}:${address.port}`);
 });
 
-socket.bind(8091, () => {
+socket.bind(8085, () => {
     socket.setMulticastInterface('127.0.0.1');
 });
 
-const message = Buffer.from('Some bytes');
+const message = Buffer.from(JSON.stringify({type: "message", topic: "vision_close"}));
 
-socket.send(message, 8092, '127.0.0.1', (err) => {
-    //socket.close();
-});
+setInterval(() => {
+    socket.send(message, 8092, '127.0.0.1');
+}, 1000);

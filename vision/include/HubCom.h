@@ -2,23 +2,22 @@
 #define XIMEA_TEST_COMM_H
 
 #include <boost/asio.hpp>
+#include <queue>
 
 using boost::asio::ip::udp;
 
 class HubCom {
 public:
-    HubCom(unsigned short port, std::string serverAddress, unsigned short serverPort) :
-            port(port),
-			serverAddress(serverAddress),
-			socket(ioService, udp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), port)),
-            serverEndpoint(udp::endpoint(boost::asio::ip::address::from_string(serverAddress), serverPort))
-    {
-
-    }
+	HubCom(unsigned short port, std::string serverAddress, unsigned short serverPort);
+	~HubCom();
 
     void run();
 
     void send(char* data, std::size_t length);
+
+    bool gotMessages();
+
+	std::string dequeueMessage();
 
 private:
     unsigned short port;
@@ -31,6 +30,11 @@ private:
     };
     char data[max_length];
 
+	std::queue<std::string> messages;
+
+	std::thread* runnerThread;
+
+	void runThread();
     void receive();
 };
 
