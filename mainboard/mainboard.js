@@ -8,7 +8,7 @@ const mbedAddress = publicConf.mbedIpAddress;
 
 socketMainboard.on('error', (err) => {
     console.log(`socketMainboard error:\n${err.stack}`);
-	socketMainboard.close();
+    socketMainboard.close();
 });
 
 socketMainboard.on('message', (message, rinfo) => {
@@ -30,7 +30,7 @@ socketMainboard.bind(publicConf.mbedPort, () => {
 
 socketModule.on('error', (err) => {
     console.log(`socketModule error:\n${err.stack}`);
-	socketModule.close();
+    socketModule.close();
 });
 
 socketModule.on('message', (message, rinfo) => {
@@ -48,6 +48,27 @@ socketModule.on('listening', () => {
 socketModule.bind(publicConf.port, () => {
     socketModule.setMulticastInterface('127.0.0.1');
 });
+
+process.on('SIGINT', close);
+
+process.on('message', (message) => {
+    console.log('CHILD got message:', message);
+
+    if (message.type === 'close') {
+        close();
+    }
+});
+
+function close() {
+    console.log('closing');
+
+    socketMainboard.close();
+
+    sendToHub({type: 'unsubscribe'}, () => {
+        socketModule.close();
+        process.exit();
+    });
+}
 
 function handleInfo(info, address, port) {
     console.log('handleInfo', info);
@@ -102,13 +123,17 @@ function handleMainboardMessage(message) {
     sendToHub(info);
 }
 
-function sendToHub(info) {
+function sendToHub(info, onSent) {
     const message = Buffer.from(JSON.stringify(info));
     //console.log('send:', info, 'to', '127.0.0.1', 8091);
 
     socketModule.send(message, publicConf.hubPort, publicConf.hubIpAddress, (err) => {
         if (err) {
             console.error(err);
+        }
+
+        if (typeof onSent === 'function') {
+            onSent(err);
         }
     });
 }

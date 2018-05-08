@@ -100,6 +100,25 @@ socket.bind(publicConf.port, () => {
     socket.setMulticastInterface('127.0.0.1');
 });
 
+process.on('SIGINT', close);
+
+process.on('message', (message) => {
+    console.log('CHILD got message:', message);
+
+    if (message.type === 'close') {
+        close();
+    }
+});
+
+function close() {
+    console.log('closing');
+
+    sendToHub({type: 'unsubscribe'}, () => {
+        socket.close();
+        process.exit();
+    });
+}
+
 /**
  *
  * @param {object} info
@@ -110,36 +129,36 @@ function handleInfo(info) {
     let shouldUpdate = false;
 
     switch (info.topic) {
-        case 'vision':
-            processVisionInfo(info);
+    case 'vision':
+        processVisionInfo(info);
+        shouldUpdate = true;
+        break;
+    case 'mainboard_feedback':
+        /*if (info.message.isSpeedChanged) {
             shouldUpdate = true;
-            break;
-        case 'mainboard_feedback':
-            /*if (info.message.isSpeedChanged) {
-                shouldUpdate = true;
-            }*/
+        }*/
 
-            mainboardState.speeds[0] = info.message.speed1;
-            mainboardState.speeds[1] = info.message.speed2;
-            mainboardState.speeds[2] = info.message.speed3;
-            mainboardState.speeds[3] = info.message.speed4;
-            mainboardState.speeds[4] = info.message.speed5;
+        mainboardState.speeds[0] = info.message.speed1;
+        mainboardState.speeds[1] = info.message.speed2;
+        mainboardState.speeds[2] = info.message.speed3;
+        mainboardState.speeds[3] = info.message.speed4;
+        mainboardState.speeds[4] = info.message.speed5;
 
-            mainboardState.prevBalls = mainboardState.balls.slice();
-            mainboardState.balls[0] = info.message.ball1;
-            mainboardState.balls[1] = info.message.ball2;
+        mainboardState.prevBalls = mainboardState.balls.slice();
+        mainboardState.balls[0] = info.message.ball1;
+        mainboardState.balls[1] = info.message.ball2;
 
-            if (
-                !mainboardState.ballThrown
-                && mainboardState.prevBalls[1] === true
-                && mainboardState.balls[1] === false
-            ) {
-                mainboardState.ballThrown = true;
-            }
+        if (
+            !mainboardState.ballThrown
+            && mainboardState.prevBalls[1] === true
+            && mainboardState.balls[1] === false
+        ) {
+            mainboardState.ballThrown = true;
+        }
 
-            mainboardState.lidarDistance = info.message.distance;
+        mainboardState.lidarDistance = info.message.distance;
 
-            break;
+        break;
     }
 
     if (shouldUpdate) {
@@ -156,13 +175,16 @@ function processVisionInfo(info) {
         blobs && Array.isArray(blobs[basketColour]) && blobs[basketColour].length > 0 ? blobs[basketColour][0] : null;
 }
 
-function sendToHub(info) {
+function sendToHub(info, onSent) {
     const message = Buffer.from(JSON.stringify(info));
-    //console.log('send:', info, 'to', '127.0.0.1', 8091);
 
     socket.send(message, publicConf.hubPort, publicConf.hubIpAddress, (err) => {
         if (err) {
             console.error(err);
+        }
+
+        if (typeof onSent === 'function') {
+            onSent(err);
         }
     });
 }
