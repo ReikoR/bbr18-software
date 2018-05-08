@@ -1,14 +1,72 @@
-let socket = new WebSocket('ws://' + location.host);
-
-socket.addEventListener('message', function (event) {
-    console.log(event.data);
-});
-
-fetchComponents();
+let socket = createWebsocket(onSocketMessage, onSocketOpened, onSocketClosed);
 
 const state = {
     components: {}
 };
+
+const socketReconnectDelay = new BackOffDelay();
+
+function onSocketMessage(message) {
+}
+
+function onSocketOpened() {
+    socketReconnectDelay.reset();
+    fetchComponents();
+}
+
+function onSocketClosed() {
+    setTimeout(() => {
+        socket = createWebsocket(onSocketMessage, onSocketOpened, onSocketClosed);
+    }, socketReconnectDelay.get());
+}
+
+function BackOffDelay() {
+    this.min = 1000;
+    this.max = 10000;
+    this.step = 500;
+    this.current = this.min;
+}
+
+BackOffDelay.prototype.get = function () {
+    const returnValue = this.current;
+    this.current = Math.min(this.current + this.step, this.max);
+
+    console.log('delay', returnValue);
+
+    return returnValue;
+};
+
+BackOffDelay.prototype.reset = function () {
+    this.current = this.min;
+};
+
+function createWebsocket(onMessage, onOpened, onClosed) {
+    const socket = new WebSocket('ws://' + location.host);
+
+    socket.addEventListener('message', function (event) {
+        console.log(event.data);
+
+        onMessage(event.data);
+    });
+
+    socket.addEventListener('close', function (event) {
+        console.log('socket closed', event.code, event.reason);
+
+        onClosed();
+    });
+
+    socket.addEventListener('error', function () {
+        console.log('socket error');
+    });
+
+    socket.addEventListener('open', function () {
+        console.log('socket opened');
+
+        onOpened();
+    });
+
+    return socket;
+}
 
 function fetchComponents() {
     fetch('/components').then(function (response) {
