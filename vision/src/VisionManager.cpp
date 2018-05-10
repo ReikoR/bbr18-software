@@ -328,7 +328,7 @@ void VisionManager::handleCommunicationMessages() {
 void VisionManager::handleCommunicationMessage(std::string message) {
 	auto jsonMessage = nlohmann::json::parse(message);
 
-	std::cout << "JSON: " << jsonMessage.dump() << std::endl;
+	//std::cout << "JSON: " << jsonMessage.dump() << std::endl;
 
 	if ((jsonMessage["topic"] == "vision_close")) {
 		running = false;
