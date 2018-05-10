@@ -91,6 +91,9 @@ const frameCenterX = frameWidth / 2;
 let motionState = motionStates.FIND_BALL;
 let throwerState = throwerStates.IDLE;
 
+let throwBallTimeout = 0;
+const throwBallTimeoutDelay = 5000;
+
 let visionState = {};
 let processedVisionState = {closestBall: null, basket: null};
 let mainboardState = {
@@ -274,6 +277,8 @@ function handleMotionFindBall() {
     } else {
         setAiStateSpeeds(omniMotion.calculateSpeeds(0, 0, -1, true));
     }
+
+    setThrowerState(throwerStates.IDLE);
 }
 
 function handleMotionDriveToBall() {
@@ -390,6 +395,14 @@ function setThrowerState(newState) {
     if (throwerState !== newState) {
         console.log('Thrower state:', throwerState, '->', newState);
         throwerState = newState;
+
+        clearTimeout(throwBallTimeout);
+
+        if (throwerState === throwerStates.THROW_BALL) {
+            throwBallTimeout = setTimeout(() => {
+                setThrowerState(throwerStates.IDLE);
+            }, throwBallTimeoutDelay);
+        }
     }
 }
 
