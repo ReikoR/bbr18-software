@@ -41,6 +41,12 @@ const components = {
         type: 'node',
         path: '../ai/ai.js',
         process: null
+    },
+    dashboard: {
+        name: 'dashboard',
+        type: 'node',
+        path: '../dashboard/dashboard.js',
+        process: null
     }
 };
 
