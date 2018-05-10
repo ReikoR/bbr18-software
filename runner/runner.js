@@ -129,6 +129,7 @@ wss.broadcast = function broadcast(data) {
 
 server.listen(8079, function listening() {
     console.log('Listening on %d', server.address().port);
+    console.log('http://localhost:' + server.address().port);
 });
 
 function startComponent(name) {
