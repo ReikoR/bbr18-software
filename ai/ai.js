@@ -20,6 +20,30 @@ const publicConf = require('./public-conf.json');
  */
 
 /**
+ * @typedef {Object} HubInfo
+ * @property {string} topic
+ * @property {AiCommandInfo} [commandInfo]
+ * @property {Object.<string, VisionBlobInfo[]>} [blobs]
+ */
+
+/**
+ * @typedef {Object} VisionBlobInfo
+ * @property {number} area
+ * @property {number} cx
+ * @property {number} cy
+ * @property {number} x1
+ * @property {number} x2
+ * @property {number} y1
+ * @property {number} y2
+ */
+
+/**
+ * @typedef {Object} AiCommandInfo
+ * @property {string} command
+ * @property {string} [state]
+ */
+
+/**
  * @enum {string}
  */
 const motionStates = {
@@ -121,44 +145,61 @@ function close() {
 
 /**
  *
- * @param {object} info
- * @param {string} info.topic
+ * @param {HubInfo} info
  * @param {MainboardFeedback} info.message
  */
 function handleInfo(info) {
     let shouldUpdate = false;
 
     switch (info.topic) {
-    case 'vision':
-        processVisionInfo(info);
-        shouldUpdate = true;
-        break;
-    case 'mainboard_feedback':
-        /*if (info.message.isSpeedChanged) {
+        case 'vision':
+            processVisionInfo(info);
             shouldUpdate = true;
-        }*/
+            break;
+        case 'mainboard_feedback':
+            /*if (info.message.isSpeedChanged) {
+                shouldUpdate = true;
+            }*/
 
-        mainboardState.speeds[0] = info.message.speed1;
-        mainboardState.speeds[1] = info.message.speed2;
-        mainboardState.speeds[2] = info.message.speed3;
-        mainboardState.speeds[3] = info.message.speed4;
-        mainboardState.speeds[4] = info.message.speed5;
+            mainboardState.speeds[0] = info.message.speed1;
+            mainboardState.speeds[1] = info.message.speed2;
+            mainboardState.speeds[2] = info.message.speed3;
+            mainboardState.speeds[3] = info.message.speed4;
+            mainboardState.speeds[4] = info.message.speed5;
 
-        mainboardState.prevBalls = mainboardState.balls.slice();
-        mainboardState.balls[0] = info.message.ball1;
-        mainboardState.balls[1] = info.message.ball2;
+            mainboardState.prevBalls = mainboardState.balls.slice();
+            mainboardState.balls[0] = info.message.ball1;
+            mainboardState.balls[1] = info.message.ball2;
 
-        if (
-            !mainboardState.ballThrown
-            && mainboardState.prevBalls[1] === true
-            && mainboardState.balls[1] === false
-        ) {
-            mainboardState.ballThrown = true;
+            if (
+                !mainboardState.ballThrown
+                && mainboardState.prevBalls[1] === true
+                && mainboardState.balls[1] === false
+            ) {
+                mainboardState.ballThrown = true;
+                console.log('mainboardState.ballThrown', mainboardState.ballThrown);
+            }
+
+            mainboardState.lidarDistance = info.message.distance;
+
+            sendState();
+
+            break;
+        case 'ai_command': {
+            const commandInfo = info.commandInfo;
+
+            if (commandInfo.command === 'set_motion_state') {
+                if (motionStates[commandInfo.state]) {
+                    setMotionState(commandInfo.state);
+                }
+            } else if (commandInfo.command === 'set_thrower_state') {
+                if (throwerStates[commandInfo.state]) {
+                    setThrowerState(commandInfo.state);
+                }
+            }
+
+            break;
         }
-
-        mainboardState.lidarDistance = info.message.distance;
-
-        break;
     }
 
     if (shouldUpdate) {
@@ -166,13 +207,33 @@ function handleInfo(info) {
     }
 }
 
+/**
+ *
+ * @param {HubInfo} info
+ */
 function processVisionInfo(info) {
     visionState = info;
     const blobs = visionState.blobs;
+
     processedVisionState.closestBall =
         blobs && Array.isArray(blobs.green) && blobs.green.length > 0 ? blobs.green[0] : null;
     processedVisionState.basket =
         blobs && Array.isArray(blobs[basketColour]) && blobs[basketColour].length > 0 ? blobs[basketColour][0] : null;
+}
+
+function sendState() {
+    const state = {
+        motionState,
+        throwerState,
+        ballSensors: mainboardState.balls,
+        ballThrown: mainboardState.ballThrown,
+        closestBall: processedVisionState.closestBall,
+        basket: processedVisionState.basket
+    };
+
+    sendToHub({type: 'message', topic: 'ai_state', state: state}, () => {
+
+    });
 }
 
 function sendToHub(info, onSent) {
@@ -339,6 +400,6 @@ function update() {
     sendToHub({type: 'message', topic: 'mainboard_command', command: formatSpeedCommand(aiState.speeds)});
 }
 
-sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback']});
+sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command']});
 
 //sendToHub({type: 'message', topic: 'mainboard_command', command: 'fs:1'});
