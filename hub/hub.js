@@ -25,7 +25,7 @@ socket.on('error', (err) => {
 });
 
 socket.on('message', (message, rinfo) => {
-    console.log(`socket got: ${message} from ${rinfo.address}:${rinfo.port}`);
+    //console.log(`socket got: ${message} from ${rinfo.address}:${rinfo.port}`);
 
     const info = JSON.parse(message.toString());
     handleInfo(info, rinfo.address, rinfo.port);
