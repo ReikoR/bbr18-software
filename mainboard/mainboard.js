@@ -12,8 +12,6 @@ socketMainboard.on('error', (err) => {
 });
 
 socketMainboard.on('message', (message, rinfo) => {
-    console.log(`socketMainboard got: ${message} from ${rinfo.address}:${rinfo.port}`);
-
     handleMainboardMessage(message);
 });
 
