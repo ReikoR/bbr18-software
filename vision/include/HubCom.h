@@ -3,6 +3,8 @@
 
 #include <boost/asio.hpp>
 #include <queue>
+#include <thread>
+#include <mutex>
 
 using boost::asio::ip::udp;
 
@@ -33,6 +35,8 @@ private:
 	std::queue<std::string> messages;
 
 	std::thread* runnerThread;
+
+	std::mutex messagesMutex;
 
 	void runThread();
     void receive();

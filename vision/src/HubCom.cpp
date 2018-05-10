@@ -35,6 +35,8 @@ void HubCom::receive() {
             boost::asio::buffer(data, max_length), serverEndpoint,
             [this](std::error_code ec, std::size_t bytes_recvd) {
                 if (!ec && bytes_recvd > 0) {
+                    std::lock_guard<std::mutex> guard(messagesMutex);
+
 					std::string msg = std::string(data, bytes_recvd);
 
                     messages.push(msg);
@@ -54,10 +56,14 @@ void HubCom::send(char* data, std::size_t length) {
 
 bool HubCom::gotMessages() {
 	//std::cout << "message count: " << messages.size() << std::endl;
+    std::lock_guard<std::mutex> guard(messagesMutex);
+
 	return !messages.empty();
 }
 
 std::string HubCom::dequeueMessage() {
+    std::lock_guard<std::mutex> guard(messagesMutex);
+
 	if (messages.empty()) {
 		return "";
 	}
