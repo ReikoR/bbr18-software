@@ -50,7 +50,9 @@ void HubCom::send(char* data, std::size_t length) {
     socket.async_send_to(
             boost::asio::buffer(data, length), serverEndpoint,
             [this](std::error_code ec, std::size_t bytes_sent) {
-                std::cout << "sent " << ec << " " << +bytes_sent << std::endl;
+                if (ec) {
+                    std::cout << "async_send_to error " << ec << std::endl;
+                }
             });
 }
 
