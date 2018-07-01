@@ -47,6 +47,12 @@ const components = {
         type: 'node',
         path: '../dashboard/dashboard.js',
         process: null
+    },
+    'manual-control': {
+        name: 'manual-control',
+        type: 'node',
+        path: '../manual-control/manual-control.js',
+        process: null
     }
 };
 
