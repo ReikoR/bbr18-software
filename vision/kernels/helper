@@ -1,0 +1,19 @@
+uchar4 rgb = (uchar4) (input[i + 0], input[i + 1], input[i + 2], 0);
+
+    // Find closest centroid
+    //int rgb = i^2 + (i + 1)^2 + (i + 2)^2
+    int minDist;
+    int closestCentroid = -1;
+
+    for (int c = 0; c < centroidCount; ++c) {
+        uchar4 centroid = (uchar4) (centroids[c*3 + 0], centroids[c*3 + 1], centroids[c*3 + 2], 0);
+        int dist = length(centroid - rgb);
+
+        if (closestCentroid == -1 || dist < minDist) {
+            minDist = dist;
+            closestCentroid = c;
+        }
+        //dist = pown(input[i] - centroids[0 + c*3], 2)
+        //+ pown(input[i + 1] - centroids[1 + c*3], 2) + (input[i + 2] - centroids[2 + c*3])^2
+    }
+

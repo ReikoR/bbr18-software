@@ -5,7 +5,19 @@
 #include <vector>
 
 class OpenCLCompute {
-public:;
+public:
+    static OpenCLCompute& getInstance() {
+        static OpenCLCompute instance; // Guaranteed to be destroyed.
+        static bool singletonSetupDone = false;
+
+        if (!singletonSetupDone) {
+            (&instance)->setup();
+            singletonSetupDone = true;
+        }
+
+        return instance;
+    }
+
 	OpenCLCompute();
 	~OpenCLCompute();
 
@@ -19,6 +31,23 @@ public:;
 			int width,
 			int height,
 			int colorsLookupSize
+	);
+
+    void kMeans(
+            unsigned char* rgb,
+            unsigned char* clustered,
+            unsigned char *centroids,
+            int centroidCount,
+            int width,
+            int height
+    );
+
+    void generateLookupTable(
+			unsigned char *centroids,
+			unsigned char *lookupTable,
+			int centroidIndex,
+			int centroidCount,
+			unsigned char color
 	);
 
 private:
@@ -40,13 +69,21 @@ private:
 	cl_mem lookupBuffer;
 	cl_mem segmentedBuffer;
 
+	cl_context clContext;
 	cl_command_queue clQueue;
 
-	cl_context deBayerContext;
 	cl_program deBayerProgram;
 	cl_kernel deBayerKernel;
 
+	cl_program kMeansProgram;
+	cl_kernel kMeansKernel;
+
+	cl_program generateLookupTableProgram;
+	cl_kernel generateLookupTableKernel;
+
 	void setupDeBayer();
+	void setupKMeans();
+	void setupGenerateLookupTable();
 };
 
 #endif
