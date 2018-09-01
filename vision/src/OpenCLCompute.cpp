@@ -23,6 +23,9 @@ OpenCLCompute::~OpenCLCompute() {
 	clReleaseKernel(kMeansKernel);
 	clReleaseProgram(kMeansProgram);
 
+	clReleaseKernel(generateLookupTableKernel);
+	clReleaseProgram(generateLookupTableProgram);
+
 	clReleaseCommandQueue(clQueue);
 	clReleaseContext(clContext);
 }
