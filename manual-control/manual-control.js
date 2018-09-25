@@ -194,9 +194,9 @@ function handleInfo(info) {
     switch (info.topic) {
         case 'mainboard_feedback':
             prevBallValue = ballValue;
-            ballValue = info.message.ball1;
+            ballValue = info.message.ball2;
             prevBall2Value = ball2Value;
-            ball2Value = info.message.ball2;
+            ball2Value = info.message.ball1;
 
             if (prevBallValue !==  ballValue || prevBall2Value !== ball2Value) {
                 handleBallValueChanged();
@@ -272,10 +272,10 @@ function rotationRadiansToMetersPerSecond(radiansPerSecond) {
 
 speedSendInterval = setInterval(() => {
     if (state === states.THROW_BALL) {
-        speeds[4] = -2000;
+        speeds[4] = 2000;
     }
     else if (state === states.GRAB_BALL) {
-        speeds[4] = -200;
+        speeds[4] = 200;
     }
     else if (state === states.HOLD_BALL || state === states.IDLE) {
         speeds[4] = 0;
@@ -284,10 +284,10 @@ speedSendInterval = setInterval(() => {
     if (state === states.EJECT_BALL) {
         let currentTime = Date.now();
         let timeDiff = currentTime - startTimeEject;
-        let speed = 200 - timeDiff * 0.2;
+        let speed = -200 + timeDiff * 0.2;
 
-        if (speed < 10){
-            speed = 10;
+        if (speed > -10){
+            speed = -10;
         }
 
         speeds[4] = speed;
