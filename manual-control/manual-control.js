@@ -13,7 +13,7 @@ socket.on('error', (err) => {
 });
 
 socket.on('message', (message, rinfo) => {
-    console.log(`socket got: ${message} from ${rinfo.address}:${rinfo.port}`);
+    //console.log(`socket got: ${message} from ${rinfo.address}:${rinfo.port}`);
 
     const info = JSON.parse(message.toString());
     handleInfo(info);
@@ -73,6 +73,8 @@ process.on('message', (message) => {
         exitHandler({exit: true});
     }
 });
+
+let isControllerActive = true;
 
 const states = {
     IDLE: 'IDLE',
@@ -139,6 +141,11 @@ controller.on('data', (data) => {
         maxSpeed = defaultMaxSpeed;
         maxRotation = defaultMaxRotation;
         console.log(maxSpeed);
+    }
+
+    if (!prevButtons.B && data.button.B) {
+        console.log('B');
+        toggleController();
     }
 
     if (!prevButtons.X && data.button.X) {
@@ -270,6 +277,43 @@ function rotationRadiansToMetersPerSecond(radiansPerSecond) {
     return radiansPerSecond * robotConfig.wheelFromCenter;
 }
 
+function toggleController() {
+    isControllerActive = !isControllerActive;
+
+    sendControllerActiveMessages();
+}
+
+function sendControllerActiveMessages() {
+    if (isControllerActive) {
+        sendToHub({
+            type: 'message',
+            topic: 'ai_command',
+            commandInfo: {
+                command: 'set_motion_state',
+                state: 'IDLE',
+            }
+        });
+
+        sendToHub({
+            type: 'message',
+            topic: 'ai_command',
+            commandInfo: {
+                command: 'set_thrower_state',
+                state: 'IDLE',
+            }
+        });
+    } else {
+        sendToHub({
+            type: 'message',
+            topic: 'ai_command',
+            commandInfo: {
+                command: 'set_motion_state',
+                state: 'FIND_BALL',
+            }
+        });
+    }
+}
+
 speedSendInterval = setInterval(() => {
     if (state === states.THROW_BALL) {
         speeds[4] = 2000;
@@ -293,7 +337,9 @@ speedSendInterval = setInterval(() => {
         speeds[4] = speed;
     }
 
-    drive();
+    if (isControllerActive) {
+        drive();
+    }
 }, 20);
 
 function update() {
@@ -315,3 +361,4 @@ function sendToHub(info, onSent) {
 }
 
 sendToHub({type: 'subscribe', topics: ['mainboard_feedback']});
+sendControllerActiveMessages();
