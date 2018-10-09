@@ -95,7 +95,7 @@ let throwBallTimeout = 0;
 const throwBallTimeoutDelay = 5000;
 
 let visionState = {};
-let processedVisionState = {closestBall: null, basket: null};
+let processedVisionState = {closestBall: null, basket: null, lastVisibleBasketDirection: -1};
 let mainboardState = {
     speeds: [0, 0, 0, 0, 0],
     balls: [false, false], prevBalls: [false, false], ballThrown: false,
@@ -222,6 +222,10 @@ function processVisionInfo(info) {
         blobs && Array.isArray(blobs.green) && blobs.green.length > 0 ? blobs.green[0] : null;
     processedVisionState.basket =
         blobs && Array.isArray(blobs[basketColour]) && blobs[basketColour].length > 0 ? blobs[basketColour][0] : null;
+
+    if (processedVisionState.basket) {
+        processedVisionState.lastVisibleBasketDirection =  Math.sign(frameWidth / 2 - processedVisionState.basket.cx);
+    }
 }
 
 function sendState() {
@@ -230,6 +234,7 @@ function sendState() {
         throwerState,
         ballSensors: mainboardState.balls,
         ballThrown: mainboardState.ballThrown,
+        lidarDistance: mainboardState.lidarDistance,
         closestBall: processedVisionState.closestBall,
         basket: processedVisionState.basket
     };
@@ -289,12 +294,18 @@ function handleMotionDriveToBall() {
         const centerY = closestBall.cy;
         const errorX = centerX - frameCenterX;
         const errorY = 0.8 * frameHeight - centerY;
-        const forwardSpeed = errorY / 1000;
-        const rotationSpeed = -errorX / 320;
+        const maxForwardSpeed = 2;
+        const maxRotationSpeed = 8;
+        const forwardSpeed = maxForwardSpeed * errorY / frameHeight;
+        const rotationSpeed = maxRotationSpeed * -errorX / frameWidth;
 
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, forwardSpeed, rotationSpeed, true));
 
-        if (errorY <= 100) {
+        if (
+            errorY <= 100 &&
+            Math.abs(errorX) <= 100 &&
+            centerY <= 950 //avoid too close ball
+        ) {
             setMotionState(motionStates.FIND_BASKET);
         }
     } else {
@@ -306,13 +317,15 @@ function handleMotionFindBasket() {
     const closestBall = processedVisionState.closestBall;
     const basket = processedVisionState.basket;
     const minRotationSpeed = 0.05;
-    let rotationSpeed = -1;
+    const maxRotationSpeed = 2;
+    let rotationSpeed = maxRotationSpeed * processedVisionState.lastVisibleBasketDirection;
     let xSpeed = 0;
     let forwardSpeed = 0;
     let isBasketErrorXSmallEnough = false;
+    let isBallCloseEnough = false;
 
     if (throwerState === throwerStates.THROW_BALL) {
-        forwardSpeed = 0.05;
+        forwardSpeed = 0.1;
 
 
     } else if (closestBall) {
@@ -321,9 +334,14 @@ function handleMotionFindBasket() {
         const ballErrorX = ballCenterX - frameCenterX;
         const ballErrorY = 0.8 * frameHeight - ballCenterY;
 
-        if (ballErrorY > 100) {
+        if (
+            ballErrorY > 100 ||
+            Math.abs(ballErrorX) > 100 ||
+            ballCenterX > 950 //ball too close
+        ) {
             setMotionState(motionStates.DRIVE_TO_BALL);
         } else {
+            isBallCloseEnough = true;
             forwardSpeed = ballErrorY / 1000;
             //xSpeed = ballErrorX / 1000;
         }
@@ -335,15 +353,15 @@ function handleMotionFindBasket() {
         const basketCenterX = basket.cx;
         const basketErrorX = basketCenterX - frameCenterX;
         isBasketErrorXSmallEnough = Math.abs(basketErrorX) < 5;
-        rotationSpeed = -basketErrorX / 640;
+        rotationSpeed = maxRotationSpeed * -basketErrorX / (frameWidth / 2);
 
-        if (isBasketErrorXSmallEnough) {
+        if (isBasketErrorXSmallEnough && isBallCloseEnough) {
             setThrowerState(throwerStates.THROW_BALL);
         }
     }
 
     if (Math.abs(rotationSpeed) < minRotationSpeed) {
-        rotationSpeed = isBasketErrorXSmallEnough ? rotationSpeed : Math.sign(rotationSpeed) * minRotationSpeed;
+        rotationSpeed = Math.sign(rotationSpeed) * minRotationSpeed;
     }
 
     xSpeed = rotationSpeed * 0.14;
@@ -360,6 +378,7 @@ function handleThrowerThrowBall() {
 
     if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;
+        setMotionState(motionStates.FIND_BALL);
         setThrowerState(throwerStates.IDLE);
     }
 }
@@ -410,7 +429,9 @@ function update() {
     motionStateHandlers[motionState]();
     throwerStateHandlers[throwerState]();
 
-    sendToHub({type: 'message', topic: 'mainboard_command', command: formatSpeedCommand(aiState.speeds)});
+    if (motionState !== motionStates.IDLE || throwerState !== throwerStates.IDLE) {
+        sendToHub({type: 'message', topic: 'mainboard_command', command: formatSpeedCommand(aiState.speeds)});
+    }
 }
 
 sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command']});
