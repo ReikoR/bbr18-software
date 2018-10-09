@@ -231,7 +231,7 @@ void VisionManager::setupVision() {
 	blobber = new Blobber();
 
     blobber->loadColors("colors.dat");
-	blobber->setColorMinArea(1, 100);
+	blobber->setColorMinArea(1, 10);
 	blobber->setColorMinArea(2, 100);
 	blobber->setColorMinArea(3, 100);
 	blobber->setColorMinArea(4, 100);
