@@ -171,8 +171,8 @@ function handleInfo(info) {
             mainboardState.speeds[4] = info.message.speed5;
 
             mainboardState.prevBalls = mainboardState.balls.slice();
-            mainboardState.balls[0] = info.message.ball2;
-            mainboardState.balls[1] = info.message.ball1;
+            mainboardState.balls[0] = info.message.ball1;
+            mainboardState.balls[1] = info.message.ball2;
 
             if (
                 !mainboardState.ballThrown
