@@ -8,6 +8,7 @@ __kernel void debayerAndSegment(
     int y = get_global_id(1);
 
     int width = 2 * get_global_size(0);
+    int maxIndex = width * 2 * get_global_size(1) - 1;
 
     int destY     = 2 * y;
     int destX     = 2 * x;
@@ -22,28 +23,28 @@ __kernel void debayerAndSegment(
     uchar4 line_3;
 
     // vector access .x .y .z. w
-    line_0.x = input[sourcePixelIndex-1];
-    line_0.y = input[sourcePixelIndex];
-    line_0.z = input[sourcePixelIndex+1];
-    line_0.w = input[sourcePixelIndex+2];
+    line_0.x = input[clamp(sourcePixelIndex-1, 0, maxIndex)];
+    line_0.y = input[clamp(sourcePixelIndex, 0, maxIndex)];
+    line_0.z = input[clamp(sourcePixelIndex+1, 0, maxIndex)];
+    line_0.w = input[clamp(sourcePixelIndex+2, 0, maxIndex)];
 
     sourcePixelIndex += width;
-    line_1.x = input[sourcePixelIndex-1];
-    line_1.y = input[sourcePixelIndex];
-    line_1.z = input[sourcePixelIndex+1];
-    line_1.w = input[sourcePixelIndex+2];
+    line_1.x = input[clamp(sourcePixelIndex-1, 0, maxIndex)];
+    line_1.y = input[clamp(sourcePixelIndex, 0, maxIndex)];
+    line_1.z = input[clamp(sourcePixelIndex+1, 0, maxIndex)];
+    line_1.w = input[clamp(sourcePixelIndex+2, 0, maxIndex)];
 
     sourcePixelIndex += width;
-    line_2.x = input[sourcePixelIndex-1];
-    line_2.y = input[sourcePixelIndex];
-    line_2.z = input[sourcePixelIndex+1];
-    line_2.w = input[sourcePixelIndex+2];
+    line_2.x = input[clamp(sourcePixelIndex-1, 0, maxIndex)];
+    line_2.y = input[clamp(sourcePixelIndex, 0, maxIndex)];
+    line_2.z = input[clamp(sourcePixelIndex+1, 0, maxIndex)];
+    line_2.w = input[clamp(sourcePixelIndex+2, 0, maxIndex)];
 
     sourcePixelIndex += width;
-    line_3.x = input[sourcePixelIndex-1];
-    line_3.y = input[sourcePixelIndex];
-    line_3.z = input[sourcePixelIndex+1];
-    line_3.w = input[sourcePixelIndex+2];
+    line_3.x = input[clamp(sourcePixelIndex-1, 0, maxIndex)];
+    line_3.y = input[clamp(sourcePixelIndex, 0, maxIndex)];
+    line_3.z = input[clamp(sourcePixelIndex+1, 0, maxIndex)];
+    line_3.w = input[clamp(sourcePixelIndex+2, 0, maxIndex)];
 
     //R G R G R G
     //G B G B G B
