@@ -86,10 +86,13 @@ function handleWsMessage(message) {
         sendToHub({
             type: 'message',
             topic: 'ai_command',
-            commandInfo: {
-                command: message.command,
-                state: message.state,
-            }
+            commandInfo: message.info
+        });
+    } else if (message.type === 'mainboard_command') {
+        sendToHub({
+            type: 'message',
+            topic: 'mainboard_command',
+            command: message.info
         });
     }
 }
@@ -111,7 +114,9 @@ function sendToHub(info, onSent) {
 }
 
 function handleInfo(info) {
-    wss.broadcast(JSON.stringify({type: 'ai_state', state: info.state}));
+    if (info.topic === 'ai_state') {
+        wss.broadcast(JSON.stringify({type: 'ai_state', state: info.state}));
+    }
 
     console.log(info);
 }

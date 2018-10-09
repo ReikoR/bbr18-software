@@ -2,6 +2,9 @@ let socket = createWebsocket(onSocketMessage, onSocketOpened, onSocketClosed);
 
 const socketReconnectDelay = new BackOffDelay();
 
+let sendInterval;
+let throwerSpeed = 0;
+
 function onSocketMessage(message) {
     try {
         const info = JSON.parse(message);
@@ -95,22 +98,63 @@ function renderControls() {
     const stateNamesThrower = ['IDLE', 'THROW_BALL', 'GRAB_BALL', 'HOLD_BALL', 'EJECT_BALL'];
     const motionStateControls = document.createElement('div');
     const throwerStateControls = document.createElement('div');
+    const throwerControls = document.createElement('div');
+    const throwerSpeedInput = document.createElement('input');
 
     const elControls = document.querySelector('#controls');
     elControls.appendChild(motionStateControls);
     elControls.appendChild(throwerStateControls);
+    throwerControls.appendChild(throwerSpeedInput);
+    elControls.appendChild(throwerControls);
 
     stateNamesMotion.forEach((stateName) => {
         motionStateControls.appendChild(createButton(stateName, () => {
-            wsSend({type: 'ai_command', command: 'set_motion_state', state: stateName});
+            wsSend({type: 'ai_command', info: {command: 'set_motion_state', state: stateName}});
         }));
     });
 
     stateNamesThrower.forEach((stateName) => {
         throwerStateControls.appendChild(createButton(stateName, () => {
-            wsSend({type: 'ai_command', command: 'set_thrower_state', state: stateName});
+            wsSend({type: 'ai_command', info: {command: 'set_thrower_state', state: stateName}});
         }));
     });
+
+    throwerSpeedInput.value = '0';
+
+    throwerControls.appendChild(createButton('Send', () => {
+        throwerSpeed = parseInt(throwerSpeedInput.value, 10);
+
+        if (isNaN(throwerSpeed)) {
+            throwerSpeed = 0;
+        }
+
+        console.log('throwerSpeed', throwerSpeed);
+
+        if (throwerSpeed === 0) {
+            stopSendInterval();
+        } else if (!sendInterval) {
+            startSendInterval();
+        }
+    }));
+
+    throwerControls.appendChild(createButton('Stop', () => {
+        stopSendInterval();
+    }));
+}
+
+function startSendInterval() {
+    clearInterval(sendInterval);
+
+    sendInterval = setInterval(() => {
+        wsSend({type: 'mainboard_command', info: [0, 0, 0, 0, throwerSpeed]});
+    }, 200);
+}
+
+function stopSendInterval() {
+    clearInterval(sendInterval);
+    sendInterval = null;
+
+    wsSend({type: 'mainboard_command', info: [0, 0, 0, 0, 0]});
 }
 
 renderControls();
