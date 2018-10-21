@@ -16,6 +16,7 @@ class CameraTranslator;
 class Command;
 class Vision;
 class Blobber;
+class Clusterer;
 class ParticleFilterLocalizer;
 
 class Gui : public MouseListener {
@@ -46,6 +47,7 @@ public:
 		void* data;
 		bool active;
 		bool visible;
+
 
 	private:
 		int getWidth();
@@ -102,7 +104,9 @@ private:
 	//Blobber* blobberFront;
 	//Blobber* blobberRear;
 	Blobber* blobber;
+	Clusterer* clusterer;
 	Button* clearSelectedBtn;
+	Button* centroidCountButton;
 	std::vector<Element*> elements;
 	std::string selectedColorName;
 	int width;
@@ -112,6 +116,7 @@ private:
 	int mouseY;
 	bool mouseDown;
 	bool quitRequested;
+	bool clustering;
 	MouseListener::MouseBtn mouseBtn;
 	int brushRadius;
 	unsigned char* segmentedRgb;

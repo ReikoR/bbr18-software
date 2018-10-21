@@ -3,8 +3,11 @@
 #include "DebugRenderer.h"
 #include "ImageProcessor.h"
 #include "Util.h"
+#include "Clusterer.h"
 
 #include <iostream>
+#include <string>
+#include <algorithm>
 
 LRESULT CALLBACK WinProc(HWND hWnd,UINT message,WPARAM wParam,LPARAM lParam);
 
@@ -133,6 +136,14 @@ Gui::Gui(HINSTANCE instance, Blobber* blobber, int width, int height) : instance
 	clearSelectedBtn = createButton("Clear selected", 20 + 280 + 10, 40, 140, 3, false);
 
 	createButton("Quit", Config::cameraWidth - 80, 20, 60, 4);
+
+	createButton("Clustering mode", Config::cameraWidth - 80 - 85, 38, 145, 5);
+	clustering = false;
+	clusterer = new Clusterer();
+
+	createButton("-", Config::cameraWidth - 80 - 85, 56, 20, 6);
+	centroidCountButton = createButton(std::to_string(clusterer->centroidCount), Config::cameraWidth - 80 - 85 + 20, 56, 30, 7);
+	createButton("+", Config::cameraWidth - 80 - 85 + 50, 56, 20, 8);
 }
 
 Gui::~Gui() {
@@ -257,7 +268,7 @@ bool Gui::isMouseOverElement(int x, int y) {
 }
 
 bool Gui::update() {
-    setFrontImages(rgb, rgbData);
+	setFrontImages(rgb, rgbData);
 
 	while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) != 0) {
 		TranslateMessage(&msg);
@@ -300,8 +311,13 @@ void Gui::setFrontImages(unsigned char* rgb, unsigned char* yuyv, unsigned char*
 }
 
 void Gui::setFrontImages(unsigned char* rgb, unsigned char* rgbData) {
+	if (clustering) {
+		clusterer->processFrame(rgbData);
+		clusterer->getSegmentedRgb(rgb);
+	}
+
 	DebugRenderer::renderFPS(rgb, fps);
-    DebugRenderer::renderBlobs(rgb, blobber, width, height);
+	DebugRenderer::renderBlobs(rgb, blobber, width, height);
 
 	blobber->getSegmentedRgb(segmentedRgb);
 
@@ -350,10 +366,12 @@ void Gui::setFrontImages(unsigned char* rgb, unsigned char* rgbData) {
 
 //void Gui::handleColorThresholding(unsigned char* dataY, unsigned char* dataU, unsigned char* dataV, unsigned char* rgb, unsigned char* classification) {
 void Gui::handleColorThresholding(unsigned char* rgbData, unsigned char* rgb) {
-	DebugRenderer::renderBrush(rgb, mouseX, mouseY, brushRadius, mouseDown);
-	DebugRenderer::renderBrush(segmentedRgb, mouseX, mouseY, brushRadius, mouseDown);
+    if (!clustering) {
+        DebugRenderer::renderBrush(rgb, mouseX, mouseY, brushRadius, mouseDown);
+        DebugRenderer::renderBrush(segmentedRgb, mouseX, mouseY, brushRadius, mouseDown);
+    }
 
-	if (mouseDown) {
+    if (mouseDown) {
 		float stdDev = 2.0f;
 
 		//ImageProcessor::RGBInfo rgbInfo = ImageProcessor::extractColors(rgbData, width, height, mouseX, mouseY, brushRadius, stdDev);
@@ -376,11 +394,29 @@ void Gui::handleColorThresholding(unsigned char* rgbData, unsigned char* rgb) {
             Blobber::ColorClassState* selectedColor = blobber->getColor(selectedColorName);
 
             if (selectedColor != NULL) {
-                blobber->setPixelColorRange(rgbRange, selectedColor->color);
+                if (clustering) {
+                    blobber->setPixelClusterRange(
+                    		clusterer->centroids,
+							clusterer->getCentroidIndexAt(mouseX, mouseY),
+							clusterer->centroidCount,
+							selectedColor->color
+					);
+                } else {
+                    blobber->setPixelColorRange(rgbRange, selectedColor->color);
+                }
             }
 
 		} else if (mouseBtn == MouseListener::MouseBtn::RIGHT) {
-            blobber->setPixelColorRange(rgbRange, 0);
+        	if (clustering) {
+				blobber->setPixelClusterRange(
+						clusterer->centroids,
+						clusterer->getCentroidIndexAt(mouseX, mouseY),
+						clusterer->centroidCount,
+						0
+				);
+        	} else {
+				blobber->setPixelColorRange(rgbRange, 0);
+			}
 		} else if (mouseBtn == MouseListener::MouseBtn::MIDDLE) {
             blobber->clearColor(selectedColorName);
 		}
@@ -451,12 +487,25 @@ void Gui::onElementClick(Element* element) {
             blobber->clearColors();
 		} else if (button->type == 3) {
             blobber->clearColor(selectedColorName);
-		}
-		else if (button->type == 4) {
+		} else if (button->type == 4) {
 			quitRequested = true;
+		} else if (button->type == 5) {
+		    clustering = !clustering;
+
+		    if (clustering) {
+				//clusterer->processFrame(rgbData, 5);
+			}
+		}  else if (button->type == 6) {
+			clusterer->setCentroidCount(std::max(clusterer->centroidCount - 1, 1));
+			centroidCountButton->text = std::to_string(clusterer->centroidCount);
+		} else if (button->type == 8) {
+			clusterer->setCentroidCount(clusterer->centroidCount + 1);
+			centroidCountButton->text = std::to_string(clusterer->centroidCount);
 		}
 	}
 }
+
+
 
 void Gui::onMouseMove(int x, int y, DisplayWindow* win) {
 	mouseX = x;

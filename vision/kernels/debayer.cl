@@ -74,29 +74,30 @@ __kernel void debayerAndSegment(
     ushort red_11    = (line_1.y + line_1.w + line_3.y + line_3.w) / 4;
 
     // first pixel first line
+    int n = 1;
     int destPixelIndex = (destY * width + destX) * 3;
-    output[destPixelIndex]    = blue_00;
-    output[destPixelIndex+1]  = green_00;
-    output[destPixelIndex+2]  = red_00;
+    output[destPixelIndex]    = blue_00 * n;
+    output[destPixelIndex+1]  = green_00 * n;
+    output[destPixelIndex+2]  = red_00 * n;
     segmented[xy] = lookup[blue_00 + (green_00 << 8) + (red_00 << 16)];
 
     // second pixel first line
-    output[destPixelIndex+3]  = blue_01;
-    output[destPixelIndex+4]  = green_01;
-    output[destPixelIndex+5]  = red_01;
+    output[destPixelIndex+3]  = blue_01 * n;
+    output[destPixelIndex+4]  = green_01 * n;
+    output[destPixelIndex+5]  = red_01 * n;
     segmented[xy + 1] = lookup[blue_01 + (green_01 << 8) + (red_01 << 16)];
 
     // first pixel second line
     destPixelIndex += width * 3;
-    output[destPixelIndex]    = blue_10;
-    output[destPixelIndex+1]  = green_10;
-    output[destPixelIndex+2]  = red_10;
+    output[destPixelIndex]    = blue_10 * n;
+    output[destPixelIndex+1]  = green_10 * n;
+    output[destPixelIndex+2]  = red_10 * n;
     xy += width;
     segmented[xy] = lookup[blue_10 + (green_10 << 8) + (red_10 << 16)];
 
     // second pixel second line
-    output[destPixelIndex+3]  = blue_11;
-    output[destPixelIndex+4]  = green_11;
-    output[destPixelIndex+5]  = red_11;
+    output[destPixelIndex+3]  = blue_11 * n;
+    output[destPixelIndex+4]  = green_11 * n;
+    output[destPixelIndex+5]  = red_11 * n;
     segmented[xy + 1] = lookup[blue_11 + (green_11 << 8) + (red_11 << 16)];
 }

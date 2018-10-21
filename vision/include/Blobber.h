@@ -77,6 +77,7 @@ public:
 	void setColors(unsigned char *data);
     void setPixelColor(unsigned char r, unsigned char g, unsigned char b, unsigned char color);
 	void setPixelColorRange(ImageProcessor::RGBRange rgbRange, unsigned char color);
+	void setPixelClusterRange(unsigned char *centroids, int centroidIndex, int centroidCount, unsigned char color);
 	void setActivePixels(unsigned char *data);
 	void refreshSize();
 	void start();

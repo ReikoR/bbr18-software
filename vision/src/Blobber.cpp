@@ -85,9 +85,10 @@ Blobber::Blobber() {
 
 	bgr = (unsigned char *)_aligned_malloc(size * sizeof(unsigned char) * 3, 4096);
 
-	openCLCompute = new OpenCLCompute();
+	//openCLCompute = new OpenCLCompute();
+	//openCLCompute->setup();
 
-	openCLCompute->setup();
+	openCLCompute = &OpenCLCompute::getInstance();
 }
 
 Blobber::~Blobber() {
@@ -140,6 +141,11 @@ void Blobber::setPixelColorRange(ImageProcessor::RGBRange rgbRange, unsigned cha
 		}
 	}
 }
+
+void Blobber::setPixelClusterRange(unsigned char *centroids, int centroidIndex, int centroidCount, unsigned char color) {
+	openCLCompute->generateLookupTable(centroids, colors_lookup, centroidIndex, centroidCount, color);
+}
+
 void Blobber::setActivePixels(unsigned char *data) {
 	//set colortable
 	//unsigned long size = min2(MAX_WIDTH * MAX_HEIGHT, (unsigned long)PyArray_NBYTES(pixels));

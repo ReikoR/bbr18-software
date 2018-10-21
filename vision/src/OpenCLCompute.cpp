@@ -17,15 +17,44 @@ OpenCLCompute::~OpenCLCompute() {
 	clReleaseMemObject(lookupBuffer);
 	clReleaseMemObject(segmentedBuffer);
 
-	clReleaseCommandQueue(clQueue);
 	clReleaseKernel(deBayerKernel);
 	clReleaseProgram(deBayerProgram);
-	clReleaseContext(deBayerContext);
+
+	clReleaseKernel(kMeansKernel);
+	clReleaseProgram(kMeansProgram);
+
+	clReleaseKernel(generateLookupTableKernel);
+	clReleaseProgram(generateLookupTableProgram);
+
+	clReleaseCommandQueue(clQueue);
+	clReleaseContext(clContext);
 }
 
 void OpenCLCompute::setup() {
 	bool isDeviceFound = findDevice("Intel(R) OpenCL", "Intel");
+
+	const cl_context_properties contextProperties[] = {
+			CL_CONTEXT_PLATFORM, reinterpret_cast<cl_context_properties> (selectedPlatformIds[0]),
+			0
+	};
+
+	cl_int error = CL_SUCCESS;
+	clContext = clCreateContext(
+			contextProperties,
+			static_cast<cl_uint>(selectedDeviceIds.size()),
+			selectedDeviceIds.data(),
+			nullptr,
+			nullptr,
+			&error
+	);
+
 	setupDeBayer();
+	setupKMeans();
+	setupGenerateLookupTable();
+
+	const cl_queue_properties queueProperties[] = {0};
+	clQueue = clCreateCommandQueue(clContext, selectedDeviceIds[0], 0, &error);
+	CheckError(error, "Create command queue");
 }
 
 bool OpenCLCompute::findDevice(std::string platformName, std::string deviceVendor) {
@@ -196,30 +225,18 @@ cl_program OpenCLCompute::CreateProgram(const std::string &source, cl_context co
 }
 
 void OpenCLCompute::setupDeBayer() {
-	const cl_context_properties contextProperties[] = {
-			CL_CONTEXT_PLATFORM, reinterpret_cast<cl_context_properties> (selectedPlatformIds[0]),
-			0
-	};
-
 	cl_int error = CL_SUCCESS;
-	deBayerContext = clCreateContext(
-			contextProperties,
-			static_cast<cl_uint>(selectedDeviceIds.size()),
-			selectedDeviceIds.data(),
-			nullptr,
-			nullptr,
-			&error
-	);
+
 	/*deBayerContext = clCreateContextFromType(
 			contextProperties,
 			CL_DEVICE_TYPE_GPU,
 			nullptr,
 			nullptr,
 			&error
-	);*/
-	CheckError(error, "Create context");
+	);
+	CheckError(error, "Create context");*/
 
-	deBayerProgram = CreateProgram(LoadKernel("../kernels/debayer.cl"), deBayerContext);
+	deBayerProgram = CreateProgram(LoadKernel("../kernels/debayer.cl"), clContext);
 
 	CheckError(clBuildProgram(
 			deBayerProgram,
@@ -233,13 +250,15 @@ void OpenCLCompute::setupDeBayer() {
 	deBayerKernel = clCreateKernel(deBayerProgram, "debayerAndSegment", &error);
 	CheckError(error, "Create kernel");
 
+	/*
 	const cl_queue_properties queueProperties[] = {0};
 
-	clQueue = clCreateCommandQueue(deBayerContext, selectedDeviceIds[0], 0, &error);
+	clQueue = clCreateCommandQueue(clContext, selectedDeviceIds[0], 0, &error);
 	//clQueue = clCreateCommandQueueWithProperties(deBayerContext, selectedDeviceIds[0], queueProperties, &error);
 	CheckError(error, "Create command queue");
 
 	clFinish(clQueue);
+	 */
 }
 
 void OpenCLCompute::deBayer(
@@ -257,7 +276,7 @@ void OpenCLCompute::deBayer(
 
 	if (inputBuffer == nullptr) {
 		inputBuffer = clCreateBuffer(
-				deBayerContext,
+				clContext,
 				//CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
 				CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,
 				width * height * sizeof(char),
@@ -270,7 +289,7 @@ void OpenCLCompute::deBayer(
 
 	if (rgbOutBuffer == nullptr) {
 		rgbOutBuffer = clCreateBuffer(
-				deBayerContext,
+				clContext,
 				//CL_MEM_WRITE_ONLY,
 				CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
 				3 * width * height * sizeof(char),
@@ -283,7 +302,7 @@ void OpenCLCompute::deBayer(
 
 	if (lookupBuffer == nullptr) {
 		lookupBuffer = clCreateBuffer(
-				deBayerContext,
+				clContext,
 				CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
 				static_cast<size_t>(colorsLookupSize),
 				(void *)lookup,
@@ -295,7 +314,7 @@ void OpenCLCompute::deBayer(
 
 	if (segmentedBuffer == nullptr) {
 		segmentedBuffer = clCreateBuffer(
-				deBayerContext,
+				clContext,
 				CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
 				width * height * sizeof(char),
 				segmentedOut,
@@ -360,5 +379,148 @@ void OpenCLCompute::deBayer(
 
 	clFinish(clQueue);
 
-	std::cout << "! deBayer time: " << Util::timerEnd(startTime) << std::endl;
+	//std::cout << "! deBayer time: " << Util::timerEnd(startTime) << std::endl;
+}
+
+void OpenCLCompute::setupKMeans() {
+    cl_int error = CL_SUCCESS;
+
+    kMeansProgram = CreateProgram(LoadKernel("../kernels/kmeans.cl"), clContext);
+
+    CheckError(clBuildProgram(
+            kMeansProgram,
+            static_cast<cl_uint>(selectedDeviceIds.size()),
+            selectedDeviceIds.data(),
+            nullptr,
+            nullptr,
+            nullptr
+    ), "Build program");
+
+    kMeansKernel = clCreateKernel(kMeansProgram, "kMeans", &error);
+    CheckError(error, "Create kernel");
+}
+
+void OpenCLCompute::kMeans(
+		unsigned char* rgb,
+		unsigned char*  clustered,
+		unsigned char* centroids,
+		int centroidCount,
+		int width,
+		int height
+) {
+	__int64 startTime = Util::timerStart();
+
+	cl_int error = CL_SUCCESS;
+
+	cl_mem inputBuffer = clCreateBuffer(
+			clContext,
+			//CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+			CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,
+			3 * width * height * sizeof(char),
+			(void *)rgb,
+			&error
+	);
+
+	CheckError(error, "Could not create inputBuffer");
+
+	cl_mem clusteredBuffer = clCreateBuffer(
+			clContext,
+			//CL_MEM_WRITE_ONLY,
+			CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
+			width * height * sizeof(char),
+			clustered,
+			&error
+	);
+
+	CheckError(error, "Could not create clusteredBuffer");
+
+	cl_mem centroidsBuffer = clCreateBuffer(
+			clContext,
+			//CL_MEM_WRITE_ONLY,
+			CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR,
+			3 * centroidCount * sizeof(char),
+			centroids,
+			&error
+	);
+
+	CheckError(error, "Could not create centroidsBuffer");
+
+	clSetKernelArg(kMeansKernel, 0, sizeof(cl_mem), &inputBuffer);
+	clSetKernelArg(kMeansKernel, 1, sizeof(cl_mem), &clusteredBuffer);
+	clSetKernelArg(kMeansKernel, 2, sizeof(cl_mem), &centroidsBuffer);
+	clSetKernelArg(kMeansKernel, 3, sizeof(int), &centroidCount);
+
+	// http://www.khronos.org/registry/cl/sdk/1.1/docs/man/xhtml/clEnqueueNDRangeKernel.html
+	std::size_t offset[2] = {0};
+	std::size_t size[2] = {static_cast<size_t>(width), static_cast<size_t>(height)};
+	/*CheckError(*/clEnqueueNDRangeKernel(clQueue, kMeansKernel, 2, offset, size, nullptr, 0, nullptr, nullptr)/*)*/;
+	clFinish(clQueue);
+
+	//std::cout << "! kMeans time: " << Util::timerEnd(startTime) << std::endl;
+}
+
+void OpenCLCompute::setupGenerateLookupTable() {
+	cl_int error = CL_SUCCESS;
+
+	generateLookupTableProgram = CreateProgram(LoadKernel("../kernels/generate_lookup_table.cl"), clContext);
+
+	CheckError(clBuildProgram(
+			generateLookupTableProgram,
+			static_cast<cl_uint>(selectedDeviceIds.size()),
+			selectedDeviceIds.data(),
+			nullptr,
+			nullptr,
+			nullptr
+	), "Build program");
+
+	generateLookupTableKernel = clCreateKernel(generateLookupTableProgram, "generate_lookup_table", &error);
+	CheckError(error, "Create kernel");
+}
+
+void OpenCLCompute::generateLookupTable(
+    unsigned char *centroids,
+    unsigned char *lookupTable,
+    int centroidIndex,
+    int centroidCount,
+	unsigned char color
+) {
+    __int64 startTime = Util::timerStart();
+
+    cl_int error = CL_SUCCESS;
+
+    cl_mem lookupTableBuffer = clCreateBuffer(
+            clContext,
+            //CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+            CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR,
+            256 * 256 * 256 * sizeof(unsigned char),
+            (void *)lookupTable,
+            &error
+    );
+
+    CheckError(error, "Could not create lookupTableBuffer");
+
+    cl_mem centroidsBuffer = clCreateBuffer(
+            clContext,
+            //CL_MEM_WRITE_ONLY,
+            CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR,
+            3 * centroidCount * sizeof(char),
+            centroids,
+            &error
+    );
+
+    CheckError(error, "Could not create centroidsBuffer");
+
+	clSetKernelArg(generateLookupTableKernel, 0, sizeof(cl_mem), &centroidsBuffer);
+    clSetKernelArg(generateLookupTableKernel, 1, sizeof(cl_mem), &lookupTableBuffer);
+	clSetKernelArg(generateLookupTableKernel, 2, sizeof(int), &centroidIndex);
+    clSetKernelArg(generateLookupTableKernel, 3, sizeof(int), &centroidCount);
+	clSetKernelArg(generateLookupTableKernel, 4, sizeof(unsigned char), &color);
+
+    // http://www.khronos.org/registry/cl/sdk/1.1/docs/man/xhtml/clEnqueueNDRangeKernel.html
+    std::size_t offset[3] = {0};
+    std::size_t size[3] = {static_cast<size_t>(256), static_cast<size_t>(256), static_cast<size_t>(256)};
+    /*CheckError(*/clEnqueueNDRangeKernel(clQueue, generateLookupTableKernel, 3, offset, size, nullptr, 0, nullptr, nullptr)/*)*/;
+    clFinish(clQueue);
+
+    //std::cout << "! kMeans time: " << Util::timerEnd(startTime) << std::endl;
 }

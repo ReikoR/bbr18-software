@@ -4,3 +4,4 @@ hub/node_modules/
 node_modules/
 hub/test/coverage/
 hub/coverage/
+dashboard/node_modules
