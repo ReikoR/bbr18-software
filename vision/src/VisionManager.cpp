@@ -293,9 +293,6 @@ void VisionManager::sendState() {
 
 			for (int i = 0; i < blobInfo->count; i++) {
 				Blobber::Blob blob = blobInfo->blobs[i];
-				if (colorName == "green") {
-					std::cout << isBlobBall(blob) << std::endl;
-				}
 
 				nlohmann::json blobJson;
 				blobJson["area"] = blob.area;
