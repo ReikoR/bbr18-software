@@ -297,7 +297,7 @@ void VisionManager::sendState() {
 
 			for (int i = 0; i < blobInfo->count; i++) {
 				Blobber::Blob blob = blobInfo->blobs[i];
-
+				
 				if (colorName == "green") {
 					std::cout << ((int) blob.centerX) << "x" << ((int) blob.centerY) << " is " << isBlobBall(blob) << std::endl;
 				}
