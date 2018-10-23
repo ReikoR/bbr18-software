@@ -113,6 +113,15 @@ let defaultMaxRotation = 1.0;
 let maxRotation = defaultMaxRotation;
 
 let prevButtons = {};
+let prevTriggers = {};
+
+/*
+speeds[1] = speed1;
+speeds[2] = speed2;
+speeds[0] = speed3;
+speeds[3] = speed4;
+speeds[4] = speed5;
+ */
 
 let robotConfig = {
     robotRadius: 0.14,
@@ -128,6 +137,23 @@ let robotConfig = {
     wheel4AxisAngle: -45,
     metricToRobot: 1
 };
+
+if (robotName === '001TRT') {
+    robotConfig = {
+        robotRadius: 0.14,
+        wheelRadius: 0.035,
+        wheelFromCenter: 0.117,
+        wheel1Angle: -135,
+        wheel2Angle: 45,
+        wheel3Angle: -45,
+        wheel4Angle: 135,
+        wheel1AxisAngle: 135,
+        wheel2AxisAngle: 45,
+        wheel3AxisAngle: -135,
+        wheel4AxisAngle: -45,
+        metricToRobot: 1
+    };
+}
 
 robotConfig.metricToRobot = 225 / (robotConfig.wheelRadius * 2 * Math.PI);
 
