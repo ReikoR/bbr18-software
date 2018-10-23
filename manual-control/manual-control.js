@@ -393,7 +393,7 @@ function sendControllerActiveMessages() {
 
 speedSendInterval = setInterval(() => {
     if (state === states.THROW_BALL) {
-        speeds[4] = 2000;
+        speeds[4] = 10000;
     }
     else if (state === states.GRAB_BALL) {
         speeds[4] = 200;
