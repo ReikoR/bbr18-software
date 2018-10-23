@@ -51,6 +51,7 @@ private:
 	void sendState();
 	void handleCommunicationMessages();
 	void handleCommunicationMessage(std::string message);
+	bool isBlobBall(Blobber::Blob blob);
 };
 
 #endif

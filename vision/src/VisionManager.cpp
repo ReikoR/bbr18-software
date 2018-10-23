@@ -293,6 +293,9 @@ void VisionManager::sendState() {
 
 			for (int i = 0; i < blobInfo->count; i++) {
 				Blobber::Blob blob = blobInfo->blobs[i];
+				if (colorName == "green") {
+					std::cout << isBlobBall(blob) << std::endl;
+				}
 
 				nlohmann::json blobJson;
 				blobJson["area"] = blob.area;
@@ -333,4 +336,58 @@ void VisionManager::handleCommunicationMessage(std::string message) {
 	if ((jsonMessage["topic"] == "vision_close")) {
 		running = false;
 	}
+}
+
+bool VisionManager::isBlobBall(Blobber::Blob blob) {
+	const int white = 6;
+	const int black = 5;
+	const int tolerance = 15;
+
+	// Check if ball is over the line
+	int whitePixels = 0;
+	int blackPixels = 0;
+	int otherPixels = 0;
+
+	for (int y = blob.y2; y < Config::cameraHeight; ++y) {
+		int color = *(blobber->segmented + Config::cameraWidth*y + blob.centerX);
+
+		if (blackPixels > 15 && whitePixels > 15) {
+			return false;
+		}
+
+		// Collect white stripe
+		if (blackPixels > 15) {
+			//std::cout << "Black:" << blackPixels << std::endl;
+			if (color == white) {
+				++whitePixels;
+				otherPixels = 0;
+				continue;
+			}
+
+			if (whitePixels) {
+				if (++otherPixels > tolerance) {
+					blackPixels = otherPixels = 0;
+				} else {
+					++whitePixels;
+					continue;
+				}
+			}
+		}
+
+		// Collect black stripe
+		whitePixels = 0;
+
+		if (color == black) {
+			++blackPixels;
+			otherPixels = 0;
+		} else if (blackPixels) {
+			if (++otherPixels > tolerance) {
+				blackPixels = otherPixels = 0;
+			} else {
+				++blackPixels;
+			}
+		}
+	}
+
+	return true;
 }
