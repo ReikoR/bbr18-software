@@ -6,6 +6,10 @@ const publicConf = require('./public-conf');
 const mbedPort = publicConf.mbedPort;
 const mbedAddress = publicConf.mbedIpAddress;
 
+const robotName = process.argv[2];
+
+console.log('robotName', robotName);
+
 socketMainboard.on('error', (err) => {
     console.log(`socketMainboard error:\n${err.stack}`);
     socketMainboard.close();
@@ -19,7 +23,11 @@ socketMainboard.on('listening', () => {
     const address = socketMainboard.address();
     console.log(`socketMainboard listening ${address.address}:${address.port}`);
 
-    sendCommandToMainboard([0, 0, 0, 0, 0]);
+    if (robotName === '001TRT') {
+        sendCommandToMainboard([0, 0, 0, 0, 0, 0, 1200]);
+    } else {
+        sendCommandToMainboard([0, 0, 0, 0, 0]);
+    }
 });
 
 socketMainboard.bind(publicConf.mbedPort, () => {
@@ -91,7 +99,11 @@ function sendToMainboard(command) {
  * @param {Array.<number>} speeds
  */
 function sendCommandToMainboard(speeds) {
-    const command = new Int16Array(5);
+    let command = new Int16Array(5);
+
+    if (robotName === '001TRT') {
+        command = new Int16Array(7);
+    }
 
     for (let i = 0; i < speeds.length && i < command.length; i++) {
         command[i] = speeds[i];
@@ -102,18 +114,35 @@ function sendCommandToMainboard(speeds) {
 }
 
 function handleMainboardMessage(message) {
-    const data = {
-        speed1: message.readInt16LE(0),
-        speed2: message.readInt16LE(2),
-        speed3: message.readInt16LE(4),
-        speed4: message.readInt16LE(6),
-        speed5: message.readInt16LE(8),
-        ball1: message.readUInt8(10) === 1,
-        ball2: message.readUInt8(11) === 1,
-        distance: message.readUInt16LE(12),
-        isSpeedChanged: message.readUInt8(14) === 1,
-        time: message.readInt32LE(15)
-    };
+    let data = {};
+
+    if (robotName === '001TRT') {
+        data = {
+            speed1: message.readInt16LE(0),
+            speed2: message.readInt16LE(2),
+            speed3: message.readInt16LE(4),
+            speed4: message.readInt16LE(6),
+            speed5: message.readInt16LE(8),
+            speed6: message.readInt16LE(10),
+            ball1: message.readUInt8(12) === 1,
+            ball2: message.readUInt8(13) === 1,
+            isSpeedChanged: message.readUInt8(14) === 1,
+            time: message.readInt32LE(15)
+        };
+    } else {
+        data = {
+            speed1: message.readInt16LE(0),
+            speed2: message.readInt16LE(2),
+            speed3: message.readInt16LE(4),
+            speed4: message.readInt16LE(6),
+            speed5: message.readInt16LE(8),
+            ball1: message.readUInt8(10) === 1,
+            ball2: message.readUInt8(11) === 1,
+            distance: message.readUInt16LE(12),
+            isSpeedChanged: message.readUInt8(14) === 1,
+            time: message.readInt32LE(15)
+        };
+    }
 
     console.log(data);
 

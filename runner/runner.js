@@ -12,6 +12,8 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+const robotName = process.argv[2];
+
 socket.on('error', (err) => {
     console.log(`socket error:\n${err.stack}`);
     socket.close();
@@ -157,7 +159,7 @@ function startComponent(name) {
             });
 
         } else if (component.type === 'node') {
-            component.process = childProcess.fork(absolutePath, [], {
+            component.process = childProcess.fork(absolutePath, [robotName], {
                 cwd: path.dirname(absolutePath),
                 silent: true
             });

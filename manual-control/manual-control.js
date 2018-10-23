@@ -7,6 +7,8 @@ const controller = new steam.SteamController();
 
 controller.connect();
 
+const robotName = process.argv[2];
+
 socket.on('error', (err) => {
     console.log(`socketPublisher error:\n${err.stack}`);
     socket.close();
@@ -97,6 +99,14 @@ let ySpeed = 0;
 let xSpeed = 0;
 let rotation = 0;
 
+const minServo = 1050;
+const maxServo = 1700;
+const servoRange = maxServo - minServo;
+let servo = minServo;
+
+const feederOnSpeed = 20;
+let feederSpeed = 0;
+
 let defaultMaxSpeed = 1.0;
 let maxSpeed = defaultMaxSpeed;
 let defaultMaxRotation = 1.0;
@@ -133,6 +143,10 @@ function clone(obj) {
     return cloned;
 }
 
+function clamp(value, min, max) {
+    return Math.min(Math.max(value, min), max);
+}
+
 controller.on('data', (data) => {
     //console.log(data.button, data.bottom);
 
@@ -165,15 +179,24 @@ controller.on('data', (data) => {
     if (!prevButtons.LB && data.button.LB) {
         console.log('LB');
 
-        if (state === states.IDLE) {
-            state = states.GRAB_BALL;
-        }
-        else if (state === states.GRAB_BALL) {
-            state = states.IDLE;
-        }
-        else if (state === states.HOLD_BALL) {
-            state = states.EJECT_BALL;
-            startTimeEject = Date.now();
+        if (robotName === '001TRT') {
+            if (feederSpeed === 0) {
+                feederSpeed = feederOnSpeed;
+            } else {
+                feederSpeed = 0;
+            }
+
+        } else {
+            if (state === states.IDLE) {
+                state = states.GRAB_BALL;
+            }
+            else if (state === states.GRAB_BALL) {
+                state = states.IDLE;
+            }
+            else if (state === states.HOLD_BALL) {
+                state = states.EJECT_BALL;
+                startTimeEject = Date.now();
+            }
         }
     }
 
@@ -193,6 +216,17 @@ controller.on('data', (data) => {
     ySpeed = data.joystick.y / 32768 * maxSpeed;
 
     rotation = -data.mouse.x / 32768 * maxRotation;
+
+    const servoLow = maxServo - (clamp(data.trigger.left, 0, 200) / 200) * servoRange;
+    const servoHigh = minServo + (clamp(data.trigger.right, 0, 200) / 200) * servoRange;
+
+    if (servo > servoLow) {
+        servo = Math.floor(servoLow);
+    }
+
+    if (servo < servoHigh) {
+        servo = Math.ceil(servoHigh);
+    }
 
     //console.log(data);
 });
@@ -214,6 +248,10 @@ function handleInfo(info) {
 }
 
 function handleBallValueChanged() {
+    if (robotName === '001TRT') {
+        return;
+    }
+
     if (state === states.EJECT_BALL) {
         if (prevBall2Value && !ball2Value) {
             state = states.IDLE;
@@ -335,6 +373,11 @@ speedSendInterval = setInterval(() => {
         }
 
         speeds[4] = speed;
+    }
+
+    if (robotName === '001TRT') {
+        speeds[5] = feederSpeed;
+        speeds[6] = servo;
     }
 
     if (isControllerActive) {
