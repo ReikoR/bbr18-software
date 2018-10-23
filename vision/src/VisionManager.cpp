@@ -316,8 +316,6 @@ void VisionManager::sendState() {
 
 	//std::cout << "! JSON time: " << Util::timerEnd(startTime) << std::endl;
 
-	std::cout << j["balls"].dump() << std::endl;
-
 	hubCom->send(const_cast<char *>(jsonString.c_str()), jsonString.length());
 }
 
