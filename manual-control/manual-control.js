@@ -236,14 +236,27 @@ controller.on('data', (data) => {
         }
     }
 
+    if (prevTriggers.right < 230 && data.trigger.right === 255) {
+        if (servo === minServo) {
+            servo = maxServo;
+        } else if (servo === maxServo) {
+            servo = Math.floor(minServo + servoRange / 2);
+        } else {
+            servo = minServo;
+        }
+
+        console.log('servo', servo);
+    }
+
     prevButtons = clone(data.button);
+    prevTriggers = clone(data.trigger);
 
     xSpeed = data.joystick.x / 32768 * maxSpeed;
     ySpeed = data.joystick.y / 32768 * maxSpeed;
 
     rotation = -data.mouse.x / 32768 * maxRotation;
 
-    const servoLow = maxServo - (clamp(data.trigger.left, 0, 200) / 200) * servoRange;
+    /*const servoLow = maxServo - (clamp(data.trigger.left, 0, 200) / 200) * servoRange;
     const servoHigh = minServo + (clamp(data.trigger.right, 0, 200) / 200) * servoRange;
 
     if (servo > servoLow) {
@@ -252,7 +265,7 @@ controller.on('data', (data) => {
 
     if (servo < servoHigh) {
         servo = Math.ceil(servoHigh);
-    }
+    }*/
 
     //console.log(data);
 });
