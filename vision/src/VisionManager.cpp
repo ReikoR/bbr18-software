@@ -291,10 +291,15 @@ void VisionManager::sendState() {
 		if (blobInfo->count > 0) {
 			j["blobs"][colorName] = nlohmann::json::array();
 
+			if (colorName == "green") {
+				std::cout << ((int) blobInfo->count) << " total" << std::endl;
+			}
+
 			for (int i = 0; i < blobInfo->count; i++) {
 				Blobber::Blob blob = blobInfo->blobs[i];
+
 				if (colorName == "green") {
-					std::cout << isBlobBall(blob) << std::endl;
+					std::cout << ((int) blob.centerX) << "x" << ((int) blob.centerY) << " is " << isBlobBall(blob) << std::endl;
 				}
 
 				nlohmann::json blobJson;
@@ -338,10 +343,53 @@ void VisionManager::handleCommunicationMessage(std::string message) {
 	}
 }
 
+/*
 bool VisionManager::isBlobBall(Blobber::Blob blob) {
-	const int white = 6;
-	const int black = 5;
-	const int tolerance = 15;
+	const int white = 5;
+	const int black = 6; // BACKWARDS!
+
+	int sequentialWhitePixels = 0;
+	int sequentialBlackPixels = 0;
+	int sequentialOtherPixels = 0;
+
+	int totalBlack = 0;
+	int totalWhite = 0;
+
+	for (int y = Config::cameraHeight - 1; y > ((int) blob.centerY); --y) {
+		int color = *(blobber->segmented + (Config::cameraWidth*y + ((int) blob.centerX)));
+
+		if (color == white) { // white
+			sequentialWhitePixels++;
+			sequentialBlackPixels = 0;
+			sequentialOtherPixels = 0;
+			totalWhite++;
+		} else if (color == black) { // black or blue
+			sequentialBlackPixels++;
+			sequentialOtherPixels = 0;
+			totalBlack++;
+		} else {
+			if (sequentialWhitePixels > 2 && sequentialBlackPixels > 2) {
+				return false;
+			}
+
+			if (++sequentialOtherPixels > 15) {
+				sequentialWhitePixels = 0;
+				sequentialBlackPixels = 0;
+			}
+		}
+	}
+
+	//std::cout << totalBlack << "x" << totalWhite << std::endl;
+
+	return true;
+}
+ */
+
+bool VisionManager::isBlobBall(Blobber::Blob blob) {
+	const int white = 5;
+	const int black = 6; // BACKWARDS!
+	const int tolerance = 5;
+	const int minStripeHeight = 10;
 
 	// Check if ball is over the line
 	int whitePixels = 0;
@@ -349,14 +397,14 @@ bool VisionManager::isBlobBall(Blobber::Blob blob) {
 	int otherPixels = 0;
 
 	for (int y = blob.y2; y < Config::cameraHeight; ++y) {
-		int color = *(blobber->segmented + Config::cameraWidth*y + blob.centerX);
+		unsigned char color = *(blobber->segmented + (Config::cameraWidth*y + blob.centerX));
 
-		if (blackPixels > 15 && whitePixels > 15) {
+		if (blackPixels > minStripeHeight && whitePixels > minStripeHeight) {
 			return false;
 		}
 
 		// Collect white stripe
-		if (blackPixels > 15) {
+		if (blackPixels > minStripeHeight) {
 			//std::cout << "Black:" << blackPixels << std::endl;
 			if (color == white) {
 				++whitePixels;
