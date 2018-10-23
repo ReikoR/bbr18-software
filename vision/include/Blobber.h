@@ -122,6 +122,7 @@ private:
 	BlobberRun rle[MAX_RUNS];
 	BlobberRegion regions[MAX_REG];
 	ColorClassState colors[COLOR_COUNT];
+	BlobInfo* blobInfoCache[COLOR_COUNT];
 	int run_c;
 	int region_c;
 	int max_area;

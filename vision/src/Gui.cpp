@@ -319,9 +319,9 @@ void Gui::setFrontImages(unsigned char* rgb, unsigned char* rgbData) {
 	DebugRenderer::renderFPS(rgb, fps);
 
 	blobber->getSegmentedRgb(segmentedRgb);
-	
-	DebugRenderer::renderBlobs(segmentedRgb, blobber, width, height);
+
 	DebugRenderer::renderBlobs(rgb, blobber, width, height);
+	DebugRenderer::renderBlobs(segmentedRgb, blobber, width, height);
 
 	drawElements(rgb, width, height);
 	drawElements(segmentedRgb, width, height);
