@@ -92,6 +92,11 @@ Blobber::Blobber() {
 }
 
 Blobber::~Blobber() {
+	// clear blobs cache
+	for (int i = 0; i < COLOR_COUNT; ++i) {
+		blobInfoCache[i] = nullptr;
+	}
+
 	//exit, free resources
     if (saveColors("colors.dat")) {
         std::cout << "! Colors saved" << std::endl;
