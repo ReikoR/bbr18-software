@@ -372,7 +372,7 @@ void Gui::handleColorThresholding(unsigned char* rgbData, unsigned char* rgb) {
     }
 
     if (mouseDown) {
-		float stdDev = 2.0f;
+		float stdDev = 1.0f;
 
 		//ImageProcessor::RGBInfo rgbInfo = ImageProcessor::extractColors(rgbData, width, height, mouseX, mouseY, brushRadius, stdDev);
 		ImageProcessor::RGBRange rgbRange = ImageProcessor::extractColorRange(rgbData, width, height, mouseX, mouseY, brushRadius, stdDev);
