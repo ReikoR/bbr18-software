@@ -531,8 +531,8 @@ void Gui::onMouseUp(int x, int y, MouseListener::MouseBtn btn, DisplayWindow* wi
 void Gui::onMouseWheel(int delta, DisplayWindow* win) {
 	brushRadius += delta / 120 * 5;
 
-	if (brushRadius < 5) {
-		brushRadius = 5;
+	if (brushRadius < 2) {
+		brushRadius = 2;
 	}
 
 	activeWindow = win;
