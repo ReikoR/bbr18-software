@@ -88,8 +88,12 @@ const frameHeight = 1024;
 const frameWidth = 1280;
 const frameCenterX = frameWidth / 2;
 
-let motionState = motionStates.FIND_BALL;
+let motionState = motionStates.IDLE;
 let throwerState = throwerStates.IDLE;
+
+const findBallRotatePattern = [[-1, 100], [-8, 200], [-1, 100], [-8, 200], [-1, 50]];
+let findBallRotatePatternIndex = 0;
+let findBallRotateTimeout = null;
 
 let throwBallTimeout = 0;
 const throwBallTimeoutDelay = 5000;
@@ -277,13 +281,34 @@ function handleMotionIdle() {
 }
 
 function handleMotionFindBall() {
-    if (processedVisionState.closestBall) {
+    setThrowerState(throwerStates.IDLE);
+
+    if (processedVisionState.closestBall && processedVisionState.closestBall.area > 10) {
         setMotionState(motionStates.DRIVE_TO_BALL);
-    } else {
-        setAiStateSpeeds(omniMotion.calculateSpeeds(0, 0, -1, true));
+        resetMotionFindBall();
+        return;
     }
 
-    setThrowerState(throwerStates.IDLE);
+    const patternStep = findBallRotatePattern[findBallRotatePatternIndex];
+
+    if (findBallRotateTimeout == null) {
+        findBallRotateTimeout = setTimeout(() => {
+            findBallRotateTimeout = null;
+            findBallRotatePatternIndex++;
+
+            if (findBallRotatePatternIndex >= findBallRotatePattern.length) {
+                findBallRotatePatternIndex = 0;
+            }
+        }, patternStep[1]);
+
+        setAiStateSpeeds(omniMotion.calculateSpeeds(0, 0, patternStep[0], true));
+    }
+}
+
+function resetMotionFindBall() {
+    clearTimeout(findBallRotateTimeout);
+    findBallRotateTimeout = null;
+    findBallRotatePatternIndex = 0;
 }
 
 function handleMotionDriveToBall() {
@@ -403,6 +428,10 @@ function setMotionState(newState) {
     if (motionState !== newState) {
         console.log('Motion state:', motionState, '->', newState);
         motionState = newState;
+
+        if (motionState === motionStates.IDLE) {
+            resetMotionFindBall();
+        }
     }
 }
 
