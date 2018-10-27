@@ -92,6 +92,11 @@ Blobber::Blobber() {
 }
 
 Blobber::~Blobber() {
+	// clear blobs cache
+	for (int i = 0; i < COLOR_COUNT; ++i) {
+		blobInfoCache[i] = nullptr;
+	}
+
 	//exit, free resources
     if (saveColors("colors.dat")) {
         std::cout << "! Colors saved" << std::endl;
@@ -561,9 +566,18 @@ void Blobber::analyse(unsigned char *frame) {
 		y++;
 	}
 	passes = y;
+
+	// clear blobs cache
+	for (int i = 0; i < COLOR_COUNT; ++i) {
+		blobInfoCache[i] = nullptr;
+	}
 }
 
 Blobber::BlobInfo* Blobber::getBlobs(int colorIndex) {
+	if (blobInfoCache[colorIndex] != nullptr) {
+		return blobInfoCache[colorIndex];
+	}
+
 	ColorClassState color = colors[colorIndex];
 	BlobberRegion *list = segSortRegions(color.list, passes);
 	int rows = color.num;
@@ -600,6 +614,8 @@ Blobber::BlobInfo* Blobber::getBlobs(int colorIndex) {
         list = list->next;
         i++;
 	}
+
+	blobInfoCache[colorIndex] = blobInfo;
 
 	return blobInfo;
 }
