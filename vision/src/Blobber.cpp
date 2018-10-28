@@ -7,6 +7,7 @@
 #include <cstring>
 #include <Blobber.h>
 #include <Util.h>
+#include <Config.h>
 
 const int Blobber::COLORS_LOOKUP_SIZE = 0x1000000;
 
@@ -573,7 +574,7 @@ void Blobber::analyse(unsigned char *frame) {
 	}
 }
 
-Blobber::BlobInfo* Blobber::getBlobs(int colorIndex) {
+Blobber::BlobInfo* Blobber::getBlobs(BlobColor colorIndex) {
 	if (blobInfoCache[colorIndex] != nullptr) {
 		return blobInfoCache[colorIndex];
 	}
@@ -661,7 +662,7 @@ int Blobber::getColorCount() {
     return sizeof(colors) / sizeof(Blobber::ColorClassState);
 }
 
-Blobber::ColorClassState* Blobber::getColor(int colorIndex) {
+Blobber::ColorClassState* Blobber::getColor(BlobColor colorIndex) {
     return &colors[colorIndex];
 }
 
@@ -673,6 +674,15 @@ Blobber::ColorClassState* Blobber::getColor(std::string name) {
 	}
 
 	return NULL;
+}
+
+Blobber::BlobColor Blobber::getColorAt(int x, int y) {
+    if (x < 0 || y < 0 || x >= Config::cameraWidth || y >= Config::cameraHeight) {
+        return Blobber::BlobColor::unknown;
+    }
+
+    unsigned char colorIndex = *(segmented + (Config::cameraWidth * y + x));
+    return Blobber::BlobColor(colorIndex);
 }
 
 void Blobber::clearColors() {

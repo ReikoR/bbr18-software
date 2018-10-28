@@ -79,7 +79,7 @@ public:
 		Result() : vision(NULL) {}
 
 		ObjectList balls;
-		ObjectList goals;
+		ObjectList baskets;
 		ColorList colorOrder;
 		ColorDistance whiteDistance;
 		ColorDistance blackDistance;
@@ -133,7 +133,7 @@ public:
 		int newWidth;
 	};
 
-    Vision(Blobber* blobber, CameraTranslator* cameraTranslator, Dir dir, int width, int height);
+    Vision(Blobber* blobber, Dir dir, int width, int height);
     ~Vision();
 
 	void setDebugImage(unsigned char* image, int width, int height);
@@ -150,9 +150,10 @@ public:
 	Obstruction getGoalPathObstruction(float goalDistance);
 
 private:
-    ObjectList processGoals(Dir dir);
+    ObjectList processBaskets(Dir dir);
 	ObjectList processBalls(Dir dir, ObjectList& goals);
-	float getSurroundMetric(int x, int y, int radius, std::vector<std::string> validColors, std::string requiredColor = "", int side = 0, bool allowNone = false);
+    float getAreaMetric(int x1, int y1, int areaWidth, int areaHeight, std::vector<Blobber::BlobColor> validColors);
+    float getSurroundMetric(int x, int y, int radius, std::vector<std::string> validColors, std::string requiredColor = "", int side = 0, bool allowNone = false);
     PathMetric getPathMetric(int x1, int y1, int x2, int y2, std::vector<std::string> validColors, std::string requiredColor = "");
 	EdgeDistanceMetric getEdgeDistanceMetric(int x, int y, int width, int height, std::string color1, std::string color2);
 	float getBlockMetric(int x, int y, int width, int height, std::vector<std::string> validColors, int step = 6);
@@ -163,7 +164,7 @@ private:
 	ColorList getViewColorOrder();
 	Object* mergeGoals(Object* goal1, Object* goal2);
 	bool isValidBall(Object* ball, Dir dir, ObjectList& goals);
-    bool isValidGoal(Object* goal, Side side);
+    bool isValidbasket(Object *basket, Side side);
 	bool isNotOpponentMarker(Object* goal, Side side, ObjectList& goals);
 	bool isBallInGoal(Object* ball, Dir dir, ObjectList& goals);
 	int getBallRadius(int width, int height);

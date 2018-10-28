@@ -37,6 +37,8 @@ private:
 	XimeaCamera* frontCamera;
 	Gui* gui;
 	Blobber* blobber;
+	Vision* vision;
+	Vision::Result* visionResult;
 	FpsCounter* fpsCounter;
 	HubCom* hubCom;
 

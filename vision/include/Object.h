@@ -5,11 +5,15 @@
 #include "Maths.h"
 
 #include <vector>
+#include <array>
 
 class Object {
 
 public:
-	Object(int x = 0, int y = 0, int width = 0, int height = 0, int area = 0, float distance = 0.0f, float distanceX = 0.0f, float distanceY = 0.0f, float angle = 0.0f, int type = -1, bool behind = false);
+	explicit Object(
+			int x = 0, int y = 0, int width = 0, int height = 0, int area = 0,
+			float distance = 0.0f, float distanceX = 0.0f, float distanceY = 0.0f,
+			float angle = 0.0f, int type = -1, bool behind = false, std::array<float, 5> surroundMetrics = {0.0, 0.0, 0.0, 0.0, 0.0});
 	void copyFrom(const Object* other);
 	bool intersects(Object* other, int margin = 0) const;
 	float getDribblerDistance() { return Math::max(distance - Config::robotDribblerDistance, 0.0f); };
@@ -31,6 +35,7 @@ public:
 	double lastSeenTime;
 	bool behind;
 	bool processed;
+	std::array<float, 5> surroundMetrics;
 };
 
 typedef std::vector<Object*> ObjectList;

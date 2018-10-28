@@ -38,6 +38,23 @@ const publicConf = require('./public-conf.json');
  */
 
 /**
+ * @typedef {Object} VisionBallInfo
+ * @property {number} cx
+ * @property {number} cy
+ * @property {number} w
+ * @property {number} h
+ */
+
+/**
+ * @typedef {Object} VisionBasketInfo
+ * @property {number} cx
+ * @property {number} cy
+ * @property {number} w
+ * @property {number} h
+ * @property {string} color
+ */
+
+/**
  * @typedef {Object} AiCommandInfo
  * @property {string} command
  * @property {string} [state]
@@ -220,16 +237,38 @@ function handleInfo(info) {
  */
 function processVisionInfo(info) {
     visionState = info;
-    const blobs = visionState.blobs;
+    const balls = visionState.balls || [];
+    const baskets = visionState.baskets || [];
 
-    processedVisionState.closestBall =
-        blobs && Array.isArray(blobs.green) && blobs.green.length > 0 ? blobs.green[0] : null;
-    processedVisionState.basket =
-        blobs && Array.isArray(blobs[basketColour]) && blobs[basketColour].length > 0 ? blobs[basketColour][0] : null;
+    let ball = null;
+    let basket = null;
+
+    // Find largest ball
+    for (let i = 0; i < balls.length; i++) {
+        if (!ball || ball.w * ball.h < balls[i].w * balls[i].h) {
+            ball = balls[i];
+        }
+    }
+
+    // Find largest basket
+    for (let i = 0; i < baskets.length; i++) {
+        if (baskets[i].color !== basketColour) {
+            continue;
+        }
+
+        if (!basket || basket.w * basket.h < baskets[i].w * baskets[i].h) {
+            basket = baskets[i];
+        }
+    }
+
+    processedVisionState.closestBall = ball;
+    processedVisionState.basket = basket;
 
     if (processedVisionState.basket) {
         processedVisionState.lastVisibleBasketDirection =  Math.sign(frameWidth / 2 - processedVisionState.basket.cx);
     }
+
+    console.log(processedVisionState);
 }
 
 function sendState() {
@@ -283,7 +322,10 @@ function handleMotionIdle() {
 function handleMotionFindBall() {
     setThrowerState(throwerStates.IDLE);
 
-    if (processedVisionState.closestBall && processedVisionState.closestBall.area > 10) {
+    if (
+        processedVisionState.closestBall &&
+        processedVisionState.closestBall.w * processedVisionState.closestBall.h > 10
+    ) {
         setMotionState(motionStates.DRIVE_TO_BALL);
         resetMotionFindBall();
         return;

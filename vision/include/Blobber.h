@@ -37,6 +37,16 @@ public:
 		int parent, next;
 	} BlobberRun;
 
+	enum BlobColor {
+		unknown,
+		green,
+		blue,
+		magenta,
+		orange,
+		black,
+		white
+	};
+
 	typedef struct BlobberRegion {
 		int color;
 		int x1, y1, x2, y2;
@@ -88,7 +98,7 @@ public:
 	void segSeparateRegions();
 	BlobberRegion* segSortRegions(BlobberRegion *list, int passes);
 	void analyse(unsigned char *frame);
-	BlobInfo* getBlobs(int color);
+	BlobInfo* getBlobs(BlobColor color);
 
 	void getSegmentedRgb(unsigned char* out);
     unsigned char *segmented;//segmented image buffer 0-9
@@ -97,8 +107,9 @@ public:
     bool loadColors(std::string filename);
 
     int getColorCount();
-    ColorClassState* getColor(int colorIndex);
+    ColorClassState* getColor(BlobColor colorIndex);
     ColorClassState* getColor(std::string name);
+    BlobColor getColorAt(int x, int y);
 
 	void clearColors();
 	void clearColor(unsigned char colorIndex);

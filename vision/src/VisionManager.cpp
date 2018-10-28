@@ -11,13 +11,15 @@ VisionManager::VisionManager() :
 	frontCamera(nullptr),
 	gui(nullptr),
 	blobber(nullptr),
+	vision(nullptr),
 	fpsCounter(nullptr),
 	hubCom(nullptr),
 	running(false), debugVision(false),
 	dt(0.01666f), lastStepTime(0.0), totalTime(0.0f),
 	debugCameraDir(Dir::FRONT)
 {
-
+	visionResult = new Vision::Result();
+	visionResult->vision = vision;
 }
 
 VisionManager::~VisionManager() {
@@ -126,6 +128,8 @@ void VisionManager::run() {
 
 		blobber->analyse(frame->data);
 
+		visionResult = vision->process();
+
 		if (showGui) {
 			if (gui == NULL) {
 				setupGui();
@@ -135,7 +139,7 @@ void VisionManager::run() {
 
 			gui->processFrame(blobber->bgr);
 
-			gui->update();
+			gui->update(visionResult);
 
 			if (gui->isQuitRequested()) {
 				running = false;
@@ -238,6 +242,8 @@ void VisionManager::setupVision() {
 	blobber->setColorMinArea(5, 100);
 	blobber->setColorMinArea(6, 100);
 
+	vision = new Vision(blobber, Dir::FRONT, Config::cameraWidth, Config::cameraHeight);
+
 	blobber->start();
 }
 
@@ -267,11 +273,33 @@ void VisionManager::sendState() {
 
 	j["type"] = "message";
 	j["topic"] = "vision";
-	j["blobs"] = nlohmann::json::object();
+	//j["blobs"] = nlohmann::json::object();
 	j["balls"] = nlohmann::json::array();
+	j["baskets"] = nlohmann::json::array();
 
-	for (int colorIndex = 0; colorIndex < blobber->getColorCount(); colorIndex++) {
-		Blobber::ColorClassState* color = blobber->getColor(colorIndex);
+	for (auto ball : visionResult->balls) {
+        nlohmann::json ballJson;
+        ballJson["cx"] = ball->x;
+        ballJson["cy"] = ball->y;
+        ballJson["w"] = ball->width;
+        ballJson["h"] = ball->height;
+
+        j["balls"].push_back(ballJson);
+	}
+
+	for (auto basket : visionResult->baskets) {
+        nlohmann::json basketJson;
+        basketJson["cx"] = basket->x;
+        basketJson["cy"] = basket->y;
+        basketJson["w"] = basket->width;
+        basketJson["h"] = basket->height;
+        basketJson["color"] = basket->type == 0 ? "blue" : "magenta";
+
+        j["baskets"].push_back(basketJson);
+	}
+
+	/*for (int colorIndex = 0; colorIndex < blobber->getColorCount(); colorIndex++) {
+		Blobber::ColorClassState* color = blobber->getColor(Blobber::BlobColor(colorIndex));
 
 		if (color == nullptr || color->name == nullptr) {
 			continue;
@@ -287,7 +315,7 @@ void VisionManager::sendState() {
 			continue;
 		}
 
-		Blobber::BlobInfo* blobInfo = blobber->getBlobs(colorIndex);
+		Blobber::BlobInfo* blobInfo = blobber->getBlobs(Blobber::BlobColor(colorIndex));
 
 		if (blobInfo->count > 0) {
 			j["blobs"][colorName] = nlohmann::json::array();
@@ -306,11 +334,11 @@ void VisionManager::sendState() {
 
 				if (colorName == "green" && isBlobBall(blob)) {
 					j["blobs"][colorName].push_back(blobJson);
-					j["balls"].push_back(blobJson);
+					//j["balls"].push_back(blobJson);
 				}
 			}
 		}
-	}
+	}*/
 
 	auto jsonString = j.dump();
 

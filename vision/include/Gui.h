@@ -9,6 +9,7 @@
 #include "MouseListener.h"
 #include "Config.h"
 #include "BaseCamera.h"
+#include "Vision.h"
 #include <vector>
 #include <string>
 
@@ -67,12 +68,12 @@ public:
 	void drawCenterLine(unsigned char* image, int width, int height);
 	void drawMouse(CameraTranslator* cameraTranslator, unsigned char* image, int width, int height);
 	bool isMouseOverElement(int x, int y);
-	bool update();
+	bool update(Vision::Result* visionResult);
 	bool isQuitRequested() { return quitRequested; }
 	void addMouseListener(MouseListener* listener);
 	void setFps(int fps) { this->fps = fps; };
 	void setFrontImages(unsigned char* rgb, unsigned char* yuyv, unsigned char* dataY, unsigned char* dataU, unsigned char* dataV, unsigned char* classification);
-	void setFrontImages(unsigned char* rgb, unsigned char* rgbData);
+	void setFrontImages(unsigned char* rgb, unsigned char* rgbData, Vision::Result* visionResult);
 	void setRearImages(unsigned char* rgb, unsigned char* yuyv, unsigned char* dataY, unsigned char* dataU, unsigned char* dataV, unsigned char* classification);
 	void onMouseMove(int x, int y, DisplayWindow* win);
 	void onMouseDown(int x, int y, MouseListener::MouseBtn btn, DisplayWindow* win);
