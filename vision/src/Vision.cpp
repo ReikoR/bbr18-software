@@ -348,7 +348,7 @@ bool Vision::isValidbasket(Object *basket, Side side) {
     return //(isnan(topMetric) || topMetric > 0.2) &&
             //(sideLeftMetric > 0.2 || sideRightMetric > 0.2) &&
             bottomLeftMetric > 0.5 ||
-            bottomRightMetric > 0.5;s
+            bottomRightMetric > 0.5;
 }
 
 //bool Vision::isValidbasket(Object* goal, Side side) {
