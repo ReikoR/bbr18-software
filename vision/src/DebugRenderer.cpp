@@ -159,10 +159,12 @@ void DebugRenderer::renderBaskets(unsigned char *image, const ObjectList &basket
 		//canvas.drawLine(basket->x - basket->width / 2, basket->y + basket->height / 2, basket->x + basket->width / 2, basket->y - basket->height / 2, r, g, b);
 
 		int minAreaSideLength = 20;
+        int maxBottomHeight = 40;
         int x1 = basket->x - basket->width / 2;
         int y1 = basket->y - basket->height / 2;
         int sideWidth = std::max(basket->width, minAreaSideLength);
         int boxWidthBottom = sideWidth + basket->width / 2;
+        int bottomHeight = std::min(sideWidth, maxBottomHeight);
 
 		canvas.drawBox(
 				x1 - sideWidth, y1 - sideWidth,
@@ -184,13 +186,13 @@ void DebugRenderer::renderBaskets(unsigned char *image, const ObjectList &basket
 
 		canvas.drawBox(
 				basket->x - boxWidthBottom, basket->y + basket->height / 2,
-				boxWidthBottom, sideWidth,
+				boxWidthBottom, bottomHeight,
 				255, 0, 0
 		);
 
 		canvas.drawBox(
 				basket->x, basket->y + basket->height / 2,
-				boxWidthBottom, sideWidth,
+				boxWidthBottom, bottomHeight,
 				255, 0, 0
 		);
 

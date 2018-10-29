@@ -263,6 +263,7 @@ ObjectList Vision::processBaskets(Dir dir) {
 
 bool Vision::isValidbasket(Object *basket, Side side) {
     int minAreaSideLength = 20;
+    int maxBottomHeight = 40;
     int x1 = basket->x - basket->width / 2;
     int y1 = basket->y - basket->height / 2;
 
@@ -270,10 +271,14 @@ bool Vision::isValidbasket(Object *basket, Side side) {
         return false;
     }
 
+    if ((float)basket->width / (float)basket->height > 10) {
+        return false;
+    }
+
 	std::vector<Blobber::BlobColor> sideValidColors = {
-			Blobber::BlobColor::orange,
+			Blobber::BlobColor::orange/*,
 			Blobber::BlobColor::white,
-			Blobber::BlobColor::black
+			Blobber::BlobColor::black*/
 	};
 
     std::vector<Blobber::BlobColor> bottomValidColors = {
@@ -286,6 +291,7 @@ bool Vision::isValidbasket(Object *basket, Side side) {
 
 	int sideWidth = std::max(basket->width, minAreaSideLength);
     int boxWidthBottom = sideWidth + basket->width / 2;
+    int bottomHeight = std::min(sideWidth, maxBottomHeight);
 
     float topMetric = getAreaMetric(
             x1 - sideWidth,
@@ -315,7 +321,7 @@ bool Vision::isValidbasket(Object *basket, Side side) {
 			basket->x - boxWidthBottom,
 			basket->y + basket->height / 2,
 			boxWidthBottom,
-			sideWidth,
+            bottomHeight,
 			bottomValidColors
 			);
 
@@ -323,7 +329,7 @@ bool Vision::isValidbasket(Object *basket, Side side) {
             basket->x,
             basket->y + basket->height / 2,
             boxWidthBottom,
-			sideWidth,
+            bottomHeight,
             bottomValidColors
     );
 
@@ -339,12 +345,10 @@ bool Vision::isValidbasket(Object *basket, Side side) {
 	std::cout << "@ BOTTOM RIGHT METRIC: " << bottomRightMetric << std::endl;
 	std::cout << "@ TOP METRIC: " << topMetric << std::endl;*/
 
-    /*return topMetric > 0.2 &&
-        sideLeftMetric > 0.1 &&
-        sideRightMetric > 0.1 &&
-        (bottomLeftMetric > 0.2 || bottomRightMetric > 0.2);*/
-
-    return true;
+    return //(isnan(topMetric) || topMetric > 0.2) &&
+            //(sideLeftMetric > 0.2 || sideRightMetric > 0.2) &&
+            bottomLeftMetric > 0.5 ||
+            bottomRightMetric > 0.5;s
 }
 
 //bool Vision::isValidbasket(Object* goal, Side side) {
@@ -1973,7 +1977,7 @@ float Vision::getAreaMetric(int x1, int y1, int areaWidth, int areaHeight, std::
     Blobber::BlobColor color;
 
     if (xStepCount < 2 || yStepCount < 2) {
-        return 1;
+        return NAN;
     }
 
 	for (int x = xStart; x < xLimit; x += xStep) {
@@ -1992,7 +1996,7 @@ float Vision::getAreaMetric(int x1, int y1, int areaWidth, int areaHeight, std::
 
 	// Ignore result if too few samples
 	if (sum < 5) {
-		return 1;
+		return NAN;
 	}
 
 	return (float)matches / (float)sum;
