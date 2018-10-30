@@ -12,6 +12,7 @@ const publicConf = require('./public-conf.json');
  * @property {number} speed3
  * @property {number} speed4
  * @property {number} speed5
+ * @property {number} speed6
  * @property {boolean} ball1
  * @property {boolean} ball2
  * @property {number} distance
@@ -50,6 +51,7 @@ const motionStates = {
     IDLE: 'IDLE',
     FIND_BALL: 'FIND_BALL',
     DRIVE_TO_BALL: 'DRIVE_TO_BALL',
+    GRAB_BALL: 'GRAB_BALL',
     FIND_BASKET: 'FIND_BASKET'
 };
 
@@ -68,6 +70,7 @@ const motionStateHandlers = {
     IDLE: handleMotionIdle,
     FIND_BALL: handleMotionFindBall,
     DRIVE_TO_BALL: handleMotionDriveToBall,
+    GRAB_BALL: handleMotionGrabBall,
     FIND_BASKET: handleMotionFindBasket
 };
 
@@ -88,6 +91,12 @@ const frameHeight = 1024;
 const frameWidth = 1280;
 const frameCenterX = frameWidth / 2;
 
+const minServo = 1050;
+const maxServo = 1700;
+const servoRange = maxServo - minServo;
+let servo = minServo;
+
+
 let motionState = motionStates.FIND_BALL;
 let throwerState = throwerStates.IDLE;
 
@@ -97,11 +106,14 @@ const throwBallTimeoutDelay = 5000;
 let visionState = {};
 let processedVisionState = {closestBall: null, basket: null, lastVisibleBasketDirection: -1};
 let mainboardState = {
-    speeds: [0, 0, 0, 0, 0],
+    speeds: [0, 0, 0, 0, 0, minServo],
     balls: [false, false], prevBalls: [false, false], ballThrown: false,
-    lidarDistance: 0
+    lidarDistance: 0,
+    realsenseDistance: 0
 };
-let aiState = {speeds: [0, 0, 0, 0, 0]};
+let aiState = {speeds: [0, 0, 0, 0, 0, 0, minServo]};
+
+let basketState = {distance: 0, angel: 0};
 
 let basketColour = basketColours.blue;
 
@@ -169,6 +181,7 @@ function handleInfo(info) {
             mainboardState.speeds[2] = info.message.speed3;
             mainboardState.speeds[3] = info.message.speed4;
             mainboardState.speeds[4] = info.message.speed5;
+            mainboardState.speeds[5] = info.message.speed6;
 
             mainboardState.prevBalls = mainboardState.balls.slice();
             mainboardState.balls[0] = info.message.ball1;
@@ -201,6 +214,11 @@ function handleInfo(info) {
                 }
             }
 
+            break;
+        }
+        case 'goal_distance': {
+            console.log("Got goal data");
+            console.log(info);
             break;
         }
     }
@@ -294,8 +312,8 @@ function handleMotionDriveToBall() {
         const centerY = closestBall.cy;
         const errorX = centerX - frameCenterX;
         const errorY = 0.8 * frameHeight - centerY;
-        const maxForwardSpeed = 2;
-        const maxRotationSpeed = 8;
+        const maxForwardSpeed = 2.5;
+        const maxRotationSpeed = 6;
         const forwardSpeed = maxForwardSpeed * errorY / frameHeight;
         const rotationSpeed = maxRotationSpeed * -errorX / frameWidth;
 
@@ -306,9 +324,37 @@ function handleMotionDriveToBall() {
             Math.abs(errorX) <= 100 &&
             centerY <= 950 //avoid too close ball
         ) {
-            setMotionState(motionStates.FIND_BASKET);
+            setMotionState(motionStates.GRAB_BALL);
         }
     } else {
+        setMotionState(motionStates.FIND_BALL);
+    }
+}
+
+function handleMotionGrabBall() {
+    const closestBall = processedVisionState.closestBall;
+
+    if(closestBall) {
+        const centerX = closestBall.cx;
+        const centerY = closestBall.cy;
+        const errorX = centerX - frameCenterX;
+        const errorY = 0.9 * frameHeight - centerY;
+        const maxForwardSpeed = 2;
+        const maxRotationSpeed = 4;
+        const forwardSpeed = maxForwardSpeed * errorY / frameHeight;
+        const rotationSpeed = maxRotationSpeed * -errorX / frameWidth;
+
+        setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, forwardSpeed, rotationSpeed, true));
+
+        if (
+            errorY <= 100 &&
+            Math.abs(errorX) <= 100 &&
+            centerY <= 950 //avoid too close ball
+        ) {
+            setThrowerState(throwerStates.GRAB_BALL);
+        }
+    } else {
+        setThrowerState(throwerStates.IDLE);
         setMotionState(motionStates.FIND_BALL);
     }
 }
@@ -370,11 +416,26 @@ function handleMotionFindBasket() {
 }
 
 function handleThrowerIdle() {
-    aiState.speeds[4] = 0;
+
+    if (mainboardState.balls[0])
+        setThrowerState(throwerStates.EJECT_BALL)
+    else {
+        aiState.speeds[4] = 0;
+        aiState.speeds[5] = 0;
+    }
+
 }
 
 function handleThrowerThrowBall() {
-    aiState.speeds[4] = thrower.getSpeed(mainboardState.lidarDistance);
+    //aiState.speeds[4] = thrower.getSpeed(mainboardState.lidarDistance);
+
+    aiState.speeds[4] = 10000;
+
+    aiState.speeds[5]  = 300;
+
+    if (!mainboardState.balls[0]) {
+        mainboardState.ballThrown = true;
+    }
 
     if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;
@@ -384,15 +445,35 @@ function handleThrowerThrowBall() {
 }
 
 function handleThrowerGrabBall() {
+    const feederIdleSpeed = 100;
+    const feederGrabSpeed = 150;
 
+    aiState.speeds[5] = feederIdleSpeed;
+
+    if(mainboardState.balls[1]) {
+        aiState.speeds[5] = feederGrabSpeed;
+        if(mainboardState.balls[0]) {
+            aiState.speeds[5] = 0;
+            setMotionState(motionStates.IDLE);
+            setThrowerState(throwerStates.THROW_BALL);
+        }
+    }
 }
 
 function handleThrowerHoldBall() {
-
+    setThrowerState(throwerStates.IDLE);
 }
 
 function handleThrowerEjectBall() {
+    const feederIdleSpeed = 150;
+    const throwerSpeed = 5000;
 
+    if( mainboardState.balls[1]) {
+        aiState.speeds[4] = throwerSpeed;
+        aiState.speeds[5] = feederIdleSpeed;
+    } else {
+        setThrowerState(throwerStates.IDLE);
+    }
 }
 
 /**

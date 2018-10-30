@@ -38,6 +38,12 @@ const components = {
         path: '../vision/cmake-build-release/bbr18_vision.exe',
         process: null
     },
+    goal_distance: {
+        name: 'goal_distance',
+        type: 'python',
+        path: '../goal_distance/goal_distance.py',
+        process: null
+    },
     ai: {
         name: 'ai',
         type: 'node',
@@ -163,6 +169,9 @@ function startComponent(name) {
                 cwd: path.dirname(absolutePath),
                 silent: true
             });
+        } else if (component.type === 'python') {
+            console.log("Start python ", absolutePath);
+            component.process = childProcess.spawn('python', [absolutePath]);
         }
 
         if (component.process) {
