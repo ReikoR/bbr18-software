@@ -63,6 +63,9 @@ public:
 
 	DisplayWindow* createWindow(int width, int height, std::string name);
 	Button* createButton(std::string text, int x, int y, int width = 0, int type = 0, bool visible = true, void* data = NULL);
+
+	unsigned char* rgb;
+
 	void processFrame(unsigned char* bgr);
 	void drawElements(unsigned char* image, int width, int height);
 	void drawCenterLine(unsigned char* image, int width, int height);
@@ -122,7 +125,6 @@ private:
 	int brushRadius;
 	unsigned char* segmentedRgb;
 
-	unsigned char* rgb;
 	unsigned char* rgbData;
 };
 

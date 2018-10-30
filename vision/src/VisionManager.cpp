@@ -128,16 +128,21 @@ void VisionManager::run() {
 
 		blobber->analyse(frame->data);
 
-		visionResult = vision->process();
-
 		if (showGui) {
-			if (gui == NULL) {
+			if (gui == nullptr) {
 				setupGui();
 			}
 
-			gui->setFps(fpsCounter->getFps());
-
 			gui->processFrame(blobber->bgr);
+
+			vision->setDebugImage(gui->rgb, Config::cameraWidth, Config::cameraHeight);
+		}
+
+		visionResult = vision->process();
+
+		if (showGui) {
+
+			gui->setFps(fpsCounter->getFps());
 
 			gui->update(visionResult);
 

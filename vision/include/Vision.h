@@ -153,7 +153,7 @@ private:
     ObjectList processBaskets(Dir dir);
 	ObjectList processBalls(Dir dir, ObjectList& goals);
     float getAreaMetric(int x1, int y1, int areaWidth, int areaHeight, std::vector<Blobber::BlobColor> validColors);
-    float getSurroundMetric(int x, int y, int radius, std::vector<std::string> validColors, std::string requiredColor = "", int side = 0, bool allowNone = false);
+    float getSurroundMetric(int x, int y, int radius, std::vector<Blobber::BlobColor> validColors, int side = 0, bool allowNone = false);
     PathMetric getPathMetric(int x1, int y1, int x2, int y2, std::vector<std::string> validColors, std::string requiredColor = "");
 	EdgeDistanceMetric getEdgeDistanceMetric(int x, int y, int width, int height, std::string color1, std::string color2);
 	float getBlockMetric(int x, int y, int width, int height, std::vector<std::string> validColors, int step = 6);

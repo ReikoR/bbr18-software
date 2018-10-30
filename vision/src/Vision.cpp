@@ -520,7 +520,52 @@ bool Vision::isNotOpponentMarker(Object* goal, Side side, ObjectList& goals)
 	return true;
 }
 
-bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& baskets) {
+bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& balls) {
+	int senseRadius = ball->y / 5 - std::max(std::abs(ball->x - Config::cameraWidth / 2), 0) / 20 + 2;
+	int ballMinArea = senseRadius * senseRadius / 12;
+
+	//std::cout << "area: " << ball->area << " min: " << ballMinArea << std::endl;
+
+	if (ball->area < ballMinArea) {
+		return false;
+	}
+
+    float sizeRatio = (float)ball->width / (float)ball->height;
+
+	if (sizeRatio > Config::maxBallSizeRatio || sizeRatio < 1.0f / Config::maxBallSizeRatio) {
+		return false;
+	}
+
+    int ballRadius = getBallRadius(ball->width, ball->height);
+	//int senseRadius = getBallSenseRadius(ballRadius, ball->distance);
+
+	//int surroundSenseY = (int)((float)ball->y + (float)ballRadius * Math::map(ball->distance, 0.0f, 2.0f, 0.75f, 0.2f));
+	int surroundSenseY = ball->y;
+	//int pathMetricSenseY = surroundSenseY + senseRadius;
+
+	std::vector<Blobber::BlobColor> validColors = {
+			Blobber::BlobColor::orange,
+			Blobber::BlobColor::white,
+	};
+
+	if (ball->y + ballRadius < Config::surroundSenseThresholdY) {
+		float surroundMetric = getSurroundMetric(
+			ball->x,
+			surroundSenseY,
+			senseRadius,
+			validColors,
+			0
+		);
+
+		//std::cout << "Surround: " << surroundMetric << std::endl;
+
+		if (surroundMetric == -1.0f || surroundMetric < Config::minValidBallSurroundThreshold) {
+			//std::cout << "@ BALL SURROUND FAIL: " << surroundMetric << " VS " << Config::minValidBallSurroundThreshold << std::endl;
+
+			return false;
+		}
+	}
+
     return true;
 }
 
@@ -812,12 +857,14 @@ float Vision::getAngle(int x, int y) {
 }*/
 
 // TODO When scanning the underside then some on the topside are also still created
-/*float Vision::getSurroundMetric(int x, int y, int radius, std::vector<std::string> validColors, std::string requiredColor, int side, bool allowNone) {
+float Vision::getSurroundMetric(
+		int x, int y, int radius, std::vector<Blobber::BlobColor> validColors,
+		int side, bool allowNone
+) {
 	int matches = 0;
 	int misses = 0;
     int points = radius * 2;
-    bool requiredColorFound = false;
-    bool debug = canvas.data != NULL;
+    bool debug = canvas.data != nullptr;
 
 	int start = 0;
 	int sensePoints = points;
@@ -844,10 +891,10 @@ float Vision::getAngle(int x, int y) {
 			continue;
 		}
 
-        Blobber::Color* color = getColorAt(senseX, senseY);
+        Blobber::BlobColor color = blobber->getColorAt(senseX, senseY);
 
-        if (color != NULL) {
-            if (find(validColors.begin(), validColors.end(), std::string(color->name)) != validColors.end()) {
+        if (color != Blobber::BlobColor::unknown) {
+            if (find(validColors.begin(), validColors.end(), color) != validColors.end()) {
                 matches++;
 
                 if (debug) {
@@ -855,11 +902,11 @@ float Vision::getAngle(int x, int y) {
                 }
             } else {
 				misses++;
-			}
 
-            if (requiredColor != "" && color->name == requiredColor) {
-                requiredColorFound = true;
-            }
+				if (debug) {
+					canvas.drawMarker(senseX, senseY, 200, 0, 0);
+				}
+			}
         } else {
 			if (!allowNone) {
 				misses++;
@@ -879,12 +926,10 @@ float Vision::getAngle(int x, int y) {
 
 	if (sensedPoints == 0) {
 		return -1.0f;
-	} else if (requiredColor != "" && !requiredColorFound) {
-        return 0.0f;
-    } else {
+	} else {
         return (float)matches / (float)sensedPoints;
     }
-}*/
+}
 
 //Vision::PathMetric Vision::getPathMetric(int x1, int y1, int x2, int y2, std::vector<std::string> validColors, std::string requiredColor) {
 //    int matches = 0;

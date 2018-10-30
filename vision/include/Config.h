@@ -46,7 +46,7 @@ namespace Config {
 	//const float cameraFovAngle = 56.0f * 3.14f / 180.0f;
 	const float cameraFovAngle = 100.0f * 3.14f / 180.0f;
 	const float cameraFovWidth = tan(cameraFovAngle / 2.0f) * cameraFovDistance * 2.0f;
-	const int cameraGain = 1;
+	const float cameraGain = 1.0;
 	//const int cameraGain = 6;
 	const int cameraExposure = 10000;
 
