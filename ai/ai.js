@@ -377,18 +377,47 @@ function resetMotionFindBall() {
     findBallRotateLoopCount = 0;
 }
 
+const driveToBallSpeedRampUpLimit = 0.01;
+const driveToBallMaxSpeed = 2;
+let driveToBallCurrentSpeedLimit = 1;
+
+const driveToBallRotationSpeedRampUpLimit = 0.05;
+const driveToBallMaxRotationSpeed = 8;
+let driveToBallCurrentRotationSpeedLimit = 2;
+
 function handleMotionDriveToBall() {
-    const closestBall = processedVisionState.closestBall;
+    const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
 
     if (closestBall) {
         const centerX = closestBall.cx;
         const centerY = closestBall.cy;
         const errorX = centerX - frameCenterX;
         const errorY = 0.8 * frameHeight - centerY;
-        const maxForwardSpeed = 2;
-        const maxRotationSpeed = 8;
-        const forwardSpeed = maxForwardSpeed * errorY / frameHeight;
-        const rotationSpeed = maxRotationSpeed * -errorX / frameWidth;
+        const maxForwardSpeed = driveToBallCurrentSpeedLimit;
+        const maxRotationSpeed = driveToBallCurrentRotationSpeedLimit;
+        const maxErrorForwardSpeed = 2;
+        const maxErrorRotationSpeed = 8;
+        let forwardSpeed = maxErrorForwardSpeed * errorY / frameHeight;
+        let rotationSpeed = maxErrorRotationSpeed * -errorX / frameWidth;
+
+        if (forwardSpeed > maxForwardSpeed) {
+            forwardSpeed = maxForwardSpeed;
+        }
+
+        if (rotationSpeed > maxRotationSpeed) {
+            rotationSpeed = maxRotationSpeed;
+        }
+
+        driveToBallCurrentSpeedLimit += driveToBallSpeedRampUpLimit;
+        driveToBallCurrentRotationSpeedLimit += driveToBallRotationSpeedRampUpLimit;
+
+        if (driveToBallCurrentSpeedLimit >= driveToBallMaxSpeed) {
+            driveToBallCurrentSpeedLimit = driveToBallMaxSpeed;
+        }
+
+        if (driveToBallCurrentRotationSpeedLimit >= driveToBallMaxRotationSpeed) {
+            driveToBallCurrentRotationSpeedLimit = driveToBallMaxRotationSpeed;
+        }
 
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, forwardSpeed, rotationSpeed, true));
 
@@ -402,6 +431,11 @@ function handleMotionDriveToBall() {
     } else {
         setMotionState(motionStates.FIND_BALL);
     }
+}
+
+function resetMotionDriveToBall() {
+    driveToBallCurrentSpeedLimit = 1;
+    driveToBallCurrentRotationSpeedLimit = 2;
 }
 
 function handleMotionFindBasket() {
@@ -493,6 +527,11 @@ function handleThrowerEjectBall() {
 function setMotionState(newState) {
     if (motionState !== newState) {
         console.log('Motion state:', motionState, '->', newState);
+
+        if (motionState === motionStates.DRIVE_TO_BALL) {
+            resetMotionDriveToBall();
+        }
+
         motionState = newState;
 
         if (motionState === motionStates.IDLE) {
