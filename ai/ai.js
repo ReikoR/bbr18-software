@@ -111,6 +111,8 @@ let throwerState = throwerStates.IDLE;
 const findBallRotatePattern = [[-1, 100], [-8, 200], [-1, 100], [-8, 200], [-1, 50]];
 let findBallRotatePatternIndex = 0;
 let findBallRotateTimeout = null;
+let findBallRotateLoopCount = 0;
+const findBallRotateLoopLimit = 5;
 
 let throwBallTimeout = 0;
 const throwBallTimeoutDelay = 5000;
@@ -343,28 +345,28 @@ function handleMotionIdle() {
 function handleMotionFindBall() {
     setThrowerState(throwerStates.IDLE);
 
-    if (
-        processedVisionState.closestBall &&
-        processedVisionState.closestBall.w * processedVisionState.closestBall.h > 10
-    ) {
-        setMotionState(motionStates.DRIVE_TO_BALL);
+    if (processedVisionState.closestBall) {
         resetMotionFindBall();
+        setMotionState(motionStates.DRIVE_TO_BALL);
         return;
     }
 
     const patternStep = findBallRotatePattern[findBallRotatePatternIndex];
 
-    if (findBallRotateTimeout == null) {
+    if (findBallRotateLoopCount === findBallRotateLoopLimit) {
+        setMotionState(motionStates.IDLE);
+    } else if (findBallRotateTimeout == null) {
         findBallRotateTimeout = setTimeout(() => {
             findBallRotateTimeout = null;
             findBallRotatePatternIndex++;
 
             if (findBallRotatePatternIndex >= findBallRotatePattern.length) {
                 findBallRotatePatternIndex = 0;
+                findBallRotateLoopCount++;
             }
-        }, patternStep[1]);
+        }, patternStep[1] * (findBallRotateLoopCount + 1));
 
-        setAiStateSpeeds(omniMotion.calculateSpeeds(0, 0, patternStep[0], true));
+        setAiStateSpeeds(omniMotion.calculateSpeeds(0, 0, patternStep[0] / (findBallRotateLoopCount + 1), true));
     }
 }
 
@@ -372,6 +374,7 @@ function resetMotionFindBall() {
     clearTimeout(findBallRotateTimeout);
     findBallRotateTimeout = null;
     findBallRotatePatternIndex = 0;
+    findBallRotateLoopCount = 0;
 }
 
 function handleMotionDriveToBall() {
