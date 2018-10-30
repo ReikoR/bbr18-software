@@ -115,8 +115,17 @@ let findBallRotateTimeout = null;
 let throwBallTimeout = 0;
 const throwBallTimeoutDelay = 5000;
 
+const lastClosestBallLimit = 10;
+let lastClosestBallCount = 0;
+
 let visionState = {};
-let processedVisionState = {closestBall: null, basket: null, lastVisibleBasketDirection: -1};
+let processedVisionState = {
+    closestBall: null,
+    lastClosestBall: null,
+    basket: null,
+    lastVisibleBasketDirection: -1
+};
+
 let mainboardState = {
     speeds: [0, 0, 0, 0, 0],
     balls: [false, false], prevBalls: [false, false], ballThrown: false,
@@ -263,6 +272,18 @@ function processVisionInfo(info) {
 
     processedVisionState.closestBall = ball;
     processedVisionState.basket = basket;
+
+    if (processedVisionState.closestBall) {
+        processedVisionState.lastClosestBall = processedVisionState.closestBall;
+        lastClosestBallCount = 0;
+    } else {
+        lastClosestBallCount++;
+
+        if (lastClosestBallCount >= lastClosestBallLimit) {
+            processedVisionState.lastClosestBall = null;
+            lastClosestBallCount = 0;
+        }
+    }
 
     if (processedVisionState.basket) {
         processedVisionState.lastVisibleBasketDirection =  Math.sign(frameWidth / 2 - processedVisionState.basket.cx);
