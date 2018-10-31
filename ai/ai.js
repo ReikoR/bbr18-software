@@ -377,43 +377,62 @@ function resetMotionFindBall() {
     findBallRotateLoopCount = 0;
 }
 
-const driveToBallSpeedRampUpLimit = 0.01;
-const driveToBallMaxSpeed = 2;
-let driveToBallCurrentSpeedLimit = 1;
+const driveToBallMinSpeed = 0.1;
+const driveToBallMaxSpeed = 3;
+const driveToBallStartSpeed = 0.5;
+let driveToBallStartTime = null;
 
 const driveToBallRotationSpeedRampUpLimit = 0.05;
 const driveToBallMaxRotationSpeed = 8;
 let driveToBallCurrentRotationSpeedLimit = 2;
 
+function getDriveToBallMaxSpeed(startTime, startSpeed, speedLimit) {
+    const currentTime = Date.now();
+    const timeDiff = currentTime - startTime;
+    const speedDiff = speedLimit - startSpeed;
+    const rampUpTime = 1000;
+    const timePassedPercent = timeDiff / rampUpTime;
+
+    if (timeDiff >= rampUpTime) {
+        return speedLimit;
+    }
+
+    return startSpeed + speedDiff * Math.pow(timePassedPercent, 2);
+}
+
 function handleMotionDriveToBall() {
     const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
+
+    if (!driveToBallStartTime) {
+        driveToBallStartTime = Date.now();
+    }
 
     if (closestBall) {
         const centerX = closestBall.cx;
         const centerY = closestBall.cy;
         const errorX = centerX - frameCenterX;
         const errorY = 0.8 * frameHeight - centerY;
-        const maxForwardSpeed = driveToBallCurrentSpeedLimit;
+        const maxForwardSpeed = getDriveToBallMaxSpeed(
+            driveToBallStartTime, driveToBallStartSpeed, driveToBallMaxSpeed
+        );
         const maxRotationSpeed = driveToBallCurrentRotationSpeedLimit;
-        const maxErrorForwardSpeed = 2;
-        const maxErrorRotationSpeed = 8;
-        let forwardSpeed = maxErrorForwardSpeed * errorY / frameHeight;
+        const maxErrorForwardSpeed = 5;
+        const maxErrorRotationSpeed = 16;
+        const normalizedErrorY = errorY / frameHeight;
+        let forwardSpeed = maxErrorForwardSpeed * Math.pow(normalizedErrorY, 2);
         let rotationSpeed = maxErrorRotationSpeed * -errorX / frameWidth;
 
         if (forwardSpeed > maxForwardSpeed) {
             forwardSpeed = maxForwardSpeed;
+        } else if (forwardSpeed < driveToBallMinSpeed) {
+            forwardSpeed = driveToBallMinSpeed;
         }
 
         if (rotationSpeed > maxRotationSpeed) {
             rotationSpeed = maxRotationSpeed;
         }
 
-        driveToBallCurrentSpeedLimit += driveToBallSpeedRampUpLimit;
         driveToBallCurrentRotationSpeedLimit += driveToBallRotationSpeedRampUpLimit;
-
-        if (driveToBallCurrentSpeedLimit >= driveToBallMaxSpeed) {
-            driveToBallCurrentSpeedLimit = driveToBallMaxSpeed;
-        }
 
         if (driveToBallCurrentRotationSpeedLimit >= driveToBallMaxRotationSpeed) {
             driveToBallCurrentRotationSpeedLimit = driveToBallMaxRotationSpeed;
@@ -434,8 +453,8 @@ function handleMotionDriveToBall() {
 }
 
 function resetMotionDriveToBall() {
-    driveToBallCurrentSpeedLimit = 1;
     driveToBallCurrentRotationSpeedLimit = 2;
+    driveToBallStartTime = null;
 }
 
 function handleMotionFindBasket() {
