@@ -567,6 +567,90 @@ bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& balls) {
 		}
 	}
 
+	if (!isBallWithinBorders(ball)) {
+	    return false;
+	}
+
+    return true;
+}
+
+bool Vision::isBallWithinBorders(Object* ball) {
+    bool debug = canvas.data != nullptr;
+
+    Blobber::BlobColor white = Blobber::BlobColor::white;
+    Blobber::BlobColor black = Blobber::BlobColor::black;
+
+    int tolerance = 4;
+    const int minStripeHeight = 6;
+
+    int whitePixels = 0;
+    int blackPixels = 0;
+    int otherPixels = 0;
+
+    for (int y = ball->y + ball->width; y < Config::surroundSenseThresholdY; ++y) {
+        Blobber::BlobColor color = blobber->getColorAt(ball->x, y);
+
+        if (blackPixels > minStripeHeight && whitePixels > minStripeHeight) {
+            canvas.drawMarker(ball->x, y, 0, 200, 0);
+
+            return false;
+        }
+
+        // Collect white stripe
+        if (blackPixels > minStripeHeight) {
+            if (color == white) {
+                ++whitePixels;
+                otherPixels = 0;
+
+                if (debug) {
+                    canvas.drawMarker(ball->x, y, 0, 200, 0, true);
+                }
+
+                continue;
+            }
+
+            if (whitePixels) {
+                if (++otherPixels > tolerance) {
+                    blackPixels = otherPixels = 0;
+                } else {
+                    ++whitePixels;
+
+                    if (debug) {
+                        canvas.drawMarker(ball->x, y, 0, 200, 0, true);
+                    }
+                    continue;
+                }
+            }
+        }
+
+        // Collect black stripe
+        whitePixels = 0;
+
+        if (color == black) {
+            if (blackPixels == 0) {
+                tolerance = y / 100 + 4;
+            }
+
+            ++blackPixels;
+            otherPixels = 0;
+
+            if (debug) {
+                canvas.drawMarker(ball->x, y, 0, 200, 0, true);
+            }
+
+        } else if (blackPixels) {
+            if (++otherPixels > tolerance) {
+                blackPixels = otherPixels = 0;
+            } else {
+                ++blackPixels;
+
+                if (debug) {
+                    canvas.drawMarker(ball->x, y, 0, 200, 0, true);
+                }
+            }
+        }
+    }
+
     return true;
 }
 

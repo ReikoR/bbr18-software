@@ -164,6 +164,7 @@ private:
 	ColorList getViewColorOrder();
 	Object* mergeGoals(Object* goal1, Object* goal2);
 	bool isValidBall(Object* ball, Dir dir, ObjectList& goals);
+    bool isBallWithinBorders(Object* ball);
     bool isValidbasket(Object *basket, Side side);
 	bool isNotOpponentMarker(Object* goal, Side side, ObjectList& goals);
 	bool isBallInGoal(Object* ball, Dir dir, ObjectList& goals);
