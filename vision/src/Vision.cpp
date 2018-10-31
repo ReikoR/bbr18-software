@@ -522,7 +522,7 @@ bool Vision::isNotOpponentMarker(Object* goal, Side side, ObjectList& goals)
 
 bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& balls) {
 	int senseRadius = ball->y / 5 - std::max(std::abs(ball->x - Config::cameraWidth / 2), 0) / 20 + 2;
-	int ballMinArea = senseRadius * senseRadius / 12;
+	int ballMinArea = senseRadius * senseRadius / 25;
 
 	//std::cout << "area: " << ball->area << " min: " << ballMinArea << std::endl;
 
@@ -546,6 +546,7 @@ bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& balls) {
 	std::vector<Blobber::BlobColor> validColors = {
 			Blobber::BlobColor::orange,
 			Blobber::BlobColor::white,
+			Blobber::BlobColor::green
 	};
 
 	if (ball->y + ballRadius < Config::surroundSenseThresholdY) {
@@ -554,7 +555,7 @@ bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& balls) {
 			surroundSenseY,
 			senseRadius,
 			validColors,
-			0
+			1
 		);
 
 		//std::cout << "Surround: " << surroundMetric << std::endl;
