@@ -125,7 +125,8 @@ let processedVisionState = {
     closestBall: null,
     lastClosestBall: null,
     basket: null,
-    lastVisibleBasketDirection: -1
+    lastVisibleBasketDirection: -1,
+    metrics: null
 };
 
 let mainboardState = {
@@ -301,6 +302,7 @@ function sendState() {
         ballSensors: mainboardState.balls,
         ballThrown: mainboardState.ballThrown,
         lidarDistance: mainboardState.lidarDistance,
+        visionMetrics: visionState.metrics,
         closestBall: processedVisionState.closestBall,
         basket: processedVisionState.basket
     };
@@ -402,6 +404,9 @@ function getDriveToBallMaxSpeed(startTime, startSpeed, speedLimit) {
 
 function handleMotionDriveToBall() {
     const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
+    const straightAheadMetric = visionState.metrics.straightAhead;
+    const driveability = straightAheadMetric.driveability;
+    const sideMetric = straightAheadMetric.sideMetric;
 
     if (!driveToBallStartTime) {
         driveToBallStartTime = Date.now();

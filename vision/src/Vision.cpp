@@ -64,6 +64,12 @@ Vision::Result* Vision::process() {
 	result->baskets = processBaskets(dir);
 	result->balls = processBalls(dir, result->baskets);
 
+	std::vector<Blobber::BlobColor> validDriveableColors = {
+			Blobber::BlobColor::orange
+	};
+
+	result->straightAheadInfo = getStraightAheadMetric(validDriveableColors);
+
 	/*updateColorDistances();
 	updateColorOrder();
 
@@ -1014,6 +1020,47 @@ float Vision::getSurroundMetric(
 	} else {
         return (float)matches / (float)sensedPoints;
     }
+}
+
+Vision::StraightAheadInfo Vision::getStraightAheadMetric(std::vector<Blobber::BlobColor> validColors) {
+	bool debug = canvas.data != nullptr;
+
+	const int frameCenterX = Config::cameraWidth / 2;
+	int yStep = 10;
+
+	int x = 0;
+	int totalCount = 0;
+	int validCount = 0;
+	int sideInvalidCount = 0;
+
+	for (int i = -6; i <= 6; i++) {
+		for (int y = 50; y < Config::surroundSenseThresholdY; y += yStep) {
+			x = frameCenterX + i * y / 10;
+
+			Blobber::BlobColor color = blobber->getColorAt(x, y);
+
+			totalCount++;
+
+			if (find(validColors.begin(), validColors.end(), color) != validColors.end()) {
+				validCount++;
+			} else {
+				if (i < 0) {
+					sideInvalidCount--;
+				} else if (i > 0) {
+					sideInvalidCount++;
+				}
+
+				if (debug) {
+					canvas.drawMarker(x, y, 255, 0, 0);
+				}
+			}
+		}
+	}
+
+	return Vision::StraightAheadInfo {
+		.driveability = (float)validCount / (float)totalCount,
+		.sideMetric = (float)sideInvalidCount / (float)totalCount
+	};
 }
 
 //Vision::PathMetric Vision::getPathMetric(int x1, int y1, int x2, int y2, std::vector<std::string> validColors, std::string requiredColor) {

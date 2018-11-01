@@ -281,6 +281,7 @@ void VisionManager::sendState() {
 	//j["blobs"] = nlohmann::json::object();
 	j["balls"] = nlohmann::json::array();
 	j["baskets"] = nlohmann::json::array();
+    j["metrics"] = nlohmann::json::object();
 
 	for (auto ball : visionResult->balls) {
         nlohmann::json ballJson;
@@ -303,6 +304,11 @@ void VisionManager::sendState() {
 
         j["baskets"].push_back(basketJson);
 	}
+
+    j["metrics"]["straightAhead"] = {
+            {"driveability", visionResult->straightAheadInfo.driveability},
+            {"sideMetric", visionResult->straightAheadInfo.sideMetric},
+	};
 
 	/*for (int colorIndex = 0; colorIndex < blobber->getColorCount(); colorIndex++) {
 		Blobber::ColorClassState* color = blobber->getColor(Blobber::BlobColor(colorIndex));
