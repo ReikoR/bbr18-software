@@ -634,7 +634,7 @@ bool Vision::isBallWithinBorders(Object* ball) {
 
         if (color == black) {
             if (blackPixels == 0) {
-                tolerance = y / 100 + 4;
+                tolerance = y / 20 + 4;
             }
 
             ++blackPixels;
