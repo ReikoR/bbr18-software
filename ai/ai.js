@@ -404,15 +404,16 @@ function getDriveToBallMaxSpeed(startTime, startSpeed, speedLimit) {
 
 function handleMotionDriveToBall() {
     const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
-    const straightAheadMetric = visionState.metrics.straightAhead;
-    const driveability = straightAheadMetric.driveability;
-    const sideMetric = straightAheadMetric.sideMetric;
 
     if (!driveToBallStartTime) {
         driveToBallStartTime = Date.now();
     }
 
     if (closestBall) {
+        const driveability = closestBall.straightAhead.driveability;
+        const sideMetric = closestBall.straightAhead.sideMetric;
+        const reach = closestBall.straightAhead.reach;
+
         const centerX = closestBall.cx;
         const centerY = closestBall.cy;
         const errorX = centerX - frameCenterX;
@@ -443,14 +444,23 @@ function handleMotionDriveToBall() {
             driveToBallCurrentRotationSpeedLimit = driveToBallMaxRotationSpeed;
         }
 
-        setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, forwardSpeed, rotationSpeed, true));
+        let sideSpeed = 0;
+
+        if (Math.abs(sideMetric) > 0.03) {
+            forwardSpeed = forwardSpeed * 0.5;
+            //rotationSpeed = 0;
+            sideSpeed = -2 * Math.sign(sideMetric) * Math.max(Math.abs(sideMetric), 0.1);
+        }
+
+        setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
 
         if (
             errorY <= 100 &&
             Math.abs(errorX) <= 100 &&
             centerY <= 950 //avoid too close ball
         ) {
-            setMotionState(motionStates.FIND_BASKET);
+            //setMotionState(motionStates.FIND_BASKET);
+            setMotionState(motionStates.IDLE);
         }
     } else {
         setMotionState(motionStates.FIND_BALL);
