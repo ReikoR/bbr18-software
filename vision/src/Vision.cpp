@@ -1028,11 +1028,18 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 ) {
 	bool debug = canvas.data != nullptr;
 
+	std::vector<Blobber::BlobColor> validGapColorCombination = {
+			Blobber::BlobColor::white,
+			Blobber::BlobColor::black
+	};
+
 	const int frameCenterX = Config::cameraWidth / 2;
 	int yStep = 10;
 	int maxInvalidLineGapCount = 0;
 	int invalidLineGapCount = 0;
-	int maxSideColumns = 6;
+	int maxInvalidPixelCount = 20;
+	int invalidPixelCount = 0;
+	int maxSideColumns = 8;
 	int x = 0;
 	int totalCount = 0;
 	int validCount = 0;
@@ -1040,26 +1047,42 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 	int reach = Config::surroundSenseThresholdY;
 	bool isValidLine = false;
 
-	for (int y = Config::surroundSenseThresholdY; y > 50; y -= yStep) {
-		maxInvalidLineGapCount = y / 30;
-		isValidLine = false;
+	for (int i = -maxSideColumns; i <= maxSideColumns; i++) {
+		invalidPixelCount = 0;
 
-		for (int i = -maxSideColumns; i <= maxSideColumns; i++) {
-			x = frameCenterX + i * y / 10;
+		for (int y = Config::surroundSenseThresholdY; y > 50; y -= yStep) {
+			//maxInvalidLineGapCount = y / 30;
+			//isValidLine = false;
+
+			x = frameCenterX + i * 64/*(y / 16 + 20)*/;
 
 			Blobber::BlobColor color = blobber->getColorAt(x, y);
 
-			totalCount += maxSideColumns;
+			totalCount += std::abs(i);
 
 			if (find(validColors.begin(), validColors.end(), color) != validColors.end()) {
 				validCount++;
+
+				if (y < reach) {
+					reach = y;
+				}
+
+				if (invalidPixelCount > 0 && invalidPixelCount <= maxInvalidPixelCount) {
+					if (isColorCombinationBetweenPoints(
+							x, y, y + invalidPixelCount * yStep, validGapColorCombination)
+					) {
+						sideInvalidCount -= i * invalidPixelCount;
+					}
+
+					invalidPixelCount = 0;
+				}
 
 				if (debug) {
 					canvas.drawMarker(x, y, 0, 255, 0);
 				}
 
 				// Line is valid if at least one valid pixel is found
-				isValidLine = true;
+				//isValidLine = true;
 			} else {
 				/*if (i < 0) {
 					sideInvalidCount--;
@@ -1069,24 +1092,26 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 
 				sideInvalidCount += i;
 
+				invalidPixelCount++;
+
 				if (debug) {
 					canvas.drawMarker(x, y, 255, 0, 0);
 				}
 			}
 		}
 
-		if (isValidLine) {
+		/*if (isValidLine) {
 			invalidLineGapCount = 0;
 			reach = y;
 		} else {
 			invalidLineGapCount++;
 
-			/*if (invalidLineGapCount > maxInvalidLineGapCount) {
-				break;
-			}*/
-		}
+//			if (invalidLineGapCount > maxInvalidLineGapCount) {
+//				break;
+//			}
+		}*/
 
-		for (auto ball : balls) {
+		/*for (auto ball : balls) {
 			if (
 					ball->y <= y &&
 					ball->y > (y - yStep) &&
@@ -1098,14 +1123,64 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 						.sideMetric = (float)sideInvalidCount / (float)totalCount
 				};
 			}
-		}
+		}*/
 	}
 
 	return Object::StraightAheadInfo {
 		.reach = reach,
 		.driveability = (float)validCount / (float)totalCount,
-		.sideMetric = (float)sideInvalidCount / (float)totalCount
+		.sideMetric = 2.0f * (float)sideInvalidCount / (float)totalCount
 	};
+}
+
+bool Vision::isColorCombinationBetweenPoints(
+		int x, int startY, int endY, std::vector<Blobber::BlobColor> requiredColors
+) {
+	bool debug = canvas.data != nullptr;
+
+	int y = startY;
+	int requiredColorCount = 5;
+	int allowedGapSize = endY / 20;
+
+	Blobber::BlobColor color = blobber->getColorAt(x, y);
+	int colorCount = 0;
+	int gapCount = 0;
+
+	for (auto requiredColor : requiredColors) {
+		while (y <= endY) {
+			if (color == requiredColor) {
+				colorCount++;
+
+				if (debug) {
+					canvas.drawMarker(x, y, 0, 255, 0, true);
+				}
+
+				if (colorCount >= requiredColorCount) {
+					colorCount = 0;
+					gapCount = 0;
+					break;
+				}
+			} else {
+				if (colorCount != 0) {
+					gapCount++;
+
+					if (debug) {
+						canvas.drawMarker(x, y, 255, 0, 0, true);
+					}
+
+					if (gapCount > allowedGapSize) {
+						return false;
+					}
+				}
+			}
+
+			y++;
+			color = blobber->getColorAt(x, y);
+		}
+	}
+
+	return true;
+
 }
 
 //Vision::PathMetric Vision::getPathMetric(int x1, int y1, int x2, int y2, std::vector<std::string> validColors, std::string requiredColor) {

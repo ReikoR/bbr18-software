@@ -168,6 +168,7 @@ private:
 	bool isValidBall(Object* ball, Dir dir, ObjectList& goals);
     bool isBallWithinBorders(Object* ball);
     bool isValidbasket(Object *basket, Side side);
+	bool isColorCombinationBetweenPoints(int x, int startY, int endY, std::vector<Blobber::BlobColor> requiredColors);
 	bool isNotOpponentMarker(Object* goal, Side side, ObjectList& goals);
 	bool isBallInGoal(Object* ball, Dir dir, ObjectList& goals);
 	int getBallRadius(int width, int height);

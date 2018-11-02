@@ -446,10 +446,11 @@ function handleMotionDriveToBall() {
 
         let sideSpeed = 0;
 
-        if (Math.abs(sideMetric) > 0.03) {
-            forwardSpeed = forwardSpeed * 0.5;
+        if (Math.abs(sideMetric) > 0.05) {
+            driveToBallStartTime = Date.now();
+            //forwardSpeed = forwardSpeed * 0.5;
             //rotationSpeed = 0;
-            sideSpeed = -2 * Math.sign(sideMetric) * Math.max(Math.abs(sideMetric), 0.1);
+            //sideSpeed = -Math.sign(sideMetric) * Math.max(4 * Math.abs(sideMetric), 0.2);
         }
 
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
