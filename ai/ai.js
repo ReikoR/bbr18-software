@@ -144,7 +144,7 @@ socket.on('error', (err) => {
 });
 
 socket.on('message', (message, rinfo) => {
-    console.log(`socket got: ${message} from ${rinfo.address}:${rinfo.port}`);
+    //console.log(`socket got: ${message} from ${rinfo.address}:${rinfo.port}`);
 
     const info = JSON.parse(message.toString());
     handleInfo(info);
@@ -292,7 +292,7 @@ function processVisionInfo(info) {
         processedVisionState.lastVisibleBasketDirection =  Math.sign(frameWidth / 2 - processedVisionState.basket.cx);
     }
 
-    console.log(processedVisionState);
+    //console.log(processedVisionState);
 }
 
 function sendState() {
