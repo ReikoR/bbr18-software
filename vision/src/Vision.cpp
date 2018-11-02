@@ -65,10 +65,11 @@ Vision::Result* Vision::process() {
 	result->balls = processBalls(dir, result->baskets);
 
 	std::vector<Blobber::BlobColor> validDriveableColors = {
-			Blobber::BlobColor::orange
+			Blobber::BlobColor::orange,
+			Blobber::BlobColor::green
 	};
 
-	result->straightAheadInfo = getStraightAheadMetric(validDriveableColors);
+	result->straightAheadInfo = getStraightAheadMetric(validDriveableColors, result->balls);
 
 	/*updateColorDistances();
 	updateColorOrder();
@@ -1022,42 +1023,86 @@ float Vision::getSurroundMetric(
     }
 }
 
-Vision::StraightAheadInfo Vision::getStraightAheadMetric(std::vector<Blobber::BlobColor> validColors) {
+Object::StraightAheadInfo Vision::getStraightAheadMetric(
+		std::vector<Blobber::BlobColor> validColors, ObjectList& balls
+) {
 	bool debug = canvas.data != nullptr;
 
 	const int frameCenterX = Config::cameraWidth / 2;
 	int yStep = 10;
-
+	int maxInvalidLineGapCount = 0;
+	int invalidLineGapCount = 0;
+	int maxSideColumns = 6;
 	int x = 0;
 	int totalCount = 0;
 	int validCount = 0;
 	int sideInvalidCount = 0;
+	int reach = Config::surroundSenseThresholdY;
+	bool isValidLine = false;
 
-	for (int i = -6; i <= 6; i++) {
-		for (int y = 50; y < Config::surroundSenseThresholdY; y += yStep) {
+	for (int y = Config::surroundSenseThresholdY; y > 50; y -= yStep) {
+		maxInvalidLineGapCount = y / 30;
+		isValidLine = false;
+
+		for (int i = -maxSideColumns; i <= maxSideColumns; i++) {
 			x = frameCenterX + i * y / 10;
 
 			Blobber::BlobColor color = blobber->getColorAt(x, y);
 
-			totalCount++;
+			totalCount += maxSideColumns;
 
 			if (find(validColors.begin(), validColors.end(), color) != validColors.end()) {
 				validCount++;
+
+				if (debug) {
+					canvas.drawMarker(x, y, 0, 255, 0);
+				}
+
+				// Line is valid if at least one valid pixel is found
+				isValidLine = true;
 			} else {
-				if (i < 0) {
+				/*if (i < 0) {
 					sideInvalidCount--;
 				} else if (i > 0) {
 					sideInvalidCount++;
-				}
+				}*/
+
+				sideInvalidCount += i;
 
 				if (debug) {
 					canvas.drawMarker(x, y, 255, 0, 0);
 				}
 			}
 		}
+
+		if (isValidLine) {
+			invalidLineGapCount = 0;
+			reach = y;
+		} else {
+			invalidLineGapCount++;
+
+			/*if (invalidLineGapCount > maxInvalidLineGapCount) {
+				break;
+			}*/
+		}
+
+		for (auto ball : balls) {
+			if (
+					ball->y <= y &&
+					ball->y > (y - yStep) &&
+					std::abs(ball->x - Config::cameraWidth) > 50
+			) {
+				ball->straightAheadInfo = Object::StraightAheadInfo{
+						.reach = reach,
+						.driveability = (float)validCount / (float)totalCount,
+						.sideMetric = (float)sideInvalidCount / (float)totalCount
+				};
+			}
+		}
 	}
 
-	return Vision::StraightAheadInfo {
+	return Object::StraightAheadInfo {
+		.reach = reach,
 		.driveability = (float)validCount / (float)totalCount,
 		.sideMetric = (float)sideInvalidCount / (float)totalCount
 	};

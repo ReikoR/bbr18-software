@@ -10,6 +10,12 @@
 class Object {
 
 public:
+	struct StraightAheadInfo {
+		int reach;
+		float driveability;
+		float sideMetric;
+	};
+
 	explicit Object(
 			int x = 0, int y = 0, int width = 0, int height = 0, int area = 0,
 			float distance = 0.0f, float distanceX = 0.0f, float distanceY = 0.0f,
@@ -36,6 +42,7 @@ public:
 	bool behind;
 	bool processed;
 	std::array<float, 5> surroundMetrics;
+	StraightAheadInfo straightAheadInfo;
 };
 
 typedef std::vector<Object*> ObjectList;

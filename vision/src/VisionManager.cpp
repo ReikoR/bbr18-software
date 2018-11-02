@@ -289,6 +289,11 @@ void VisionManager::sendState() {
         ballJson["cy"] = ball->y;
         ballJson["w"] = ball->width;
         ballJson["h"] = ball->height;
+		ballJson["straightAhead"] = {
+			{"reach", ball->straightAheadInfo.reach},
+			{"driveability", ball->straightAheadInfo.driveability},
+			{"sideMetric", ball->straightAheadInfo.sideMetric},
+		};
 
         j["balls"].push_back(ballJson);
 	}
@@ -306,6 +311,7 @@ void VisionManager::sendState() {
 	}
 
     j["metrics"]["straightAhead"] = {
+            {"reach", visionResult->straightAheadInfo.reach},
             {"driveability", visionResult->straightAheadInfo.driveability},
             {"sideMetric", visionResult->straightAheadInfo.sideMetric},
 	};
