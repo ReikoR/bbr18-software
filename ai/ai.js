@@ -511,6 +511,12 @@ function handleMotionDriveToBall() {
             //forwardSpeed = forwardSpeed * 0.5;
             //rotationSpeed = 0;
             sideSpeed = -Math.sign(sideMetric) * Math.max(4 * Math.abs(sideMetric), 0.2);
+
+            const normalizedCloseToBallErrorY = Math.abs(errorY) / 400;
+
+            if (normalizedCloseToBallErrorY < 1) {
+                sideSpeed *= Math.pow(normalizedCloseToBallErrorY, 2);
+            }
         }
 
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
