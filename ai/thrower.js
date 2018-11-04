@@ -1,3 +1,15 @@
+const trainingUtils = require('../training/utils');
+let measurements = require('../training/measurements.json');
+
+function reloadMeasurements () {
+    delete require.cache[require.resolve('../training/measurements.json')];
+    measurements = require('../training/measurements.json');
+}
+
+function getSpeed (distance) {
+    return trainingUtils.interpolate(measurements, distance);
+}
+
 const distanceToSpeedMap = [
     [41, 7000],
     [50, 7000],
@@ -18,7 +30,7 @@ const distanceToSpeedMap = [
     [460, 18000]
 ];
 
-function getSpeed(distance) {
+function getSpeedPrev(distance) {
     let lowerDistance = distanceToSpeedMap[0][0];
     let higherDistance = distanceToSpeedMap[distanceToSpeedMap.length - 1][0];
     let lowerSpeed = distanceToSpeedMap[0][1];
@@ -59,5 +71,6 @@ function getSpeed(distance) {
 }
 
 module.exports = {
-    getSpeed: getSpeed
+    getSpeed,
+    reloadMeasurements
 };
