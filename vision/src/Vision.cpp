@@ -557,7 +557,7 @@ bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& balls) {
 	};
 
 	if (ball->y + ballRadius < Config::surroundSenseThresholdY) {
-		float surroundMetric = getSurroundMetric(
+		float bottomSurroundMetric = getSurroundMetric(
 			ball->x,
 			surroundSenseY,
 			senseRadius,
@@ -565,13 +565,25 @@ bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& balls) {
 			1
 		);
 
-		//std::cout << "Surround: " << surroundMetric << std::endl;
+		float topSurroundMetric = getSurroundMetric(
+				ball->x,
+				surroundSenseY,
+				senseRadius,
+				validColors,
+				-1
+		);
 
-		if (surroundMetric == -1.0f || surroundMetric < Config::minValidBallSurroundThreshold) {
+		ball->surroundMetrics[0] = bottomSurroundMetric;
+		ball->surroundMetrics[1] = topSurroundMetric;
+
+		if (bottomSurroundMetric == -1.0f || bottomSurroundMetric < Config::minValidBallSurroundThreshold) {
 			//std::cout << "@ BALL SURROUND FAIL: " << surroundMetric << " VS " << Config::minValidBallSurroundThreshold << std::endl;
 
 			return false;
 		}
+	} else {
+		ball->surroundMetrics[0] = 1.0;
+		ball->surroundMetrics[1] = 1.0;
 	}
 
 	if (!isBallWithinBorders(ball)) {
@@ -1037,7 +1049,7 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 	int yStep = 10;
 	int maxInvalidLineGapCount = 0;
 	int invalidLineGapCount = 0;
-	int maxInvalidPixelCount = 20;
+	int maxInvalidPixelCount = 30;
 	int invalidPixelCount = 0;
 	int maxSideColumns = 8;
 	int x = 0;
@@ -1057,7 +1069,7 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 	}
 
     for (int y = Config::surroundSenseThresholdY; y > 50; y -= yStep) {
-        //maxInvalidLineGapCount = y / 30;
+        maxInvalidPixelCount = y / 20;
 
         for (int i = -maxSideColumns; i <= maxSideColumns; i++) {
             x = frameCenterX + i * (y / 18 + 24);
@@ -1067,7 +1079,7 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 			totalCount += std::abs(i);
 
 			if (find(validColors.begin(), validColors.end(), color) != validColors.end()) {
-				validCount++;
+				validCount += (maxSideColumns - std::abs(i));
 
                 validYListIndex = i + maxSideColumns;
                 invalidPixelCount = (lastValidYList[validYListIndex] - y) / yStep - 1;
@@ -1110,11 +1122,19 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 					ball->y > (y - yStep) &&
 					std::abs(ball->x - Config::cameraWidth) > 50
 			) {
-				ball->straightAheadInfo = Object::StraightAheadInfo{
-						.reach = reach,
-						.driveability = (float)validCount / (float)totalCount,
-						.sideMetric = (float)sideInvalidCount / (float)totalCount
-				};
+				if (std::abs(ball->x - Config::cameraWidth) > 50) {
+					ball->straightAheadInfo = Object::StraightAheadInfo{
+							.reach = reach,
+							.driveability = (float)validCount / (float)totalCount,
+							.sideMetric = (float)sideInvalidCount / (float)totalCount
+					};
+				} else {
+					ball->straightAheadInfo = Object::StraightAheadInfo{
+							.reach = reach,
+							.driveability = 0.0,
+							.sideMetric = 0.0
+					};
+				}
 			}
 		}
 	}

@@ -38,11 +38,21 @@ const publicConf = require('./public-conf.json');
  */
 
 /**
+ * @typedef {Object} VisionStraightAheadInfo
+ * @property {number} driveability
+ * @property {number} reach
+ * @property {number} sideMetric
+ */
+
+/**
  * @typedef {Object} VisionBallInfo
  * @property {number} cx
  * @property {number} cy
  * @property {number} w
  * @property {number} h
+ * @property {number[]} metrics
+ * @property {VisionStraightAheadInfo} straightAhead
+ * @property {number} size
  */
 
 /**
@@ -52,6 +62,8 @@ const publicConf = require('./public-conf.json');
  * @property {number} w
  * @property {number} h
  * @property {string} color
+ * @property {number[]} metrics
+ * @property {number} y2
  */
 
 /**
@@ -125,6 +137,20 @@ const lastClosestBallLimit = 10;
 let lastClosestBallCount = 0;
 
 let visionState = {};
+
+/**
+ * @typedef {Object} ProcessedVisionStateInfo
+ * @property {VisionBallInfo} closestBall
+ * @property {VisionBallInfo} lastClosestBall
+ * @property {VisionBasketInfo} basket
+ * @property {VisionBasketInfo} otherBasket
+ * @property {number} lastVisibleBasketDirection
+ * @property {{straightAhead: VisionStraightAheadInfo}} metrics
+ */
+
+/**
+ * @type {ProcessedVisionStateInfo}
+ */
 let processedVisionState = {
     closestBall: null,
     lastClosestBall: null,
@@ -262,6 +288,59 @@ function handleInfo(info) {
 }
 
 /**
+ * @param {VisionBallInfo} ball
+ * @param {VisionBasketInfo} basket
+ * @param {VisionBasketInfo} otherBasket
+ * @returns {number}
+ */
+function computeBallConfidence(ball, basket, otherBasket) {
+    //ball distance
+    //ball size
+    //bottom surround metric
+    //top surround metric
+    //distance from basket
+    //sideMetric
+    //driveability
+
+    const ballDistanceMetric = 0.2 * ball.cy / frameHeight;
+    const bottomMetric = 0.1 * ball.metrics[0];
+    const topMetric = 0.1 * ball.metrics[1];
+    const sizeMetric = Math.min(0.5 * ball.w / 150, 1);
+    let distanceFromBasketMetric = 0;
+
+    const baskets = [];
+
+    if (basket) {
+        baskets.push(basket);
+    }
+
+    if (otherBasket) {
+        baskets.push(otherBasket);
+    }
+
+    if (baskets.length > 0) {
+        for (let i = 0; i < baskets.length; i++) {
+            const distanceToBasket = Math.abs(baskets[i].y2 - ball.cy);
+            const metric = 0.1 * distanceToBasket / frameHeight;
+
+            if (metric > distanceFromBasketMetric) {
+                distanceFromBasketMetric = metric;
+            }
+        }
+    } else {
+        distanceFromBasketMetric = 0.1;
+    }
+
+    return ballDistanceMetric +
+        sizeMetric +
+        bottomMetric +
+        topMetric +
+        distanceFromBasketMetric +
+        0.05 * Math.abs(ball.straightAhead.sideMetric) +
+        0.05 * ball.straightAhead.driveability;
+}
+
+/**
  *
  * @param {HubInfo} info
  */
@@ -273,13 +352,6 @@ function processVisionInfo(info) {
     let ball = null;
     let basket = null;
     let otherBasket = null;
-
-    // Find largest ball
-    for (let i = 0; i < balls.length; i++) {
-        if (!ball || ball.w * ball.h < balls[i].w * balls[i].h) {
-            ball = balls[i];
-        }
-    }
 
     // Find largest basket
     for (let i = 0; i < baskets.length; i++) {
@@ -296,9 +368,27 @@ function processVisionInfo(info) {
         }
     }
 
-    processedVisionState.closestBall = ball;
     processedVisionState.basket = basket;
     processedVisionState.otherBasket = otherBasket;
+
+    // Find ball with highest confidence
+    /*for (let i = 0; i < balls.length; i++) {
+        balls[i].size = balls[i].w * balls[i].h;
+        balls[i].confidence = computeBallConfidence(balls[i], basket, otherBasket);
+
+        if (!ball || ball.confidence > balls[i].confidence) {
+            ball = balls[i];
+        }
+    }*/
+
+    // Find largest ball
+    for (let i = 0; i < balls.length; i++) {
+        if (!ball || ball.w * ball.h < balls[i].w * balls[i].h) {
+            ball = balls[i];
+        }
+    }
+
+    processedVisionState.closestBall = ball;
 
     if (processedVisionState.closestBall) {
         processedVisionState.lastClosestBall = processedVisionState.closestBall;

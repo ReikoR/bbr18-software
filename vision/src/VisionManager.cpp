@@ -289,6 +289,7 @@ void VisionManager::sendState() {
         ballJson["cy"] = ball->y;
         ballJson["w"] = ball->width;
         ballJson["h"] = ball->height;
+        ballJson["metrics"] = {ball->surroundMetrics[0], ball->surroundMetrics[1]};
 		ballJson["straightAhead"] = {
 			{"reach", ball->straightAheadInfo.reach},
 			{"driveability", ball->straightAheadInfo.driveability},
