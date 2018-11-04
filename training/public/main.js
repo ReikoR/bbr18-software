@@ -25,6 +25,7 @@ function onSocketMessage(message) {
         }
 
         if (info.type === 'measurements') {
+            /*
             const data = {
                 x: info.values.map(value => value.x),
                 y: info.values.map(value => value.y),
@@ -41,9 +42,27 @@ function onSocketMessage(message) {
                     opacity: 0.8
                 },
             };
+            */
+
+            info.measurements.sort((a, b) => a.x - b.x);
+
+            var trace = {
+                x: info.measurements.map(obj => obj.x),
+                y: info.measurements.map(obj => obj.z),
+                mode: 'lines+markers',
+                name: 'Scatter + Lines'
+            };
+          
+            var data = [trace];
+            
+            var layout = {
+                title:'Adding Names to Line and Scatter Plot'
+            };
+            
+            Plotly.newPlot('plot', data, layout);
 
             // Plotting the surfaces..
-            Plotly.newPlot('plot', [data]);
+            //Plotly.newPlot('plot', [data]);
         }
     } catch (error) {
         console.info(error);

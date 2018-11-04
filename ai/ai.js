@@ -251,6 +251,9 @@ function handleInfo(info) {
 
             break;
         }
+        case 'training':
+            thrower.reloadMeasurements();
+            break;
     }
 
     if (shouldUpdate) {

@@ -1,9 +1,9 @@
 const dgram = require('dgram');
 const socket = dgram.createSocket('udp4');
+const fs = require('fs');
 const publicConf = require('./public-conf.json');
 const measurements = require('./measurements.json');
-const corrections = require('./corrections.json');
-const calibration = require('../calibration/utils');
+const utils = require('./utils');
 
 const http = require('http');
 const express = require('express');
@@ -18,19 +18,6 @@ const wss = new WebSocket.Server({ server });
 app.use(express.static('public'));
 app.use(express.json());
 
-// Initialize training measurements as copy of best measurements
-const trainingMeasurements = {};
-
-for (let x in measurements) {
-    trainingMeasurements[x] = {};
-
-    for (let y in measurements[x]) {
-        trainingMeasurements[x][y] = measurements[x][y];
-    }
-}
-
-let correctionsInterpolator = calibration.getInterpolator(corrections);
-
 wss.on('connection', function connection(ws, req) {
     ws.on('message', function incoming(message) {
         console.log('received: %s', message);
@@ -41,21 +28,9 @@ wss.on('connection', function connection(ws, req) {
         }
     });
 
-    const data = [];
+    //const values = interpolateArray(measurements, 10);
 
-    for (let x in measurements) {
-        for (let y in measurements[x]) {
-            data.push({
-                x: parseInt(x),
-                y: parseInt(y),
-                z: measurements[x][y]
-            });
-        }
-    }
-
-    const values = interpolateArray(data, 10);
-
-    ws.send(JSON.stringify({ type: 'measurements', measurements, values }));
+    ws.send(JSON.stringify({ type: 'measurements', measurements }));
 });
 
 wss.broadcast = function broadcast(data) {
@@ -126,29 +101,48 @@ function handleWsMessage(message) {
         });
     } else if (message.type === 'training_feedback') {
         console.log('record Mesurement', message);
-        const xKey = Math.round(message.x) + '';
-        const yKey = Math.round(message.y) + '';
 
-        if (!measurements.hasOwnProperty(xKey)) {
-            measurements[xKey] = {};
-        }
+        const x = message.x;
+        const y = message.y;
+        const r = 25; // proximity radius
+        const correctionRatio = 0.9;
 
-        if (!measurements[xKey].hasOwnProperty(yKey)) {
-            measurements[xKey][yKey] = {};
-        }
+        // Calculate new measurement correction
+        const c = correctionRatio * utils.interpolate(
+            measurements.map(obj => ({ ...obj, z: obj.c })), x, y
+        );
 
-        if (message.feedback === 0) {
-            measurements[xKey][yKey] = message.z;
-            corrections[xKey][yKey] = 0;
-        } else {
-            corrections[xKey][yKey] -= 10;
-        }
+        // Find measurements within proximity
+        const closeObjs = measurements.filter(
+            obj => obj.c > 0 && Math.abs(obj.x - x) < r
+        );
 
-        trainingMeasurements[xKey][yKey] = message.z + message.feedback * correctionsInterpolator(message.x, message.y);
+        
+        // Remove previous measurements within proximity
+        closeObjs.forEach(obj =>
+            measurements.splice(measurements.indexOf(obj), 1)
+        );
 
-        correctionsInterpolator = calibration.getInterpolator(corrections);
+        // TODO: Check if the new mesurement position is duplicated if c = 0, if so then calculate mean value.
 
-        // Save objects to files.
+        // Add new measurement
+        measurements.push({
+            x,
+            y,
+            z: message.z + message.feedback * c,
+            c: message.feedback ? c : 0,
+            n: closeObjs.reduce((sum, obj) => sum + obj.n, 1)
+        });
+
+        // Save and send to training dashboard as well as hub
+        fs.writeFileSync('measurements.json', JSON.stringify(measurements, null, 2));
+
+        wss.broadcast(JSON.stringify({ type: 'measurements', measurements }));
+        
+        sendToHub({
+            type: 'measurements_changed',
+            topic: 'training'
+        });
     }
 }
 
