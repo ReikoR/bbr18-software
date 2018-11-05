@@ -48,7 +48,6 @@ topic = "goal_distance"
 def open_udp_connection():
     print "init udp"
     socket.bind(server)
-    #socket.listen()a
     udp_send({"type": "subscribe", "topics": [topic]})
 
 
@@ -97,7 +96,7 @@ try:
         except Exception as e:
             count += 1
             print e
-            #print "Failed to get vertexes for {} frames".format(count)
+            print "Failed to get vertexes for {} frames".format(count)
 
             align_to = rs.stream.color
             align = rs.align(align_to)
@@ -116,108 +115,98 @@ try:
 
         pc.map_to(color_frame)
 
-        # fetch rectangle for goal
-        lower = (120, 50, 0)
-        upper = (255, 105, 10)
-        mask = cv2.inRange(color_image, lower, upper)
+        x = 680
+        y = 350
+        w = 30
+        h = 20
 
-        im2, cnts, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.rectangle(color_image, (x, y), (x + w, y + h), (255, 255, 0), 1)
 
-        if len(cnts) > 0:
-            c = max(cnts, key=cv2.contourArea)
+        vertex_map = []
 
-            area = cv2.contourArea(c)
+        vertex_map = np.array(vertex_array).reshape(height, width)
 
-            min_area = 100
+        dist = np.average(depth_image[y:y + w, x:x + h]) * depth_scale
 
-            if area < min_area:
-                continue
+        min_x = clamp(x - int(1/dist * 50), 0, width)
+        max_x = clamp(x + int(1/dist * 500), 0, width)
+        min_y = clamp(y - int(1/dist * 250), 0, height)
+        max_y = clamp(y + int(1/dist * 250) + h, 0, height)
 
-            x, y, w, h = cv2.boundingRect(c)
-            #cv2.rectangle(color_image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.rectangle(color_image, (min_x, min_y), (max_x, max_y), (0, 255, 255), 2)
 
-            vertex_map = []
+        min_x_crop = clamp(x - int(1 / dist * 50), 0, width)
+        max_x_crop = clamp(x + int(1 / dist * 400), 0, width)
+        min_y_crop = clamp(y - int(1 / dist * 60), 0, height)
+        max_y_crop = clamp(y + int(1 / dist * 60) + h, 0, height)
 
-            vertex_map = np.array(vertex_array).reshape(height, width)
+        cv2.rectangle(color_image, (min_x_crop, min_y_crop), (max_x_crop, max_y_crop), (0, 128, 128), 1)
 
-            # mask out basket
-            vertex_map[y:y + h, x:x+w] = (0, 0, 0)
+        # mask out basket
+        vertex_map[min_y_crop:max_y_crop, min_x_crop:max_x_crop] = (0, 0, 0)
 
-            min_x = clamp(x + w*1/2, 0, width)
-            max_x = clamp(x + w*5/3, 0, width)
-            min_y = clamp(y - h * 3 / 2, 0, height)
-            max_y = clamp(y + h * 5 / 2, 0, height)
+        crop_vertex = vertex_map[min_y: max_y, min_x: max_x]
 
-            #cv2.rectangle(color_image, (min_x, min_y), (max_x, max_y), (0, 255, 255), 2)
+        crop_test = depth_image[min_y: max_y, min_x: max_x]
 
-            crop_vertex = vertex_map[min_y: max_y, min_x: max_x]
+        if crop_test.size > 0 and False:
+            crop_test = cv2.applyColorMap(cv2.convertScaleAbs(crop_test, alpha=0.03), cv2.COLORMAP_JET)
+            cv2.imshow('crop_test', crop_test)
 
-            crop_test = depth_image[min_y: max_y, min_x: max_x]
+        max_dist = dist + 0.3
+        min_dist = dist - 0.3
 
-            #if crop_test.size > 0 and False:
-            #    crop_test = cv2.applyColorMap(cv2.convertScaleAbs(crop_test, alpha=0.03), cv2.COLORMAP_JET)
-            #    cv2.imshow('crop_test', crop_test)
+        crop_mat_size = crop_vertex.shape
 
-            dist = np.average(depth_image[y:y + w, x:x + h]) * depth_scale
+        planar_vertex_array = []
 
-            max_dist = dist + 0.1
-            min_dist = dist - 0.3
+        dist = clamp(dist, 0.1, 6)
 
-            crop_mat_size = crop_vertex.shape
+        distance_sample_rate_x = int(math.ceil(6 / dist))
+        distance_sample_rate_y = int(math.ceil(12 / dist))
 
-            planar_vertex_array = []
+        for vertex_x in range(0, crop_mat_size[0], distance_sample_rate_x):
+            for vertex_y in range(0, crop_mat_size[1], distance_sample_rate_y):
+                vertex = crop_vertex[vertex_x, vertex_y]
+                vert_x = vertex[1]
+                vert_y = vertex[2]
+                vert_sum = vert_x**2 + vert_y**2
+                vert_dist = math.sqrt(vert_sum)
+                if max_dist > vert_dist > min_dist:
+                    planar_vertex_array.append([vert_x, vert_y])
 
-            dist = clamp(dist, 0.1, 6)
+        planar_vertex_array = np.array(planar_vertex_array)
 
-            distance_sample_rate_x = int(math.ceil(6 / dist))
-            distance_sample_rate_y = int(math.ceil(12 / dist))
+        #print "Vertex map size: {}".format(planar_vertex_array.shape)
 
-            for vertex_x in range(0, crop_mat_size[0], distance_sample_rate_x):
-                for vertex_y in range(0, crop_mat_size[1], distance_sample_rate_y):
-                    vertex = crop_vertex[vertex_x, vertex_y]
-                    vert_x = vertex[1]
-                    vert_y = vertex[2]
-                    vert_sum = vert_x**2 + vert_y**2
-                    vert_dist = math.sqrt(vert_sum)
-                    if max_dist > vert_dist > min_dist:
-                        planar_vertex_array.append([vert_x, vert_y])
+        angle = None
 
-            planar_vertex_array = np.array(planar_vertex_array)
+        try:
+            if planar_vertex_array.size > 0:
+                deviation = 0.1
+                model_robust, inliers = ransac(planar_vertex_array, LineModelND, min_samples=2, residual_threshold=deviation, max_trials=5)
 
-            #print "Vertex map size: {}".format(planar_vertex_array.shape)
+                vector = model_robust.params[1]
 
-            angle = 0
+                angle = np.arctan2(-vector[1], vector[0]) * 180 / math.pi
 
-            try:
-                if planar_vertex_array.size > 0:
-                    deviation = 0.1
-                    model_robust, inliers = ransac(planar_vertex_array, LineModelND, min_samples=2, residual_threshold=deviation, max_trials=5)
+                #print calculate_angle(line_y[:, 0][0], line_y[:, 1][0], line_y[:, 0][1], line_y[:, 1][1])
 
-                    vector = model_robust.params[1]
+                if False:
+                    import matplotlib.pyplot as plt
 
-                    angle = np.arctan2(-vector[1], vector[0]) * 180 / math.pi
+                    outliers = inliers == False
 
-                    #print calculate_angle(line_y[:, 0][0], line_y[:, 1][0], line_y[:, 0][1], line_y[:, 1][1])
+                    plt.scatter(planar_vertex_array[outliers][:, 0], planar_vertex_array[outliers][:, 1], s=2, c="red", alpha=0.5)
+                    plt.scatter(planar_vertex_array[inliers][:, 0], planar_vertex_array[inliers][:, 1], s=2, c="blue", alpha=0.5)
+                    plt.show()
+        except Exception as e:
+            print e
 
-                    #if False:
-                    #    import matplotlib.pyplot as plt
+        #print "Distane: {}, Angle: {}".format(dist, angle)
 
-                    #    outliers = inliers == False
-
-                    #    plt.scatter(planar_vertex_array[outliers][:, 0], planar_vertex_array[outliers][:, 1], s=2, c="red", alpha=0.5)
-                    #    plt.scatter(planar_vertex_array[inliers][:, 0], planar_vertex_array[inliers][:, 1], s=2, c="blue", alpha=0.5)
-                    #    plt.show()
-                else:
-                    angle = None
-
-            except Exception as e:
-                print e
-
-            #print "Distane: {}, Angle: {}".format(dist, angle)
-
-            send_data_to_hub({"distance": dist, "angle": angle})
-
-            get_data()
+        send_data_to_hub({"distance": dist, "angle": angle})
+        get_data()
 
             #print "angle: ".format(angle)
 
