@@ -843,11 +843,11 @@ function handleThrowerEjectBall() {
 
     let currentTime = Date.now();
     let timeDiff = currentTime - startTimeEject;
-    let speed = -200/* + timeDiff * 0.1*/;
+    let speed = -200 + timeDiff * 0.1;
 
-    /*if (speed > -100){
-        speed = -100;
-    }*/
+    if (speed > -50){
+        speed = -50;
+    }
 
     aiState.speeds[4] = speed;
 
