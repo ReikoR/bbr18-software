@@ -2,6 +2,7 @@ const dgram = require('dgram');
 const socket = dgram.createSocket('udp4');
 const omniMotion = require('./omni-motion');
 const thrower = require('./thrower');
+const util = require('./util');
 const publicConf = require('./public-conf.json');
 
 /**
@@ -302,7 +303,8 @@ function computeBallConfidence(ball, basket, otherBasket) {
     //sideMetric
     //driveability
 
-    const ballDistanceMetric = 0.2 * ball.cy / frameHeight;
+    const ballDistance = 8000 * Math.pow(ball.cy, -1.85);
+    const ballDistanceMetric = 0.2 * util.clamp((6 - ballDistance) / 6, 0, 1);
     const bottomMetric = 0.1 * ball.metrics[0];
     const topMetric = 0.1 * ball.metrics[1];
     const sizeMetric = Math.min(0.5 * ball.w / 150, 1);
@@ -371,21 +373,19 @@ function processVisionInfo(info) {
     processedVisionState.basket = basket;
     processedVisionState.otherBasket = otherBasket;
 
-    // Find ball with highest confidence
-    /*for (let i = 0; i < balls.length; i++) {
+    for (let i = 0; i < balls.length; i++) {
         balls[i].size = balls[i].w * balls[i].h;
         balls[i].confidence = computeBallConfidence(balls[i], basket, otherBasket);
 
+        // Find ball with highest confidence
         if (!ball || ball.confidence > balls[i].confidence) {
             ball = balls[i];
         }
-    }*/
 
-    // Find largest ball
-    for (let i = 0; i < balls.length; i++) {
-        if (!ball || ball.w * ball.h < balls[i].w * balls[i].h) {
+        // Find largest ball
+        /*if (!ball || ball.w * ball.h < balls[i].w * balls[i].h) {
             ball = balls[i];
-        }
+        }*/
     }
 
     processedVisionState.closestBall = ball;
