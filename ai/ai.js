@@ -856,7 +856,7 @@ function handleThrowerEjectBall() {
 
         startTimeEject = null;
         setThrowerState(throwerStates.IDLE);
-        setMotionState(motionStates.DRIVE_TO_BALL);
+        setMotionState(motionStates.FIND_BALL);
     }
 }
 
