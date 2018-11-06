@@ -557,7 +557,7 @@ bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& balls) {
 	};
 
 	if (ball->y + ballRadius < Config::surroundSenseThresholdY) {
-		float surroundMetric = getSurroundMetric(
+		float bottomSurroundMetric = getSurroundMetric(
 			ball->x,
 			surroundSenseY,
 			senseRadius,
@@ -565,13 +565,25 @@ bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& balls) {
 			1
 		);
 
-		//std::cout << "Surround: " << surroundMetric << std::endl;
+		float topSurroundMetric = getSurroundMetric(
+				ball->x,
+				surroundSenseY,
+				senseRadius,
+				validColors,
+				-1
+		);
 
-		if (surroundMetric == -1.0f || surroundMetric < Config::minValidBallSurroundThreshold) {
+		ball->surroundMetrics[0] = bottomSurroundMetric;
+		ball->surroundMetrics[1] = topSurroundMetric;
+
+		if (bottomSurroundMetric == -1.0f || bottomSurroundMetric < Config::minValidBallSurroundThreshold) {
 			//std::cout << "@ BALL SURROUND FAIL: " << surroundMetric << " VS " << Config::minValidBallSurroundThreshold << std::endl;
 
 			return false;
 		}
+	} else {
+		ball->surroundMetrics[0] = 1.0;
+		ball->surroundMetrics[1] = 1.0;
 	}
 
 	if (!isBallWithinBorders(ball)) {
@@ -1037,7 +1049,7 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 	int yStep = 10;
 	int maxInvalidLineGapCount = 0;
 	int invalidLineGapCount = 0;
-	int maxInvalidPixelCount = 20;
+	int maxInvalidPixelCount = 30;
 	int invalidPixelCount = 0;
 	int maxSideColumns = 8;
 	int x = 0;
@@ -1046,53 +1058,57 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 	int sideInvalidCount = 0;
 	int reach = Config::surroundSenseThresholdY;
 	bool isValidLine = false;
+	int columnCount = maxSideColumns * 2 + 1;
+	int lastValidXList[columnCount];
+	int lastValidYList[columnCount];
+	int validYListIndex = 0;
 
-	for (int i = -maxSideColumns; i <= maxSideColumns; i++) {
-		invalidPixelCount = 0;
+	for (int i = 0; i < columnCount; i++) {
+		lastValidXList[i] = Config::cameraWidth / 2;
+        lastValidYList[i] = Config::surroundSenseThresholdY;
+	}
 
-		for (int y = Config::surroundSenseThresholdY; y > 50; y -= yStep) {
-			//maxInvalidLineGapCount = y / 30;
-			//isValidLine = false;
+    for (int y = Config::surroundSenseThresholdY; y > 50; y -= yStep) {
+        maxInvalidPixelCount = y / 20;
 
-			x = frameCenterX + i * 64/*(y / 16 + 20)*/;
+        for (int i = -maxSideColumns; i <= maxSideColumns; i++) {
+            x = frameCenterX + i * (y / 18 + 24);
 
 			Blobber::BlobColor color = blobber->getColorAt(x, y);
 
 			totalCount += std::abs(i);
 
 			if (find(validColors.begin(), validColors.end(), color) != validColors.end()) {
-				validCount++;
+				validCount += (maxSideColumns - std::abs(i));
+
+                validYListIndex = i + maxSideColumns;
+                invalidPixelCount = (lastValidYList[validYListIndex] - y) / yStep - 1;
+
+                // Found valid pixel after allowed gap length
+                // If there is correct color combination found in the gap,
+                // then the gap pixel can be considered valid
+                if (invalidPixelCount > 0 && invalidPixelCount <= maxInvalidPixelCount) {
+                    if (isColorCombinationBetweenPoints(
+                            x, y,
+                            lastValidXList[validYListIndex], lastValidYList[validYListIndex],
+                            validGapColorCombination)
+					) {
+                        sideInvalidCount -= i * invalidPixelCount;
+                    }
+                }
+
+				lastValidXList[validYListIndex] = x;
+                lastValidYList[validYListIndex] = y;
 
 				if (y < reach) {
 					reach = y;
 				}
 
-				if (invalidPixelCount > 0 && invalidPixelCount <= maxInvalidPixelCount) {
-					if (isColorCombinationBetweenPoints(
-							x, y, y + invalidPixelCount * yStep, validGapColorCombination)
-					) {
-						sideInvalidCount -= i * invalidPixelCount;
-					}
-
-					invalidPixelCount = 0;
-				}
-
 				if (debug) {
 					canvas.drawMarker(x, y, 0, 255, 0);
 				}
-
-				// Line is valid if at least one valid pixel is found
-				//isValidLine = true;
 			} else {
-				/*if (i < 0) {
-					sideInvalidCount--;
-				} else if (i > 0) {
-					sideInvalidCount++;
-				}*/
-
 				sideInvalidCount += i;
-
-				invalidPixelCount++;
 
 				if (debug) {
 					canvas.drawMarker(x, y, 255, 0, 0);
@@ -1100,30 +1116,27 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 			}
 		}
 
-		/*if (isValidLine) {
-			invalidLineGapCount = 0;
-			reach = y;
-		} else {
-			invalidLineGapCount++;
-
-//			if (invalidLineGapCount > maxInvalidLineGapCount) {
-//				break;
-//			}
-		}*/
-
-		/*for (auto ball : balls) {
+		for (auto ball : balls) {
 			if (
 					ball->y <= y &&
 					ball->y > (y - yStep) &&
 					std::abs(ball->x - Config::cameraWidth) > 50
 			) {
-				ball->straightAheadInfo = Object::StraightAheadInfo{
-						.reach = reach,
-						.driveability = (float)validCount / (float)totalCount,
-						.sideMetric = (float)sideInvalidCount / (float)totalCount
-				};
+				if (std::abs(ball->x - Config::cameraWidth) > 50) {
+					ball->straightAheadInfo = Object::StraightAheadInfo{
+							.reach = reach,
+							.driveability = (float)validCount / (float)totalCount,
+							.sideMetric = (float)sideInvalidCount / (float)totalCount
+					};
+				} else {
+					ball->straightAheadInfo = Object::StraightAheadInfo{
+							.reach = reach,
+							.driveability = 0.0,
+							.sideMetric = 0.0
+					};
+				}
 			}
-		}*/
+		}
 	}
 
 	return Object::StraightAheadInfo {
@@ -1134,11 +1147,27 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 }
 
 bool Vision::isColorCombinationBetweenPoints(
-		int x, int startY, int endY, std::vector<Blobber::BlobColor> requiredColors
+		int startX, int startY, int endX, int endY, std::vector<Blobber::BlobColor> requiredColors
 ) {
 	bool debug = canvas.data != nullptr;
 
+	bool isXShorter = true;
+	int shorterAxisStart = startX;
+	int shorterAxisEnd = endX;
+	int longerAxisStart = startY;
+	int longerAxisEnd = endY;
+
+	if (std::abs(endX - startX) > std::abs(endY - startY)) {
+		isXShorter = false;
+		shorterAxisStart = startY;
+		shorterAxisEnd = endY;
+		longerAxisStart = startX;
+		longerAxisEnd = endX;
+	}
+
+	int x = startX;
 	int y = startY;
+	int changingCoordinate = isXShorter ? y : x;
 	int requiredColorCount = 5;
 	int allowedGapSize = endY / 20;
 
@@ -1147,7 +1176,7 @@ bool Vision::isColorCombinationBetweenPoints(
 	int gapCount = 0;
 
 	for (auto requiredColor : requiredColors) {
-		while (y <= endY) {
+		while (changingCoordinate <= longerAxisEnd) {
 			if (color == requiredColor) {
 				colorCount++;
 
@@ -1174,7 +1203,18 @@ bool Vision::isColorCombinationBetweenPoints(
 				}
 			}
 
-			y++;
+			changingCoordinate++;
+			int interpolatedValue = (int)Math::interpolate(
+					(float)changingCoordinate,
+					(float)longerAxisStart,
+					(float)longerAxisEnd,
+					(float)shorterAxisStart,
+					(float)shorterAxisEnd
+			);
+
+			x = isXShorter ? interpolatedValue : changingCoordinate;
+			y = isXShorter ? changingCoordinate : interpolatedValue;
+
 			color = blobber->getColorAt(x, y);
 		}
 	}
