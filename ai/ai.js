@@ -606,6 +606,6 @@ function update() {
     }
 }
 
-sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command']});
+sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command', 'training']});
 
 //sendToHub({type: 'message', topic: 'mainboard_command', command: 'fs:1'});

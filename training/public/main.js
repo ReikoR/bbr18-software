@@ -6,16 +6,6 @@ const socketReconnectDelay = new BackOffDelay();
 let sendInterval;
 let throwerSpeed = 0;
 
-function recordMeasurement(position, feedback) {
-    wsSend({
-        type: 'training_feedback',
-        x: position.x,
-        y: position.y,
-        z: position.z,
-        feedback
-    });
-}
-
 function onSocketMessage(message) {
     try {
         const info = JSON.parse(message);
@@ -50,19 +40,43 @@ function onSocketMessage(message) {
                 x: info.measurements.map(obj => obj.x),
                 y: info.measurements.map(obj => obj.z),
                 mode: 'lines+markers',
-                name: 'Scatter + Lines'
+            };
+
+            var trace_upper = {
+                x: info.measurements.map(obj => obj.x),
+                y: info.measurements.map(obj => obj.z + obj.c),
+                mode: 'lines+markers',
+                marker: {
+                    color: 'rgb(128, 0, 128)',
+                    size: 8
+                },
+                line: {
+                    color: 'rgb(128, 0, 128)',
+                    width: 1
+                }
+            };
+
+            var trace_lower = {
+                x: info.measurements.map(obj => obj.x),
+                y: info.measurements.map(obj => obj.z - obj.c),
+                mode: 'lines+markers',
+                marker: {
+                    color: 'rgb(128, 0, 128)',
+                    size: 8
+                },
+                line: {
+                    color: 'rgb(128, 0, 128)',
+                    width: 1
+                }
             };
           
-            var data = [trace];
+            var data = [trace, trace_upper, trace_lower];
             
             var layout = {
-                title:'Adding Names to Line and Scatter Plot'
+                title:'Calibration'
             };
             
             Plotly.newPlot('plot', data, layout);
-
-            // Plotting the surfaces..
-            //Plotly.newPlot('plot', [data]);
         }
     } catch (error) {
         console.info(error);
@@ -127,18 +141,29 @@ function createWebsocket(onMessage, onOpened, onClosed) {
     return socket;
 }
 
+let lastAiState;
+
 function renderState(state) {
-    const elState = document.querySelector('#state');
-    elState.innerText = JSON.stringify(state, null, 2);
+    lastAiState = state;
+    
+    document.getElementById('info-distance').innerHTML = state.lidarDistance;
+    document.getElementById('info-throwing-speed').innerHTML = state.throwingSpeed;
+
+    if (state.ballThrown) {
+        document.getElementById('feedback').style.display = 'block';
+    }
 }
 
-function createButton(name, onClick) {
-    const button = document.createElement('button');
-    button.innerText = name;
+function sendFeedback(feedback) {
+    wsSend({
+        type: 'training_feedback',
+        x: lastAiState.lidarDistance,
+        y: 0,
+        z: lastAiState.throwingSpeed,
+        feedback
+    });
 
-    button.addEventListener('click', onClick);
-
-    return button;
+    document.getElementById('feedback').style.display = 'none';
 }
 
 function wsSend(info) {
