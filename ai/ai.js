@@ -378,14 +378,14 @@ function processVisionInfo(info) {
         balls[i].confidence = computeBallConfidence(balls[i], basket, otherBasket);
 
         // Find ball with highest confidence
-        if (!ball || ball.confidence > balls[i].confidence) {
-            ball = balls[i];
-        }
-
-        // Find largest ball
-        /*if (!ball || ball.w * ball.h < balls[i].w * balls[i].h) {
+        /*if (!ball || ball.confidence > balls[i].confidence) {
             ball = balls[i];
         }*/
+
+        // Find largest ball
+        if (!ball || ball.w * ball.h < balls[i].w * balls[i].h) {
+            ball = balls[i];
+        }
     }
 
     processedVisionState.closestBall = ball;
@@ -781,7 +781,7 @@ function handleMotionFindBasket() {
     }
 
     if (basket && (closestBall || throwerState === throwerStates.THROW_BALL)) {
-        const basketCenterX = basket.cx;
+        const basketCenterX = basket.cx + 10;
         const basketErrorX = basketCenterX - frameCenterX;
         isBasketErrorXSmallEnough = Math.abs(basketErrorX) < 5;
         rotationSpeed = maxRotationSpeed * -basketErrorX / (frameWidth / 2);
@@ -811,6 +811,8 @@ function handleThrowerIdle() {
 
 function handleThrowerThrowBall() {
     aiState.speeds[4] = thrower.getSpeed(mainboardState.lidarDistance);
+
+    console.log('HELLO SPEED IS', aiState.speeds[4]);
 
     if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;

@@ -4,6 +4,8 @@ let measurements = require('../training/measurements.json');
 function reloadMeasurements () {
     delete require.cache[require.resolve('../training/measurements.json')];
     measurements = require('../training/measurements.json');
+
+    console.log('RELOADED MEASUREMENTS', measurements.length);
 }
 
 function getSpeed (distance) {
