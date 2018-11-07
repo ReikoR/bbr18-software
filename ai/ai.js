@@ -3,6 +3,7 @@ const socket = dgram.createSocket('udp4');
 const omniMotion = require('./omni-motion');
 const thrower = require('./thrower');
 const util = require('./util');
+const calibration = require('../calibration/calibration');
 const publicConf = require('./public-conf.json');
 
 /**
@@ -279,7 +280,7 @@ function handleInfo(info) {
             break;
         }
         case 'training':
-            thrower.reloadMeasurements();
+            calibration.reloadMeasurements();
             break;
     }
 
@@ -781,7 +782,7 @@ function handleMotionFindBasket() {
     }
 
     if (basket && (closestBall || throwerState === throwerStates.THROW_BALL)) {
-        const basketCenterX = basket.cx + 10;
+        const basketCenterX = basket.cx + calibration.getCenterOffset(mainboardState.lidarDistance);
         const basketErrorX = basketCenterX - frameCenterX;
         isBasketErrorXSmallEnough = Math.abs(basketErrorX) < 5;
         rotationSpeed = maxRotationSpeed * -basketErrorX / (frameWidth / 2);
@@ -810,9 +811,9 @@ function handleThrowerIdle() {
 }
 
 function handleThrowerThrowBall() {
-    aiState.speeds[4] = thrower.getSpeed(mainboardState.lidarDistance);
+    aiState.speeds[4] = calibration.getThrowerSpeed(mainboardState.lidarDistance);
 
-    console.log('HELLO SPEED IS', aiState.speeds[4]);
+    //console.log('HELLO SPEED IS', aiState.speeds[4]);
 
     if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;

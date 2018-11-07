@@ -1,9 +1,9 @@
-const trainingUtils = require('../training/utils');
-let measurements = require('../training/measurements.json');
+const trainingUtils = require('../calibration/calibration');
+let measurements = require('../calibration/measurements.json');
 
 function reloadMeasurements () {
     delete require.cache[require.resolve('../training/measurements.json')];
-    measurements = require('../training/measurements.json');
+    measurements = require('../calibration/measurements.json');
 
     console.log('RELOADED MEASUREMENTS', measurements.length);
 }
