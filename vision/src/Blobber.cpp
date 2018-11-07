@@ -7,6 +7,7 @@
 #include <cstring>
 #include <Blobber.h>
 #include <Util.h>
+#include <Config.h>
 
 const int Blobber::COLORS_LOOKUP_SIZE = 0x1000000;
 
@@ -92,6 +93,11 @@ Blobber::Blobber() {
 }
 
 Blobber::~Blobber() {
+	// clear blobs cache
+	for (int i = 0; i < COLOR_COUNT; ++i) {
+		blobInfoCache[i] = nullptr;
+	}
+
 	//exit, free resources
     if (saveColors("colors.dat")) {
         std::cout << "! Colors saved" << std::endl;
@@ -561,9 +567,18 @@ void Blobber::analyse(unsigned char *frame) {
 		y++;
 	}
 	passes = y;
+
+	// clear blobs cache
+	for (int i = 0; i < COLOR_COUNT; ++i) {
+		blobInfoCache[i] = nullptr;
+	}
 }
 
-Blobber::BlobInfo* Blobber::getBlobs(int colorIndex) {
+Blobber::BlobInfo* Blobber::getBlobs(BlobColor colorIndex) {
+	if (blobInfoCache[colorIndex] != nullptr) {
+		return blobInfoCache[colorIndex];
+	}
+
 	ColorClassState color = colors[colorIndex];
 	BlobberRegion *list = segSortRegions(color.list, passes);
 	int rows = color.num;
@@ -600,6 +615,8 @@ Blobber::BlobInfo* Blobber::getBlobs(int colorIndex) {
         list = list->next;
         i++;
 	}
+
+	blobInfoCache[colorIndex] = blobInfo;
 
 	return blobInfo;
 }
@@ -645,7 +662,7 @@ int Blobber::getColorCount() {
     return sizeof(colors) / sizeof(Blobber::ColorClassState);
 }
 
-Blobber::ColorClassState* Blobber::getColor(int colorIndex) {
+Blobber::ColorClassState* Blobber::getColor(BlobColor colorIndex) {
     return &colors[colorIndex];
 }
 
@@ -657,6 +674,15 @@ Blobber::ColorClassState* Blobber::getColor(std::string name) {
 	}
 
 	return NULL;
+}
+
+Blobber::BlobColor Blobber::getColorAt(int x, int y) {
+    if (x < 0 || y < 0 || x >= Config::cameraWidth || y >= Config::cameraHeight) {
+        return Blobber::BlobColor::unknown;
+    }
+
+    unsigned char colorIndex = *(segmented + (Config::cameraWidth * y + x));
+    return Blobber::BlobColor(colorIndex);
 }
 
 void Blobber::clearColors() {

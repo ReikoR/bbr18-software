@@ -46,7 +46,7 @@ namespace Config {
 	//const float cameraFovAngle = 56.0f * 3.14f / 180.0f;
 	const float cameraFovAngle = 100.0f * 3.14f / 180.0f;
 	const float cameraFovWidth = tan(cameraFovAngle / 2.0f) * cameraFovDistance * 2.0f;
-	const int cameraGain = 1;
+	const float cameraGain = 1.0;
 	//const int cameraGain = 6;
 	const int cameraExposure = 10000;
 
@@ -75,7 +75,7 @@ namespace Config {
 
 	// minimum areas of blobs for objects
 	const int ballBlobMinArea = 4;
-	const int goalBlobMinArea = 16;
+	const int basketBlobMinArea = 16;
 
 	// minimum area for objects to be considered valid
 	const int ballMinArea = 4;
@@ -84,7 +84,7 @@ namespace Config {
 	// maximum width/height ratio for objects to be considered valid
 	const float maxBallSizeRatio = 5.0f;
 
-	// goals with area over this value are definately considered to be valid
+	// baskets with area over this value are definately considered to be valid
 	const int goalCertainArea = 10000;
 
 	// if a goal starts lower than this value then it's not considered valid
@@ -280,7 +280,7 @@ namespace Config {
 
 enum Side {
 	BLUE = 0,
-    YELLOW = 1,
+    MAGENTA = 1,
 	UNKNOWN = 2
 };
 

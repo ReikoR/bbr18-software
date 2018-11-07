@@ -1,0 +1,8 @@
+body,
+button {
+    font-family: monospace;
+}
+
+#state {
+    white-space: pre;
+}

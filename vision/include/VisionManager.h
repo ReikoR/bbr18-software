@@ -37,6 +37,8 @@ private:
 	XimeaCamera* frontCamera;
 	Gui* gui;
 	Blobber* blobber;
+	Vision* vision;
+	Vision::Result* visionResult;
 	FpsCounter* fpsCounter;
 	HubCom* hubCom;
 
@@ -51,6 +53,7 @@ private:
 	void sendState();
 	void handleCommunicationMessages();
 	void handleCommunicationMessage(std::string message);
+	bool isBlobBall(Blobber::Blob blob);
 };
 
 #endif

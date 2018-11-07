@@ -61,6 +61,12 @@ const components = {
         type: 'node',
         path: '../manual-control/manual-control.js',
         process: null
+    },
+    training: {
+        name: 'training',
+        type: 'node',
+        path: '../training/training.js',
+        process: null
     }
 };
 

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <algorithm>
 
-Vision::Vision(Blobber* blobber, CameraTranslator* cameraTranslator, Dir dir, int width, int height) : blobber(blobber), cameraTranslator(cameraTranslator), dir(dir), width(width), height(height) {
+Vision::Vision(Blobber* blobber, Dir dir, int width, int height) : blobber(blobber), dir(dir), width(width), height(height) {
     validBallBgColors.push_back("green");
     validBallBgColors.push_back("white");
     validBallBgColors.push_back("black");
@@ -56,74 +56,78 @@ void Vision::setDebugImage(unsigned char* image, int width, int height) {
 	canvas.height = height;
 }
 
-//Vision::Result* Vision::process() {
-//	Result* result = new Result();
-//
-//	result->vision = this;
-//
-//	result->goals = processGoals(dir);
-//	result->balls = processBalls(dir, result->goals);
-//
-//	updateColorDistances();
-//	updateColorOrder();
-//
-//	result->colorOrder = colorOrder;
-//	result->whiteDistance = whiteDistance;
-//	result->blackDistance = blackDistance;
-//
-//	return result;
-//}
+Vision::Result* Vision::process() {
+	Result* result = new Result();
 
-/*ObjectList Vision::processBalls(Dir dir, ObjectList& goals) {
+	result->vision = this;
+
+	result->baskets = processBaskets(dir);
+	result->balls = processBalls(dir, result->baskets);
+
+	std::vector<Blobber::BlobColor> validDriveableColors = {
+			Blobber::BlobColor::orange,
+			Blobber::BlobColor::green
+	};
+
+	result->straightAheadInfo = getStraightAheadMetric(validDriveableColors, result->balls);
+
+	/*updateColorDistances();
+	updateColorOrder();
+
+	result->colorOrder = colorOrder;
+	result->whiteDistance = whiteDistance;
+	result->blackDistance = blackDistance;*/
+
+	return result;
+}
+
+ObjectList Vision::processBalls(Dir dir, ObjectList& baskets) {
 	ObjectList allBalls;
 	ObjectList filteredBalls;
 
     Distance distance;
 
-    Blobber::Blob* blob = blobber->getBlobs("ball");
+    Blobber::BlobInfo* blobInfo = blobber->getBlobs(Blobber::BlobColor::green);
 
-    while (blob != NULL) {
-		if (blob->area < Config::ballBlobMinArea) {
-			blob = blob->next;
-
+    for (int j = 0; j < blobInfo->count; j++) {
+        Blobber::Blob blob = blobInfo->blobs[j];
+		if (blob.area < Config::ballBlobMinArea) {
 			continue;
 		}
 
-		distance = getDistance((int)blob->centerX, (int)blob->y2);
+		//distance = getDistance((int)blob->centerX, (int)blob->y2);
 
-		if (dir == Dir::REAR) {
+		/*if (dir == Dir::REAR) {
 			if (distance.angle > 0.0f) {
 				distance.angle -= Math::PI;
 			} else {
 				distance.angle += Math::PI;
 			}
-		}
+		}*/
 
-		if (blob->x1 < 0) blob->x1 = 0;
+		/*if (blob->x1 < 0) blob->x1 = 0;
 		if (blob->x2 > width - 1) blob->x2 = width - 1;
 		if (blob->y1 < 0) blob->y1 = 0;
-		if (blob->y2 > height - 1) blob->y2 = height - 1;
+		if (blob->y2 > height - 1) blob->y2 = height - 1;*/
 
-		int width = blob->x2 - blob->x1;
-		int height = blob->y2 - blob->y1;
+		int width = blob.x2 - blob.x1;
+		int height = blob.y2 - blob.y1;
 
         Object* ball = new Object(
-            blob->x1 + width / 2,
-            blob->y1 + height / 2,
+            blob.x1 + width / 2,
+            blob.y1 + height / 2,
             width,
             height,
-            blob->area,
+            blob.area,
 			distance.straight,
 			distance.x,
 			distance.y,
             distance.angle,
 			3,
-			dir == Dir::FRONT ? false : true
+            !(dir == Dir::FRONT)
         );
 		
         allBalls.push_back(ball);
-
-        blob = blob->next;
     }
 
 	// TODO Make the overlap margin dependent on distance (larger for objects close-by)
@@ -132,8 +136,8 @@ void Vision::setDebugImage(unsigned char* image, int width, int height) {
 	for (ObjectListItc it = mergedBalls.begin(); it != mergedBalls.end(); it++) {
 		Object* ball = *it;
 
-		if (isValidBall(ball, dir, goals)) {
-			int extendHeightBelow = getPixelsBelow(ball->x, ball->y + ball->height / 2, validColorsBelowBall);
+		if (isValidBall(ball, dir, baskets)) {
+			/*int extendHeightBelow = getPixelsBelow(ball->x, ball->y + ball->height / 2, validColorsBelowBall);
 
 			if (extendHeightBelow > 0) {
 				ball->y += extendHeightBelow / 2;
@@ -160,116 +164,201 @@ void Vision::setDebugImage(unsigned char* image, int width, int height) {
 				std::cout << "- Skipping ball with invalid distance: " << ball->distance << std::endl;
 
 				continue;
-			}
+			}*/
 
 			filteredBalls.push_back(ball);
 		}
 	}
 
 	return filteredBalls;
-}*/
+}
 
-//ObjectList Vision::processGoals(Dir dir) {
-//	ObjectList allGoals;
-//	ObjectList filteredGoals;
-//
-//    Distance distance;
-//
-//    for (int i = 0; i < 2; i++) {
-//        Blobber::Blob* blob = blobber->getBlobs(i == 0 ? "yellow-goal" : "blue-goal");
-//
-//        while (blob != NULL) {
-//			if (blob->area < Config::goalBlobMinArea) {
-//				blob = blob->next;
-//
-//				continue;
-//			}
-//
-//			distance = getDistance((int)blob->centerX, (int)blob->y2);
-//
-//			if (dir == Dir::REAR) {
-//				if (distance.angle > 0.0f) {
-//					distance.angle -= Math::PI;
-//				} else {
-//					distance.angle += Math::PI;
-//				}
-//			}
-//
-//			if (blob->x1 < 0) blob->x1 = 0;
-//			if (blob->x2 > width - 1) blob->x2 = width - 1;
-//			if (blob->y1 < 0) blob->y1 = 0;
-//			if (blob->y2 > height - 1) blob->y2 = height - 1;
-//
-//			int width = blob->x2 - blob->x1;
-//			int height = blob->y2 - blob->y1;
-//
-//			Object* goal = new Object(
-//				blob->x1 + width / 2,
-//				blob->y1 + height / 2,
-//				width,
-//				height,
-//				blob->area,
-//				distance.straight,
-//				distance.x,
-//				distance.y,
-//				distance.angle,
-//				i == 0 ? Side::YELLOW : Side::BLUE,
-//				dir == Dir::FRONT ? false : true
-//			);
-//
-//			goal->processed = false;
-//			allGoals.push_back(goal);
-//
-//            blob = blob->next;
-//        }
-//    }
-//
-//	ObjectList mergedGoals = Object::mergeOverlapping(allGoals, Config::goalOverlapMargin, true);
-//
-//	float maxGoalDistance = Math::sqrt(Math::pow(Config::fieldHeight / 2.0f, 2.0) + Math::pow(Config::fieldWidth, 2.0f));
-//
-//	for (ObjectListItc it = mergedGoals.begin(); it != mergedGoals.end(); it++) {
-//		Object* goal = *it;
-//
-//		if (
-//			isValidGoal(goal, goal->type == 0 ? Side::YELLOW : Side::BLUE)
-//			// && isNotOpponentMarker(goal, goal->type == 0 ? Side::YELLOW : Side::BLUE, mergedGoals)
-//		) {
-//			// TODO Extend the goal downwards using extended color / limited ammount horizontal too
-//
-//			distance = getDistance(goal->x, goal->y + goal->height / 2);
-//
-//			if (dir == Dir::REAR) {
-//				if (distance.angle > 0.0f) {
-//					distance.angle -= Math::PI;
-//				} else {
-//					distance.angle += Math::PI;
-//				}
-//			}
-//
-//			// straight distance is already updated in valid goal check
-//			//goal->distance = distance.straight;
-//
-//			// limit goal distance to maximum possible when on the field
-//			goal->distanceX = distance.x;
-//			goal->distanceY = Math::min(distance.y, maxGoalDistance);
-//			goal->distance = Math::min(goal->distance, maxGoalDistance);
-//			goal->angle = distance.angle;
-//
-//			/*if (goal->distance < 0.0f) {
-//				std::cout << "- Skipping goal with invalid distance: " << goal->distance << std::endl;
-//
-//				continue;
-//			}*/
-//
-//			filteredGoals.push_back(goal);
-//		}
-//	}
-//
-//	return filteredGoals;
-//}
+ObjectList Vision::processBaskets(Dir dir) {
+	ObjectList allGoals;
+	ObjectList filteredGoals;
 
-//bool Vision::isValidGoal(Object* goal, Side side) {
+    Distance distance;
+
+    for (int i = 0; i < 2; i++) {
+        Blobber::BlobInfo* blobInfo = blobber->getBlobs(i == 0 ? Blobber::BlobColor::blue : Blobber::BlobColor::magenta);
+
+        for (int j = 0; j < blobInfo->count; j++) {
+        	Blobber::Blob blob = blobInfo->blobs[j];
+
+			if (blob.area < Config::basketBlobMinArea) {
+				continue;
+			}
+
+			//distance = getDistance((int)blob.centerX, (int)blob.y2);
+
+			/*if (dir == Dir::REAR) {
+				if (distance.angle > 0.0f) {
+					distance.angle -= Math::PI;
+				} else {
+					distance.angle += Math::PI;
+				}
+			}*/
+
+			/*if (blob.x1 < 0) blob.x1 = 0;
+			if (blob.x2 > width - 1) blob.x2 = width - 1;
+			if (blob.y1 < 0) blob.y1 = 0;
+			if (blob.y2 > height - 1) blob.y2 = height - 1;*/
+
+			int width = blob.x2 - blob.x1;
+			int height = blob.y2 - blob.y1;
+
+			auto * goal = new Object(
+				blob.x1 + width / 2,
+				blob.y1 + height / 2,
+				width,
+				height,
+				blob.area,
+				distance.straight,
+				distance.x,
+				distance.y,
+				distance.angle,
+				i == 0 ? Side::BLUE : Side::MAGENTA,
+				!(dir == Dir::FRONT)
+			);
+
+			goal->processed = false;
+			allGoals.push_back(goal);
+        }
+    }
+
+	ObjectList mergedGoals = Object::mergeOverlapping(allGoals, Config::goalOverlapMargin, true);
+
+	float maxGoalDistance = Math::sqrt(Math::pow(Config::fieldHeight / 2.0f, 2.0) + Math::pow(Config::fieldWidth, 2.0f));
+
+	for (ObjectListItc it = mergedGoals.begin(); it != mergedGoals.end(); it++) {
+		Object* goal = *it;
+
+		if (isValidbasket(goal, goal->type == 0 ? Side::BLUE : Side::MAGENTA)) {
+			// TODO Extend the goal downwards using extended color / limited ammount horizontal too
+
+			//distance = getDistance(goal->x, goal->y + goal->height / 2);
+
+			/*if (dir == Dir::REAR) {
+				if (distance.angle > 0.0f) {
+					distance.angle -= Math::PI;
+				} else {
+					distance.angle += Math::PI;
+				}
+			}*/
+
+			// straight distance is already updated in valid goal check
+			//goal->distance = distance.straight;
+
+			// limit goal distance to maximum possible when on the field
+			/*goal->distanceX = distance.x;
+			goal->distanceY = Math::min(distance.y, maxGoalDistance);
+			goal->distance = Math::min(goal->distance, maxGoalDistance);
+			goal->angle = distance.angle;*/
+
+			/*if (goal->distance < 0.0f) {
+				std::cout << "- Skipping goal with invalid distance: " << goal->distance << std::endl;
+
+				continue;
+			}*/
+
+			filteredGoals.push_back(goal);
+		}
+	}
+
+	return filteredGoals;
+}
+
+bool Vision::isValidbasket(Object *basket, Side side) {
+    int minAreaSideLength = 20;
+    int maxBottomHeight = 40;
+    int x1 = basket->x - basket->width / 2;
+    int y1 = basket->y - basket->height / 2;
+
+    if (basket->width < 3 || basket->height < 3) {
+        return false;
+    }
+
+    if ((float)basket->width / (float)basket->height > 10) {
+        return false;
+    }
+
+	std::vector<Blobber::BlobColor> sideValidColors = {
+			Blobber::BlobColor::orange/*,
+			Blobber::BlobColor::white,
+			Blobber::BlobColor::black*/
+	};
+
+    std::vector<Blobber::BlobColor> bottomValidColors = {
+            Blobber::BlobColor::orange
+    };
+
+	std::vector<Blobber::BlobColor> topValidColors = {
+			Blobber::BlobColor::white
+	};
+
+	int sideWidth = std::max(basket->width, minAreaSideLength);
+    int boxWidthBottom = sideWidth + basket->width / 2;
+    int bottomHeight = std::min(sideWidth, maxBottomHeight);
+
+    float topMetric = getAreaMetric(
+            x1 - sideWidth,
+            y1 - sideWidth,
+            2 * sideWidth + basket->width,
+            sideWidth,
+            topValidColors
+    );
+
+    float sideLeftMetric = getAreaMetric(
+            x1 - sideWidth,
+            y1,
+            sideWidth,
+            basket->height,
+            sideValidColors
+    );
+
+    float sideRightMetric = getAreaMetric(
+            x1 + basket->width,
+            y1,
+            sideWidth,
+            basket->height,
+            sideValidColors
+    );
+
+	float bottomLeftMetric = getAreaMetric(
+			basket->x - boxWidthBottom,
+			basket->y + basket->height / 2,
+			boxWidthBottom,
+            bottomHeight,
+			bottomValidColors
+			);
+
+    float bottomRightMetric = getAreaMetric(
+            basket->x,
+            basket->y + basket->height / 2,
+            boxWidthBottom,
+            bottomHeight,
+            bottomValidColors
+    );
+
+    basket->surroundMetrics[0] = topMetric;
+    basket->surroundMetrics[1] = sideLeftMetric;
+    basket->surroundMetrics[2] = sideRightMetric;
+    basket->surroundMetrics[3] = bottomLeftMetric;
+    basket->surroundMetrics[4] = bottomRightMetric;
+
+	/*std::cout << "@ SIDE LEFT METRIC: " << sideLeftMetric << std::endl;
+	std::cout << "@ SIDE RIGHT METRIC: " << sideRightMetric << std::endl;
+	std::cout << "@ BOTTOM LEFT METRIC: " << bottomLeftMetric << std::endl;
+	std::cout << "@ BOTTOM RIGHT METRIC: " << bottomRightMetric << std::endl;
+	std::cout << "@ TOP METRIC: " << topMetric << std::endl;*/
+
+    return //(isnan(topMetric) || topMetric > 0.2) &&
+            //(sideLeftMetric > 0.2 || sideRightMetric > 0.2) &&
+            bottomLeftMetric > 0.5 ||
+            bottomRightMetric > 0.5;
+}
+
+//bool Vision::isValidbasket(Object* goal, Side side) {
 //	/*int x1, y1, x2, y2;
 //
 //	float undersideMetric = getUndersideMetric(
@@ -278,8 +367,8 @@ void Vision::setDebugImage(unsigned char* image, int width, int height) {
 //		goal->distance,
 //		goal->width,
 //		goal->height,
-//		side == Side::YELLOW ? "yellow-goal" : "blue-goal",
-//		side == Side::YELLOW ? "yellow-goal-wide" : "blue-goal-wide",
+//		side == Side::MAGENTA ? "yellow-goal" : "blue-goal",
+//		side == Side::MAGENTA ? "yellow-goal-wide" : "blue-goal-wide",
 //		validGoalPathColors,
 //		x1, y1, x2, y2
 //	);
@@ -422,7 +511,7 @@ bool Vision::isNotOpponentMarker(Object* goal, Side side, ObjectList& goals)
 	for (ObjectListItc it = goals.begin(); it != goals.end(); it++) {
 		otherGoal = *it;
 
-		// ignore same side intersecting goals
+		// ignore same side intersecting baskets
 		if (goal->type == otherGoal->type) {
 			continue;
 		}
@@ -438,7 +527,153 @@ bool Vision::isNotOpponentMarker(Object* goal, Side side, ObjectList& goals)
 	return true;
 }
 
-//bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& goals) {
+bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& balls) {
+	int senseRadius = ball->y / 5 - std::max(std::abs(ball->x - Config::cameraWidth / 2), 0) / 20 + 2;
+	int ballMinArea = senseRadius * senseRadius / 25;
+
+	//std::cout << "area: " << ball->area << " min: " << ballMinArea << std::endl;
+
+	if (ball->area < ballMinArea) {
+		return false;
+	}
+
+    float sizeRatio = (float)ball->width / (float)ball->height;
+
+	if (sizeRatio > Config::maxBallSizeRatio || sizeRatio < 1.0f / Config::maxBallSizeRatio) {
+		return false;
+	}
+
+    int ballRadius = getBallRadius(ball->width, ball->height);
+	//int senseRadius = getBallSenseRadius(ballRadius, ball->distance);
+
+	//int surroundSenseY = (int)((float)ball->y + (float)ballRadius * Math::map(ball->distance, 0.0f, 2.0f, 0.75f, 0.2f));
+	int surroundSenseY = ball->y;
+	//int pathMetricSenseY = surroundSenseY + senseRadius;
+
+	std::vector<Blobber::BlobColor> validColors = {
+			Blobber::BlobColor::orange,
+			Blobber::BlobColor::white,
+			Blobber::BlobColor::green
+	};
+
+	if (ball->y + ballRadius < Config::surroundSenseThresholdY) {
+		float bottomSurroundMetric = getSurroundMetric(
+			ball->x,
+			surroundSenseY,
+			senseRadius,
+			validColors,
+			1
+		);
+
+		float topSurroundMetric = getSurroundMetric(
+				ball->x,
+				surroundSenseY,
+				senseRadius,
+				validColors,
+				-1
+		);
+
+		ball->surroundMetrics[0] = bottomSurroundMetric;
+		ball->surroundMetrics[1] = topSurroundMetric;
+
+		if (bottomSurroundMetric == -1.0f || bottomSurroundMetric < Config::minValidBallSurroundThreshold) {
+			//std::cout << "@ BALL SURROUND FAIL: " << surroundMetric << " VS " << Config::minValidBallSurroundThreshold << std::endl;
+
+			return false;
+		}
+	} else {
+		ball->surroundMetrics[0] = 1.0;
+		ball->surroundMetrics[1] = 1.0;
+	}
+
+	if (!isBallWithinBorders(ball)) {
+	    return false;
+	}
+
+    return true;
+}
+
+bool Vision::isBallWithinBorders(Object* ball) {
+    bool debug = canvas.data != nullptr;
+
+    Blobber::BlobColor white = Blobber::BlobColor::white;
+    Blobber::BlobColor black = Blobber::BlobColor::black;
+
+    int tolerance = 4;
+    const int minStripeHeight = 6;
+
+    int whitePixels = 0;
+    int blackPixels = 0;
+    int otherPixels = 0;
+
+    for (int y = ball->y + ball->width; y < Config::surroundSenseThresholdY; ++y) {
+        Blobber::BlobColor color = blobber->getColorAt(ball->x, y);
+
+        if (blackPixels > minStripeHeight && whitePixels > minStripeHeight) {
+            canvas.drawMarker(ball->x, y, 0, 200, 0);
+
+            return false;
+        }
+
+        // Collect white stripe
+        if (blackPixels > minStripeHeight) {
+            if (color == white) {
+                ++whitePixels;
+                otherPixels = 0;
+
+                if (debug) {
+                    canvas.drawMarker(ball->x, y, 0, 200, 0, true);
+                }
+
+                continue;
+            }
+
+            if (whitePixels) {
+                if (++otherPixels > tolerance) {
+                    blackPixels = otherPixels = 0;
+                } else {
+                    ++whitePixels;
+
+                    if (debug) {
+                        canvas.drawMarker(ball->x, y, 0, 200, 0, true);
+                    }
+                    continue;
+                }
+            }
+        }
+
+        // Collect black stripe
+        whitePixels = 0;
+
+        if (color == black) {
+            if (blackPixels == 0) {
+                tolerance = y / 20 + 4;
+            }
+
+            ++blackPixels;
+            otherPixels = 0;
+
+            if (debug) {
+                canvas.drawMarker(ball->x, y, 0, 200, 0, true);
+            }
+
+        } else if (blackPixels) {
+            if (++otherPixels > tolerance) {
+                blackPixels = otherPixels = 0;
+            } else {
+                ++blackPixels;
+
+                if (debug) {
+                    canvas.drawMarker(ball->x, y, 0, 200, 0, true);
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+//bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& baskets) {
 //	//int ballMinArea = (int)Math::map(ball->distance, 0.0f, 4.5f, 16.0f, 2.0f);
 //
 //	int ballMinArea = (int)(50.0f * Math::pow(Math::E, -0.715f * ball->distance));
@@ -520,7 +755,7 @@ bool Vision::isNotOpponentMarker(Object* goal, Side side, ObjectList& goals)
 //		}
 //	}
 //
-//	if (isBallInGoal(ball, dir, goals)) {
+//	if (isBallInGoal(ball, dir, baskets)) {
 //		//std::cout << "@ BALL IN GOAL FAIL" << std::endl;
 //
 //		return false;
@@ -726,12 +961,14 @@ float Vision::getAngle(int x, int y) {
 }*/
 
 // TODO When scanning the underside then some on the topside are also still created
-/*float Vision::getSurroundMetric(int x, int y, int radius, std::vector<std::string> validColors, std::string requiredColor, int side, bool allowNone) {
+float Vision::getSurroundMetric(
+		int x, int y, int radius, std::vector<Blobber::BlobColor> validColors,
+		int side, bool allowNone
+) {
 	int matches = 0;
 	int misses = 0;
     int points = radius * 2;
-    bool requiredColorFound = false;
-    bool debug = canvas.data != NULL;
+    bool debug = canvas.data != nullptr;
 
 	int start = 0;
 	int sensePoints = points;
@@ -758,10 +995,10 @@ float Vision::getAngle(int x, int y) {
 			continue;
 		}
 
-        Blobber::Color* color = getColorAt(senseX, senseY);
+        Blobber::BlobColor color = blobber->getColorAt(senseX, senseY);
 
-        if (color != NULL) {
-            if (find(validColors.begin(), validColors.end(), std::string(color->name)) != validColors.end()) {
+        if (color != Blobber::BlobColor::unknown) {
+            if (find(validColors.begin(), validColors.end(), color) != validColors.end()) {
                 matches++;
 
                 if (debug) {
@@ -769,11 +1006,11 @@ float Vision::getAngle(int x, int y) {
                 }
             } else {
 				misses++;
-			}
 
-            if (requiredColor != "" && color->name == requiredColor) {
-                requiredColorFound = true;
-            }
+				if (debug) {
+					canvas.drawMarker(senseX, senseY, 200, 0, 0);
+				}
+			}
         } else {
 			if (!allowNone) {
 				misses++;
@@ -793,12 +1030,198 @@ float Vision::getAngle(int x, int y) {
 
 	if (sensedPoints == 0) {
 		return -1.0f;
-	} else if (requiredColor != "" && !requiredColorFound) {
-        return 0.0f;
-    } else {
+	} else {
         return (float)matches / (float)sensedPoints;
     }
-}*/
+}
+
+Object::StraightAheadInfo Vision::getStraightAheadMetric(
+		std::vector<Blobber::BlobColor> validColors, ObjectList& balls
+) {
+	bool debug = canvas.data != nullptr;
+
+	std::vector<Blobber::BlobColor> validGapColorCombination = {
+			Blobber::BlobColor::white,
+			Blobber::BlobColor::black
+	};
+
+	const int frameCenterX = Config::cameraWidth / 2;
+	int yStep = 10;
+	int maxInvalidLineGapCount = 0;
+	int invalidLineGapCount = 0;
+	int maxInvalidPixelCount = 30;
+	int invalidPixelCount = 0;
+	int maxSideColumns = 8;
+	int x = 0;
+	int totalCount = 0;
+	int validCount = 0;
+	int sideInvalidCount = 0;
+	int reach = Config::surroundSenseThresholdY;
+	bool isValidLine = false;
+	int columnCount = maxSideColumns * 2 + 1;
+	int lastValidXList[columnCount];
+	int lastValidYList[columnCount];
+	int validYListIndex = 0;
+
+	for (int i = 0; i < columnCount; i++) {
+		lastValidXList[i] = Config::cameraWidth / 2;
+        lastValidYList[i] = Config::surroundSenseThresholdY;
+	}
+
+    for (int y = Config::surroundSenseThresholdY; y > 50; y -= yStep) {
+        maxInvalidPixelCount = y / 20;
+
+        for (int i = -maxSideColumns; i <= maxSideColumns; i++) {
+            x = frameCenterX + i * (y / 18 + 24);
+
+			Blobber::BlobColor color = blobber->getColorAt(x, y);
+
+			totalCount += std::abs(i);
+
+			if (find(validColors.begin(), validColors.end(), color) != validColors.end()) {
+				validCount += (maxSideColumns - std::abs(i));
+
+                validYListIndex = i + maxSideColumns;
+                invalidPixelCount = (lastValidYList[validYListIndex] - y) / yStep - 1;
+
+                // Found valid pixel after allowed gap length
+                // If there is correct color combination found in the gap,
+                // then the gap pixel can be considered valid
+                if (invalidPixelCount > 0 && invalidPixelCount <= maxInvalidPixelCount) {
+                    if (isColorCombinationBetweenPoints(
+                            x, y,
+                            lastValidXList[validYListIndex], lastValidYList[validYListIndex],
+                            validGapColorCombination)
+					) {
+                        sideInvalidCount -= i * invalidPixelCount;
+                    }
+                }
+
+				lastValidXList[validYListIndex] = x;
+                lastValidYList[validYListIndex] = y;
+
+				if (y < reach) {
+					reach = y;
+				}
+
+				if (debug) {
+					canvas.drawMarker(x, y, 0, 255, 0);
+				}
+			} else {
+				sideInvalidCount += i;
+
+				if (debug) {
+					canvas.drawMarker(x, y, 255, 0, 0);
+				}
+			}
+		}
+
+		for (auto ball : balls) {
+			if (
+					ball->y <= y &&
+					ball->y > (y - yStep) &&
+					std::abs(ball->x - Config::cameraWidth) > 50
+			) {
+				if (std::abs(ball->x - Config::cameraWidth) > 50) {
+					ball->straightAheadInfo = Object::StraightAheadInfo{
+							.reach = reach,
+							.driveability = (float)validCount / (float)totalCount,
+							.sideMetric = (float)sideInvalidCount / (float)totalCount
+					};
+				} else {
+					ball->straightAheadInfo = Object::StraightAheadInfo{
+							.reach = reach,
+							.driveability = 0.0,
+							.sideMetric = 0.0
+					};
+				}
+			}
+		}
+	}
+
+	return Object::StraightAheadInfo {
+		.reach = reach,
+		.driveability = (float)validCount / (float)totalCount,
+		.sideMetric = 2.0f * (float)sideInvalidCount / (float)totalCount
+	};
+}
+
+bool Vision::isColorCombinationBetweenPoints(
+		int startX, int startY, int endX, int endY, std::vector<Blobber::BlobColor> requiredColors
+) {
+	bool debug = canvas.data != nullptr;
+
+	bool isXShorter = true;
+	int shorterAxisStart = startX;
+	int shorterAxisEnd = endX;
+	int longerAxisStart = startY;
+	int longerAxisEnd = endY;
+
+	if (std::abs(endX - startX) > std::abs(endY - startY)) {
+		isXShorter = false;
+		shorterAxisStart = startY;
+		shorterAxisEnd = endY;
+		longerAxisStart = startX;
+		longerAxisEnd = endX;
+	}
+
+	int x = startX;
+	int y = startY;
+	int changingCoordinate = isXShorter ? y : x;
+	int requiredColorCount = 5;
+	int allowedGapSize = endY / 20;
+
+	Blobber::BlobColor color = blobber->getColorAt(x, y);
+	int colorCount = 0;
+	int gapCount = 0;
+
+	for (auto requiredColor : requiredColors) {
+		while (changingCoordinate <= longerAxisEnd) {
+			if (color == requiredColor) {
+				colorCount++;
+
+				if (debug) {
+					canvas.drawMarker(x, y, 0, 255, 0, true);
+				}
+
+				if (colorCount >= requiredColorCount) {
+					colorCount = 0;
+					gapCount = 0;
+					break;
+				}
+			} else {
+				if (colorCount != 0) {
+					gapCount++;
+
+					if (debug) {
+						canvas.drawMarker(x, y, 255, 0, 0, true);
+					}
+
+					if (gapCount > allowedGapSize) {
+						return false;
+					}
+				}
+			}
+
+			changingCoordinate++;
+			int interpolatedValue = (int)Math::interpolate(
+					(float)changingCoordinate,
+					(float)longerAxisStart,
+					(float)longerAxisEnd,
+					(float)shorterAxisStart,
+					(float)shorterAxisEnd
+			);
+
+			x = isXShorter ? interpolatedValue : changingCoordinate;
+			y = isXShorter ? changingCoordinate : interpolatedValue;
+
+			color = blobber->getColorAt(x, y);
+		}
+	}
+
+	return true;
+
+}
 
 //Vision::PathMetric Vision::getPathMetric(int x1, int y1, int x2, int y2, std::vector<std::string> validColors, std::string requiredColor) {
 //    int matches = 0;
@@ -1877,6 +2300,45 @@ float Vision::getAngle(int x, int y) {
 //	return getUndersideMetric(x1, y1, distance, blockWidth, blockHeight, targetColor, targetColor2, validColors, minValidX, minValidY, maxValidX, maxValidY, expand);
 //}
 
+float Vision::getAreaMetric(int x1, int y1, int areaWidth, int areaHeight, std::vector<Blobber::BlobColor> validColors) {
+    int xStep = 5;
+    int yStep = 5;
+    int matches = 0;
+	int misses = 0;
+	int xStart = std::max(x1, 0);
+	int yStart = std::max(y1, 0);
+	int xLimit = std::min(x1 + areaWidth, Config::cameraWidth - 1);
+	int yLimit = std::min(y1 + areaHeight, Config::cameraHeight - 1);
+    int xStepCount = (xLimit - xStart) / xStep + 1;
+    int yStepCount = (yLimit - yStart) / yStep + 1;
+    Blobber::BlobColor color;
+
+    if (xStepCount < 2 || yStepCount < 2) {
+        return NAN;
+    }
+
+	for (int x = xStart; x < xLimit; x += xStep) {
+        for (int y = yStart; y < yLimit; y += yStep) {
+		    color = blobber->getColorAt(x, y);
+
+			if (std::find(validColors.begin(), validColors.end(), color) != validColors.end()) {
+				matches++;
+			} else {
+				misses++;
+			}
+		}
+	}
+
+	int sum = matches + misses;
+
+	// Ignore result if too few samples
+	if (sum < 5) {
+		return NAN;
+	}
+
+	return (float)matches / (float)sum;
+}
+
 //float Vision::getUndersideMetric(int x1, int y1, float distance, int blockWidth, int blockHeight, std::string targetColor, std::string targetColor2, std::vector<std::string> validColors, int& minValidX, int& minValidY, int& maxValidX, int& maxValidY, bool expand) {
 //	bool debug = canvas.data != NULL;
 //	int xStep = 6;
@@ -2150,7 +2612,7 @@ float Vision::getAngle(int x, int y) {
 
 Object* Vision::Results::getClosestBall(Dir dir, bool nextClosest, bool preferLeft, bool preferRear, bool preferFront) {
 	Object* blueGoal = getLargestGoal(Side::BLUE);
-	Object* yellowGoal = getLargestGoal(Side::YELLOW);
+	Object* yellowGoal = getLargestGoal(Side::MAGENTA);
 
 	float closestDistance = 100.0f;
 	float ballDistance;
@@ -2228,7 +2690,7 @@ Object* Vision::Results::getClosestBall(Dir dir, bool nextClosest, bool preferLe
 
 Object* Vision::Results::getFurthestBall(Dir dir) {
 	Object* blueGoal = getLargestGoal(Side::BLUE);
-	Object* yellowGoal = getLargestGoal(Side::YELLOW);
+	Object* yellowGoal = getLargestGoal(Side::MAGENTA);
 
 	float furthestDistance = -1.0f;
 	Object* ball;
@@ -2279,14 +2741,14 @@ Object* Vision::Results::getLargestGoal(Side side, Dir dir) {
 	std::string sideName = side == Side::BLUE ? "blue" : "yellow";
 
 	if (front != NULL && dir != Dir::REAR) {
-		for (ObjectListItc it = front->goals.begin(); it != front->goals.end(); it++) {
+		for (ObjectListItc it = front->baskets.begin(); it != front->baskets.end(); it++) {
 			goal = *it;
 
 			//area = goal->area;
 			area = goal->width * goal->height;
 		
 			if (side != Side::UNKNOWN && goal->type != (int)side) {
-				//std::cout << "@ Skip " << sideName << " goal front : " << area << " at " << goal->width << "x" << goal->height << " of " << front->goals.size() << " goals" << " - type " << goal->type << " vs " << ((int)side) << std::endl;
+				//std::cout << "@ Skip " << sideName << " goal front : " << area << " at " << goal->width << "x" << goal->height << " of " << front->baskets.size() << " baskets" << " - type " << goal->type << " vs " << ((int)side) << std::endl;
 
 				continue;
 			}
@@ -2295,15 +2757,15 @@ Object* Vision::Results::getLargestGoal(Side side, Dir dir) {
 				largestGoal = goal;
 				largestArea = area;
 
-				//std::cout << "@ New largest " << sideName << " goal front : " << area << " at " << goal->width << "x" << goal->height << " of " << front->goals.size() << " goals" << " - type " << goal->type << " vs " << ((int)side) << std::endl;
+				//std::cout << "@ New largest " << sideName << " goal front : " << area << " at " << goal->width << "x" << goal->height << " of " << front->baskets.size() << " baskets" << " - type " << goal->type << " vs " << ((int)side) << std::endl;
 			} else {
-				//std::cout << "@ Not largest " << sideName << " goal front : " << area << " at " << goal->width << "x" << goal->height << " of " << front->goals.size() << " goals" << " - type " << goal->type << " vs " << ((int)side) << std::endl;
+				//std::cout << "@ Not largest " << sideName << " goal front : " << area << " at " << goal->width << "x" << goal->height << " of " << front->baskets.size() << " baskets" << " - type " << goal->type << " vs " << ((int)side) << std::endl;
 			}
 		}
 	}
 
 	if (rear != NULL && dir != Dir::FRONT) {
-		for (ObjectListItc it = rear->goals.begin(); it != rear->goals.end(); it++) {
+		for (ObjectListItc it = rear->baskets.begin(); it != rear->baskets.end(); it++) {
 			goal = *it;
 
 			if (side != Side::UNKNOWN && goal->type != (int)side) {
@@ -2324,7 +2786,7 @@ Object* Vision::Results::getLargestGoal(Side side, Dir dir) {
 		area = largestGoal->width * largestGoal->height;
 
 		if (dir == Dir::ANY) {
-			Side otherSide = side == Side::BLUE ? Side::YELLOW : Side::BLUE;
+			Side otherSide = side == Side::BLUE ? Side::MAGENTA : Side::BLUE;
 			Dir sameDir = largestGoal->behind ? Dir::REAR : Dir::FRONT;
 			Object* otherGaol = getLargestGoal(otherSide, sameDir);
 
@@ -2356,7 +2818,7 @@ Object* Vision::Results::getLargestGoal(Side side, Dir dir) {
 Object* Vision::Results::getFurthestGoal(Dir dir) {
 	return NULL;
 
-	Object* largestYellow = getLargestGoal(Side::YELLOW, dir);
+	Object* largestYellow = getLargestGoal(Side::MAGENTA, dir);
 	Object* largestBlue = getLargestGoal(Side::BLUE, dir);
 
 	if (largestYellow != NULL) {
@@ -2379,7 +2841,7 @@ Object* Vision::Results::getFurthestGoal(Dir dir) {
 }
 
 bool Vision::Results::isBallInGoal(Object* ball) {
-	return isBallInGoal(ball, getLargestGoal(Side::BLUE), getLargestGoal(Side::YELLOW));
+	return isBallInGoal(ball, getLargestGoal(Side::BLUE), getLargestGoal(Side::MAGENTA));
 }
 
 bool Vision::Results::isBallInGoal(Object* ball, Object* blueGoal, Object* yellowGoal) {
@@ -2397,7 +2859,7 @@ bool Vision::Results::isBallInGoal(Object* ball, Object* blueGoal, Object* yello
 
 Vision::BallInWayMetric Vision::Results::getBallInWayMetric(ObjectList balls, int goalY, Object* ignoreBall) {
 	Object* blueGoal = getLargestGoal(Side::BLUE);
-	Object* yellowGoal = getLargestGoal(Side::YELLOW);
+	Object* yellowGoal = getLargestGoal(Side::MAGENTA);
 
 	int startY = Config::goalPathSenseStartY;
 	int halfWidth = Config::cameraWidth / 2;

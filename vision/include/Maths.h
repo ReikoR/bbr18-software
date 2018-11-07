@@ -108,6 +108,30 @@ static float map(float value, float inMin, float inMax, float outMin, float outM
 	return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
 }
 
+static float interpolate(float x, float x1, float x2, float y1, float y2) {
+	if (x1 < x2) {
+		if (x <= x1) {
+			return y1;
+		} else  if (x >= x2) {
+			return y2;
+		}
+	} else {
+		// x1 >= x2
+		if (x >= x1) {
+			return y1;
+		} else  if (x <= x2) {
+			return y2;
+		}
+	}
+
+	float diffX = x2 - x1;
+	float diffY = y2 - y1;
+
+	float slope = diffY / diffX;
+
+	return y1 + (x - x1) * slope;
+};
+
 static float floatModulus(float a, float b) {
     return ::fmod(a, b);
 }

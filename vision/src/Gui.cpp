@@ -122,7 +122,7 @@ Gui::Gui(HINSTANCE instance, Blobber* blobber, int width, int height) : instance
 	Blobber::ColorClassState* color;
 
 	for (int i = 0, y = 0; i < blobber->getColorCount(); i++) {
-		color = blobber->getColor(i);
+		color = blobber->getColor(Blobber::BlobColor(i));
 
         if (color->name != NULL) {
             createButton(color->name, 20, 40 + y * 18, 160, 1);
@@ -267,8 +267,8 @@ bool Gui::isMouseOverElement(int x, int y) {
 	return false;
 }
 
-bool Gui::update() {
-	setFrontImages(rgb, rgbData);
+bool Gui::update(Vision::Result* visionResult) {
+	setFrontImages(rgb, rgbData, visionResult);
 
 	while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) != 0) {
 		TranslateMessage(&msg);
@@ -310,16 +310,21 @@ void Gui::setFrontImages(unsigned char* rgb, unsigned char* yuyv, unsigned char*
 	frontRGB->setImage(rgb, true);
 }
 
-void Gui::setFrontImages(unsigned char* rgb, unsigned char* rgbData) {
+void Gui::setFrontImages(unsigned char* rgb, unsigned char* rgbData, Vision::Result* visionResult) {
 	if (clustering) {
 		clusterer->processFrame(rgbData);
 		clusterer->getSegmentedRgb(rgb);
 	}
 
 	DebugRenderer::renderFPS(rgb, fps);
-	DebugRenderer::renderBlobs(rgb, blobber, width, height);
 
 	blobber->getSegmentedRgb(segmentedRgb);
+
+	//DebugRenderer::renderBlobs(rgb, blobber, width, height);
+	//DebugRenderer::renderBlobs(segmentedRgb, blobber, width, height);
+
+	DebugRenderer::renderBaskets(rgb, visionResult->baskets, blobber);
+	DebugRenderer::renderBalls(rgb, visionResult->balls, blobber);
 
 	drawElements(rgb, width, height);
 	drawElements(segmentedRgb, width, height);
@@ -372,7 +377,7 @@ void Gui::handleColorThresholding(unsigned char* rgbData, unsigned char* rgb) {
     }
 
     if (mouseDown) {
-		float stdDev = 2.0f;
+		float stdDev = 1.0f;
 
 		//ImageProcessor::RGBInfo rgbInfo = ImageProcessor::extractColors(rgbData, width, height, mouseX, mouseY, brushRadius, stdDev);
 		ImageProcessor::RGBRange rgbRange = ImageProcessor::extractColorRange(rgbData, width, height, mouseX, mouseY, brushRadius, stdDev);
@@ -531,8 +536,8 @@ void Gui::onMouseUp(int x, int y, MouseListener::MouseBtn btn, DisplayWindow* wi
 void Gui::onMouseWheel(int delta, DisplayWindow* win) {
 	brushRadius += delta / 120 * 5;
 
-	if (brushRadius < 5) {
-		brushRadius = 5;
+	if (brushRadius < 2) {
+		brushRadius = 2;
 	}
 
 	activeWindow = win;

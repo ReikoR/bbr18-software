@@ -3,7 +3,12 @@
 #include "Maths.h"
 #include "Config.h"
 
-Object::Object(int x, int y, int width, int height, int area, float distance, float distanceX, float distanceY, float angle, int type, bool behind) : x(x), y(y), width(width), height(height), area(area), distance(distance), distanceX(distanceX), distanceY(distanceY), angle(angle), type(type), behind(behind), processed(false) {
+Object::Object(
+		int x, int y, int width, int height, int area, float distance,
+		float distanceX, float distanceY, float angle, int type, bool behind, std::array<float, 5> surroundMetrics):
+		x(x), y(y), width(width), height(height), area(area), distance(distance),
+		distanceX(distanceX), distanceY(distanceY), angle(angle), type(type), surroundMetrics(surroundMetrics),
+		behind(behind), processed(false) {
 	lastSeenTime = Util::millitime();
 }
 
@@ -21,6 +26,7 @@ void Object::copyFrom(const Object* other) {
 	lastSeenTime = other->lastSeenTime;
 	behind = other->behind;
 	processed = other->processed;
+	surroundMetrics = other->surroundMetrics;
 }
 
 bool Object::intersects(Object* other, int margin) const {
@@ -77,9 +83,9 @@ std::vector<Object*> Object::mergeOverlapping(const std::vector<Object*>& set, i
 	ObjectList individuals;
 	ObjectList garbage;
 
-	while (stack.size() > 0) {
+	while (!stack.empty()) {
 		Object* object1 = stack.back();
-		Object* mergedObject = NULL;
+		Object* mergedObject = nullptr;
 		stack.pop_back();
 
 		if (object1->processed) {
