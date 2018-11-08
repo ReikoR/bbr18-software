@@ -128,6 +128,9 @@ try:
 
         dist = np.average(depth_image[y:y + w, x:x + h]) * depth_scale
 
+        if dist == 0:
+            continue
+
         min_x = clamp(x - int(1/dist * 50), 0, width)
         max_x = clamp(x + int(1/dist * 500), 0, width)
         min_y = clamp(y - int(1/dist * 250), 0, height)

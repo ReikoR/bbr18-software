@@ -12,31 +12,44 @@ function getSpeed (distance) {
     return trainingUtils.interpolate(measurements, distance);
 }
 
-const distanceToSpeedMap = [
-    [41, 7000],
-    [50, 7000],
-    [61, 7000],
-    [71, 7200],
-    [80, 7600],
-    [90, 8000],
-    [102, 8400],
-    [112, 8800],
-    [119, 9000],
-    [148, 9400],
-    [167, 10000],
-    [198, 11000],
-    [253, 12500],
-    [303, 13600],
-    [358, 15000],
-    [408, 16400],
-    [460, 18000]
+const distanceToSpeedMap1600 = [
+    [0.27, 6000],
+    [0.57, 8000],
+    [0.95, 9300],
+    [1.48, 11100],
+    [2.72, 15300],
+    [3.27, 17000],
 ];
 
+const distanceToSpeedMap1050 = [
+    [0.62, 7000],
+    [1.12, 8200],
+    [1.83, 9800],
+    [2.72, 11700],
+    [3.65, 13200],
+    [4.45, 15000],
+];
+
+const dist_tresh = 2.5;
+
+function getAngle(distance) {
+    return distance > dist_tresh ? 1050 : 1600;
+}
+
 function getSpeedPrev(distance) {
-    let lowerDistance = distanceToSpeedMap[0][0];
-    let higherDistance = distanceToSpeedMap[distanceToSpeedMap.length - 1][0];
-    let lowerSpeed = distanceToSpeedMap[0][1];
-    let higherSpeed = distanceToSpeedMap[distanceToSpeedMap.length - 1][1];
+
+    let map;
+
+    if(distance > dist_tresh){
+        map = distanceToSpeedMap1050;
+    } else {
+        map = distanceToSpeedMap1600;
+    }
+
+    let lowerDistance = map[0][0];
+    let higherDistance = map[map.length - 1][0];
+    let lowerSpeed = map[0][1];
+    let higherSpeed = map[map.length - 1][1];
 
     if (distance <= lowerDistance) {
         return lowerSpeed;
@@ -46,11 +59,11 @@ function getSpeedPrev(distance) {
         return higherSpeed;
     }
 
-    for (let i = 0; i < distanceToSpeedMap.length - 1; i++) {
-        lowerDistance = distanceToSpeedMap[i][0];
-        higherDistance = distanceToSpeedMap[i + 1][0];
-        lowerSpeed = distanceToSpeedMap[i][1];
-        higherSpeed = distanceToSpeedMap[i + 1][1];
+    for (let i = 0; i < map.length - 1; i++) {
+        lowerDistance = map[i][0];
+        higherDistance = map[i + 1][0];
+        lowerSpeed = map[i][1];
+        higherSpeed = map[i + 1][1];
 
         if (distance === lowerDistance) {
             return lowerSpeed;
@@ -74,5 +87,7 @@ function getSpeedPrev(distance) {
 
 module.exports = {
     getSpeed,
+    getSpeedPrev,
+    getAngle,
     reloadMeasurements
 };

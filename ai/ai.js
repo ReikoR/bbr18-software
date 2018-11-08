@@ -126,9 +126,9 @@ const frameWidth = 1280;
 const frameCenterX = frameWidth / 2;
 
 const minServo = 1050;
-const maxServo = 1700;
+const maxServo = 1600;
 const servoRange = maxServo - minServo;
-let servo = minServo;
+let servo = maxServo;
 
 let motionState = motionStates.IDLE;
 let throwerState = throwerStates.IDLE;
@@ -866,69 +866,74 @@ function resetMotionFindBasket() {
 }
 
 function handleThrowerIdle() {
-
-    if (mainboardState.balls[0])
-        setThrowerState(throwerStates.EJECT_BALL);
-    else {
-        aiState.speeds[4] = 0;
-        aiState.speeds[5] = 0;
-    }
-
+    aiState.speeds[4] = 0;
+    aiState.speeds[5] = 0;
 }
 
+let count = 0;
+
 function handleThrowerThrowBall() {
-    //aiState.speeds[4] = thrower.getSpeed(mainboardState.lidarDistance);
+    aiState.speeds[4] = thrower.getSpeedPrev(basketState.distance);
+    aiState.speeds[6] = thrower.getAngle(basketState.distance);
 
-    aiState.speeds[4] = 10000;
+    count ++;
 
-    aiState.speeds[5]  = 300;
+    if(count < 20) {
+        return;
+    }
+
+    aiState.speeds[5]  = 250;
 
     if (!mainboardState.balls[0]) {
         mainboardState.ballThrown = true;
-    }
 
-    console.log('HELLO SPEED IS', aiState.speeds[4]);
+    }
 
     if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;
+        count = 0;
         setMotionState(motionStates.FIND_BALL);
         setThrowerState(throwerStates.IDLE);
     }
 }
 
 function handleThrowerGrabBall() {
-    const feederIdleSpeed = 100;
-    const feederGrabSpeed = 150;
+    const feederGrabSpeed = 100;
+    const feederTweakSpeed = 25;
 
-    aiState.speeds[5] = feederIdleSpeed;
-
-    if(mainboardState.balls[1]) {
+    if(!mainboardState.ballGrabbed) {
         aiState.speeds[5] = feederGrabSpeed;
-        if(mainboardState.balls[0]) {
-            aiState.speeds[5] = 0;
-            setMotionState(throwerStates.HOLD_BALL);
-            setThrowerState(motionStates.DRIVE_WITH_BALL);
-        }
+        setMotionState(motionStates.GRAB_BALL);
+
+
+    } else if (mainboardState.balls[0] && !mainboardState.balls[1]) {
+        aiState.speeds[5] = -feederTweakSpeed;
+    } else {
+        setMotionState(motionStates.FIND_BASKET);
+        setThrowerState(throwerStates.HOLD_BALL);
     }
 }
 
 function handleThrowerHoldBall() {
-    aiState.speeds[4] = 0;
-    setThrowerState(throwerStates.IDLE);
+    if(!mainboardState.ballGrabbed){
+        setMotionState(motionStates.FIND_BALL);
+    } else {
+        aiState.speeds[4] = thrower.getSpeedPrev(basketState.distance);
+        aiState.speeds[6] = thrower.getAngle(basketState.distance);
+
+        aiState.speeds[5] = 0;
+    }
 }
 
 let startTimeEject = null;
 
 function handleThrowerEjectBall() {
-    const feederIdleSpeed = 150;
+    const feederSpeed = 150;
     const throwerSpeed = 5000;
 
-    if( mainboardState.balls[1]) {
-        aiState.speeds[4] = throwerSpeed;
-        aiState.speeds[5] = feederIdleSpeed;
-    } else {
-        setThrowerState(throwerStates.IDLE);
-    }
+    aiState.speeds[4] = throwerSpeed;
+    aiState.speeds[5] = feederSpeed;
+
 }
 
 /**
@@ -985,6 +990,6 @@ function update() {
     }
 }
 
-sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command', 'training']});
+sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command', 'training', 'goal_distance']});
 
 //sendToHub({type: 'message', topic: 'mainboard_command', command: 'fs:1'});
