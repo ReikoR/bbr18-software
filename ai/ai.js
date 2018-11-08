@@ -170,7 +170,13 @@ let mainboardState = {
     ballEjected: false,
     lidarDistance: 0
 };
-let aiState = {speeds: [0, 0, 0, 0, 0]};
+
+let aiState = {
+    speeds: [0, 0, 0, 0, 0],
+    fieldID: 'Z',
+    robotID: 'Z',
+    shouldSendAck: false
+};
 
 let basketColour = basketColours.blue;
 
@@ -453,10 +459,6 @@ function sendToHub(info, onSent) {
             onSent(err);
         }
     });
-}
-
-function formatSpeedCommand(wheelRPMs) {
-    return wheelRPMs.slice();
 }
 
 /**
@@ -913,10 +915,15 @@ function update() {
     throwerStateHandlers[throwerState]();
 
     if (motionState !== motionStates.IDLE || throwerState !== throwerStates.IDLE) {
-        sendToHub({type: 'message', topic: 'mainboard_command', command: formatSpeedCommand(aiState.speeds)});
+        const mainboardCommand = {
+            speeds: aiState.speeds,
+            fieldID: aiState.fieldID,
+            robotID: aiState.robotID,
+            shouldSendAck: aiState.shouldSendAck
+        };
+
+        sendToHub({type: 'message', topic: 'mainboard_command', command: mainboardCommand});
     }
 }
 
 sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command', 'training']});
-
-//sendToHub({type: 'message', topic: 'mainboard_command', command: 'fs:1'});
