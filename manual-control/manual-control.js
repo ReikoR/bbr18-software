@@ -33,7 +33,7 @@ function exitHandler(options, err) {
     console.log('exitHandler', options);
 
     clearInterval(speedSendInterval);
-    speeds = [0, 0, 0, 0, 0];
+    commandObject.speeds = [0, 0, 0, 0, 0];
     update();
 
     if (err) {
@@ -121,7 +121,12 @@ let robotConfig = {
 
 robotConfig.metricToRobot = 225 / (robotConfig.wheelRadius * 2 * Math.PI);
 
-let speeds = [0, 0, 0, 0];
+const commandObject =  {
+    speeds: [0, 0, 0, 0, 0],
+    fieldID: 'Z',
+    robotID: 'Z',
+    shouldSendAck: false,
+};
 
 function clone(obj) {
     let cloned = {};
@@ -247,6 +252,8 @@ function drive() {
     const speed = Math.sqrt(xSpeed * xSpeed + ySpeed * ySpeed);
     const angle = Math.atan2(ySpeed, xSpeed);
 
+    const speeds = commandObject.speeds;
+
     speeds[0] = Math.round(speedMetricToRobot(wheelSpeed(speed, angle, robotConfig.wheel1Angle / 180 * Math.PI)) + rotationalSpeed);
     speeds[1] = Math.round(speedMetricToRobot(wheelSpeed(speed, angle, robotConfig.wheel2Angle / 180 * Math.PI)) + rotationalSpeed);
     speeds[2] = Math.round(speedMetricToRobot(wheelSpeed(speed, angle, robotConfig.wheel3Angle / 180 * Math.PI)) + rotationalSpeed);
@@ -316,13 +323,13 @@ function sendControllerActiveMessages() {
 
 speedSendInterval = setInterval(() => {
     if (state === states.THROW_BALL) {
-        speeds[4] = 2000;
+        commandObject.speeds[4] = 7000;
     }
     else if (state === states.GRAB_BALL) {
-        speeds[4] = 200;
+        commandObject.speeds[4] = 200;
     }
     else if (state === states.HOLD_BALL || state === states.IDLE) {
-        speeds[4] = 0;
+        commandObject.speeds[4] = 0;
     }
 
     if (state === states.EJECT_BALL) {
@@ -334,7 +341,7 @@ speedSendInterval = setInterval(() => {
             speed = -10;
         }
 
-        speeds[4] = speed;
+        commandObject.speeds[4] = speed;
     }
 
     if (isControllerActive) {
@@ -343,7 +350,7 @@ speedSendInterval = setInterval(() => {
 }, 20);
 
 function update() {
-    sendToHub({type: 'message', topic: 'mainboard_command', command: speeds});
+    sendToHub({type: 'message', topic: 'mainboard_command', command: commandObject});
 }
 
 function sendToHub(info, onSent) {
