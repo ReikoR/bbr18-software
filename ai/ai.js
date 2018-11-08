@@ -593,6 +593,12 @@ function handleMotionDriveToBall() {
         const errorX = centerX - frameCenterX;
         const errorY = 0.8 * frameHeight - centerY;
 
+        if(700 > centerX > 600 && centerY > 900) {
+            setThrowerState(throwerStates.EJECT_BALL);
+        } else {
+            setThrowerState(throwerStates.IDLE);
+        }
+
         const maxForwardSpeed = getDriveToBallMaxSpeed(
             driveToBallStartTime, driveToBallStartSpeed, driveToBallMaxSpeed
         );
@@ -622,14 +628,18 @@ function handleMotionDriveToBall() {
     } else {
         setMotionState(motionStates.FIND_BALL);
     }
+
+    setThrowerState(throwerStates.EJECT_BALL);
 }
 
 function handleMotionGrabBall() {
+
     const closestBall = processedVisionState.closestBall;
 
     if(closestBall) {
         const centerX = closestBall.cx;
         const centerY = closestBall.cy;
+
         const errorX = centerX - frameCenterX;
         const errorY = 0.9 * frameHeight - centerY;
 
@@ -691,14 +701,14 @@ function handleMotionGrabBall() {
             Math.abs(errorX) <= 100 &&
             centerY <= 950 //avoid too close ball
         ) {
-            setMotionState(motionStates.FIND_BASKET);
+            setThrowerState(throwerStates.GRAB_BALL);
         }
-
 
     } else {
         setThrowerState(throwerStates.IDLE);
         setMotionState(motionStates.FIND_BALL);
     }
+
 }
 
 function resetMotionDriveToBall() {
