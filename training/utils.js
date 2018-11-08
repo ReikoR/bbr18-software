@@ -18,7 +18,7 @@ exports.interpolate1 = function interpolate (interpolation, x, y) {
     return closestObj.z;
 };
 
-exports.interpolate = function interpolate (data, x, y) {
+exports.interpolate = function interpolate (data, x, y = 0) {
     const sortedData = [ ...data ].sort((a, b) =>
         Math.abs(a.x - x) - Math.abs(b.x - x)
     );

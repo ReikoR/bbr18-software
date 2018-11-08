@@ -2,6 +2,7 @@ const dgram = require('dgram');
 const socket = dgram.createSocket('udp4');
 const omniMotion = require('./omni-motion');
 const thrower = require('./thrower');
+const util = require('./util');
 const publicConf = require('./public-conf.json');
 
 /**
@@ -319,7 +320,8 @@ function computeBallConfidence(ball, basket, otherBasket) {
     //sideMetric
     //driveability
 
-    const ballDistanceMetric = 0.2 * ball.cy / frameHeight;
+    const ballDistance = 8000 * Math.pow(ball.cy, -1.85);
+    const ballDistanceMetric = 0.2 * util.clamp((6 - ballDistance) / 6, 0, 1);
     const bottomMetric = 0.1 * ball.metrics[0];
     const topMetric = 0.1 * ball.metrics[1];
     const sizeMetric = Math.min(0.5 * ball.w / 150, 1);
@@ -388,18 +390,16 @@ function processVisionInfo(info) {
     processedVisionState.basket = basket;
     processedVisionState.otherBasket = otherBasket;
 
-    // Find ball with highest confidence
-    /*for (let i = 0; i < balls.length; i++) {
+    for (let i = 0; i < balls.length; i++) {
         balls[i].size = balls[i].w * balls[i].h;
         balls[i].confidence = computeBallConfidence(balls[i], basket, otherBasket);
 
-        if (!ball || ball.confidence > balls[i].confidence) {
+        // Find ball with highest confidence
+        /*if (!ball || ball.confidence > balls[i].confidence) {
             ball = balls[i];
-        }
-    }*/
+        }*/
 
-    // Find largest ball
-    for (let i = 0; i < balls.length; i++) {
+        // Find largest ball
         if (!ball || ball.w * ball.h < balls[i].w * balls[i].h) {
             ball = balls[i];
         }
@@ -841,7 +841,7 @@ function handleMotionFindBasket() {
     }
 
     if (basket && (closestBall || throwerState === throwerStates.THROW_BALL)) {
-        const basketCenterX = basket.cx;
+        const basketCenterX = basket.cx + 10;
         const basketErrorX = basketCenterX - frameCenterX;
         isBasketErrorXSmallEnough = Math.abs(basketErrorX) < 5;
         rotationSpeed = maxRotationSpeed * -basketErrorX / (frameWidth / 2);
@@ -886,6 +886,8 @@ function handleThrowerThrowBall() {
     if (!mainboardState.balls[0]) {
         mainboardState.ballThrown = true;
     }
+
+    console.log('HELLO SPEED IS', aiState.speeds[4]);
 
     if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;
@@ -983,6 +985,6 @@ function update() {
     }
 }
 
-sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command']});
+sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command', 'training']});
 
 //sendToHub({type: 'message', topic: 'mainboard_command', command: 'fs:1'});

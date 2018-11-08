@@ -9,6 +9,17 @@
 hello Grete!
 
 <div id="plot"></div>
+<div id="info">
+    <dt>Distance:</dt>
+    <dd id="info-distance"></dd>
+    <dt>Throwing speed:</dt>
+    <dd id="info-throwing-speed"></dd>
+</div>
+<div id="feedback" style="display: none;">
+    <button id="fb-negative" onclick="sendFeedback(-1)">Weaker</button>
+    <button id="fb-ok" onclick="sendFeedback(0)">In</button>
+    <button id="fb-positive" onclick="sendFeedback(1)">Stronger</button>
+</div>
 
 <script src="plotly-latest.min.js"></script>
 <script src="interpolate.js"></script>

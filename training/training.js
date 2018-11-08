@@ -164,7 +164,11 @@ function sendToHub(info, onSent) {
 
 function handleInfo(info) {
     if (info.topic === 'ai_state') {
-        wss.broadcast(JSON.stringify({type: 'ai_state', state: info.state}));
+        wss.broadcast(JSON.stringify({
+            type: 'ai_state',
+            state: info.state,
+            throwingSpeed: utils.interpolate(measurements, info.state.lidarDistance)
+        }));
     }
 
     console.log(info);
