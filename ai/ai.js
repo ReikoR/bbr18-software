@@ -18,6 +18,7 @@ const publicConf = require('./public-conf.json');
  * @property {boolean} ball2
  * @property {number} distance
  * @property {boolean} isSpeedChanged
+ * @property {string} refereeCommand
  * @property {number} time
  */
 
@@ -168,7 +169,9 @@ let mainboardState = {
     ballThrown: false,
     ballGrabbed: false,
     ballEjected: false,
-    lidarDistance: 0
+    lidarDistance: 0,
+    refereeCommand: 'X',
+    prevRefereeCommand: 'X'
 };
 
 let aiState = {
@@ -248,6 +251,13 @@ function handleInfo(info) {
             mainboardState.prevBalls = mainboardState.balls.slice();
             mainboardState.balls[0] = info.message.ball1;
             mainboardState.balls[1] = info.message.ball2;
+
+            mainboardState.prevRefereeCommand = mainboardState.refereeCommand;
+            mainboardState.refereeCommand = info.message.refereeCommand;
+
+            if (mainboardState.refereeCommand !== mainboardState.prevRefereeCommand) {
+                handleRefereeCommandChanged();
+            }
 
             if (
                 !mainboardState.ballThrown
@@ -439,7 +449,8 @@ function sendState() {
         visionMetrics: visionState.metrics,
         closestBall: processedVisionState.closestBall,
         basket: processedVisionState.basket,
-        otherBasket: processedVisionState.otherBasket
+        otherBasket: processedVisionState.otherBasket,
+        refereeCommand: mainboardState.refereeCommand
     };
 
     sendToHub({type: 'message', topic: 'ai_state', state: state}, () => {
@@ -481,6 +492,14 @@ function handleBallValueChanged() {
         if (mainboardState.prevBalls[1] === false && mainboardState.balls[1] === true) {
             mainboardState.ballGrabbed = true;
         }
+    }
+}
+
+function handleRefereeCommandChanged() {
+    console.log('refereeCommand', mainboardState.prevRefereeCommand, '->', mainboardState.refereeCommand);
+
+    if (mainboardState.refereeCommand === 'P') {
+        aiState.shouldSendAck = true;
     }
 }
 
@@ -921,6 +940,8 @@ function update() {
             robotID: aiState.robotID,
             shouldSendAck: aiState.shouldSendAck
         };
+
+        aiState.shouldSendAck = false;
 
         sendToHub({type: 'message', topic: 'mainboard_command', command: mainboardCommand});
     }
