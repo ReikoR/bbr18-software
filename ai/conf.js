@@ -6,9 +6,9 @@ let conf = {
     robot: {
         wheels: [
             {angle: toRad(225), radius: 0.035, centerDistance: 0.127, motorReduction: 90 / 24},
-            {angle: toRad(135), radius: 0.035, centerDistance: 0.127, motorReduction: 90 / 24},
+            {angle: toRad(45), radius: 0.035, centerDistance: 0.127, motorReduction: 90 / 24},
             {angle: toRad(315), radius: 0.035, centerDistance: 0.127, motorReduction: 90 / 24},
-            {angle: toRad(45), radius: 0.035, centerDistance: 0.127, motorReduction: 90 / 24}
+            {angle: toRad(135), radius: 0.035, centerDistance: 0.127, motorReduction: 90 / 24}
             ]
     }
 };
