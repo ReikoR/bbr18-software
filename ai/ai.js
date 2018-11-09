@@ -44,7 +44,8 @@ const publicConf = require('./public-conf.json');
  * @typedef {Object} VisionStraightAheadInfo
  * @property {number} driveability
  * @property {number} reach
- * @property {number} sideMetric
+ * @property {number} leftSideMetric
+ * @property {number} rightSideMetric
  */
 
 /**
@@ -355,7 +356,7 @@ function computeBallConfidence(ball, basket, otherBasket) {
         bottomMetric +
         topMetric +
         distanceFromBasketMetric +
-        0.05 * Math.abs(ball.straightAhead.sideMetric) +
+        //0.05 * Math.abs(ball.straightAhead.sideMetric) +
         0.05 * ball.straightAhead.driveability;
 }
 
@@ -576,8 +577,18 @@ function handleMotionDriveToBall() {
 
     if (closestBall) {
         const driveability = closestBall.straightAhead.driveability;
-        const sideMetric = closestBall.straightAhead.sideMetric;
+        const leftSideMetric = closestBall.straightAhead.leftSideMetric;
+        const rightSideMetric = closestBall.straightAhead.rightSideMetric;
+        let sideMetric = -leftSideMetric + rightSideMetric;
         const reach = closestBall.straightAhead.reach;
+
+        if (sideMetric < 0.1 && (leftSideMetric > 0.1 || rightSideMetric > 0.1)) {
+            if (sideMetric > 0) {
+                sideMetric = rightSideMetric;
+            } else {
+                sideMetric = -leftSideMetric;
+            }
+        }
 
         const centerX = closestBall.cx;
         const centerY = closestBall.cy;
@@ -618,7 +629,7 @@ function handleMotionDriveToBall() {
             setThrowerState(throwerStates.GRAB_BALL);
             setMotionState(motionStates.DRIVE_GRAB_BALL);
 
-        } else if (Math.abs(sideMetric) > 0.1) {
+        } else if (Math.abs(sideMetric) >= 0.1) {
             //driveToBallStartTime = Date.now();
             //forwardSpeed = forwardSpeed * 0.5;
             //rotationSpeed = 0;
@@ -678,7 +689,7 @@ function resetMotionDriveGrabBall() {
 }
 
 let driveWithBallTimeout = null;
-const driveWithBallTimeoutDelay = 5000;
+const driveWithBallTimeoutDelay = 2000;
 let isDriveWithBallNoBasket = false;
 
 function handleMotionDriveWithBall() {
@@ -716,24 +727,35 @@ function handleMotionDriveWithBall() {
         if (driveWithBallTimeout === null) {
             driveWithBallTimeout = setTimeout(() => {
                 console.log('handleMotionDriveWithBall: basket not found');
-                driveWithBallTimeout = null;
-                isDriveWithBallNoBasket = true;
+                //driveWithBallTimeout = null;
+                //isDriveWithBallNoBasket = true;
+                setThrowerState(throwerStates.EJECT_BALL);
             }, driveWithBallTimeoutDelay);
         }
 
-        const visionMetrics = visionState.metrics;
-        const sideMetric = visionMetrics.straightAhead.sideMetric;
-        const reach = visionMetrics.straightAhead.reach;
-
         let forwardSpeed = 0;
-        let rotationSpeed = maxRotationSpeed * processedVisionState.lastVisibleBasketDirection;
+        let rotationSpeed = 0;
 
-        if (isDriveWithBallNoBasket) {
-            if (Math.abs(sideMetric) > 0.1) {
-                rotationSpeed = -Math.sign(sideMetric) * Math.max(4 * Math.abs(sideMetric), 0.2);
+        if (throwerState !== throwerStates.EJECT_BALL) {
+            const visionMetrics = visionState.metrics;
+            const leftSideMetric = visionMetrics.straightAhead.leftSideMetric;
+            const rightSideMetric = visionMetrics.straightAhead.rightSideMetric;
+            let sideMetric = -leftSideMetric + rightSideMetric;
+            const reach = visionMetrics.straightAhead.reach;
+
+            if (sideMetric < 0.1 && (leftSideMetric > 0.1 || rightSideMetric > 0.1)) {
+                if (sideMetric > 0) {
+                    sideMetric = rightSideMetric;
+                } else {
+                    sideMetric = -leftSideMetric;
+                }
             }
 
-            if (reach < 500) {
+            if (Math.abs(sideMetric) >= 0.1) {
+                rotationSpeed = Math.sign(sideMetric) * Math.max(4 * Math.abs(sideMetric), 0.2);
+            }
+
+            if (reach < 150) {
                 forwardSpeed = 0.5;
             }
         }
@@ -761,25 +783,21 @@ function handleMotionFindBasket() {
     let isBasketErrorXSmallEnough = false;
     let isBallCloseEnough = false;
 
-    if (!basket) {
-        if (findBasketTimeout === null) {
-            findBasketTimeout = setTimeout(() => {
-                findBasketTimeout = null;
+    if (findBasketTimeout === null) {
+        findBasketTimeout = setTimeout(() => {
+            findBasketTimeout = null;
 
-                console.log('handleMotionFindBasket: basket not found');
+            console.log('handleMotionFindBasket: basket not found');
 
-                setThrowerState(throwerStates.GRAB_BALL);
-                setMotionState(motionStates.DRIVE_GRAB_BALL);
-            }, findBasketTimeoutDelay);
-        }
-    } else {
-        clearTimeout(findBasketTimeout);
-        findBasketTimeout = null;
+            setThrowerState(throwerStates.GRAB_BALL);
+            setMotionState(motionStates.DRIVE_GRAB_BALL);
+        }, findBasketTimeoutDelay);
     }
 
     if (throwerState === throwerStates.THROW_BALL) {
+        clearTimeout(findBasketTimeout);
+        findBasketTimeout = null;
         forwardSpeed = 0.1;
-
 
     } else if (closestBall) {
         const ballCenterX = closestBall.cx;
@@ -924,6 +942,7 @@ function setThrowerState(newState) {
         if (throwerState === throwerStates.THROW_BALL) {
             throwBallTimeout = setTimeout(() => {
                 setThrowerState(throwerStates.IDLE);
+                setMotionState(motionStates.FIND_BALL);
             }, throwBallTimeoutDelay);
         }
     }
