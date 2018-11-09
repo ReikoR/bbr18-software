@@ -84,7 +84,8 @@ const motionStates = {
     GRAB_BALL: 'GRAB_BALL',
     DRIVE_GRAB_BALL: 'DRIVE_GRAB_BALL',
     DRIVE_WITH_BALL: 'DRIVE_WITH_BALL',
-    FIND_BASKET: 'FIND_BASKET'
+    FIND_BASKET: 'FIND_BASKET',
+    DRIVE_TO_ENEMY_GOAL: 'DRIVE_TO_ENEMY_GOAL'
 };
 
 /**
@@ -105,7 +106,8 @@ const motionStateHandlers = {
     GRAB_BALL: handleMotionGrabBall,
     DRIVE_GRAB_BALL: handleMotionDriveGrabBall,
     DRIVE_WITH_BALL: handleMotionDriveWithBall,
-    FIND_BASKET: handleMotionFindBasket
+    FIND_BASKET: handleMotionFindBasket,
+    DRIVE_TO_ENEMY_GOAL: handleMotionDriveToEnemyGoal
 };
 
 const throwerStateHandlers = {
@@ -935,6 +937,8 @@ function handleMotionFindBasket() {
     xSpeed = rotationSpeed * 0.14;
 */
     //setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, 0, 0, false));
+function handleMotionDriveToEnemyGoal() {
+    setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, 0, 0, true));
 }
 
 function resetMotionFindBasket() {
