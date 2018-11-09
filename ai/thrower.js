@@ -14,33 +14,33 @@ function getSpeed (distance) {
 
 const distanceToSpeedMap1600 = [
     [0.27, 6000],
-    [0.57, 8000],
-    [0.95, 9300],
-    [1.48, 11100],
-    [2.72, 15300],
-    [3.27, 17000],
+    [0.57, 7900],
+    [0.95, 9100],
+    [1.48, 11300],
+    [2.72, 15000],
+    [3.27, 16700],
 ];
 
 const distanceToSpeedMap1050 = [
     [0.62, 7000],
-    [1.12, 8200],
+    [1.12, 8100],
     [1.83, 9800],
-    [2.72, 11700],
-    [3.65, 13200],
-    [4.45, 15000],
+    [2.72, 11600],
+    [3.65, 13100],
+    [4.45, 14900],
 ];
 
-const dist_tresh = 2.5;
+const angleSwapDistance = 2.5;
 
 function getAngle(distance) {
-    return distance > dist_tresh ? 1050 : 1600;
+    return distance > angleSwapDistance ? 1050 : 1600;
 }
 
 function getSpeedPrev(distance) {
 
     let map;
 
-    if(distance > dist_tresh){
+    if(distance > angleSwapDistance){
         map = distanceToSpeedMap1050;
     } else {
         map = distanceToSpeedMap1600;
