@@ -13,7 +13,8 @@ public:
 	struct StraightAheadInfo {
 		int reach;
 		float driveability;
-		float sideMetric;
+		float leftSideMetric;
+		float rightSideMetric;
 	};
 
 	explicit Object(

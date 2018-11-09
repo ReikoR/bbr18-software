@@ -1054,8 +1054,10 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 	int maxSideColumns = 8;
 	int x = 0;
 	int totalCount = 0;
+	int totalSideCount = 0;
 	int validCount = 0;
-	int sideInvalidCount = 0;
+	int leftInvalidCount = 0;
+	int rightInvalidCount = 0;
 	int reach = Config::surroundSenseThresholdY;
 	bool isValidLine = false;
 	int columnCount = maxSideColumns * 2 + 1;
@@ -1078,6 +1080,10 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 
 			totalCount += std::abs(i);
 
+			if (i > 0) {
+                totalSideCount += i;
+			}
+
 			if (find(validColors.begin(), validColors.end(), color) != validColors.end()) {
 				validCount += (maxSideColumns - std::abs(i));
 
@@ -1093,7 +1099,11 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
                             lastValidXList[validYListIndex], lastValidYList[validYListIndex],
                             validGapColorCombination)
 					) {
-                        sideInvalidCount -= i * invalidPixelCount;
+                        if (i < 0) {
+                            leftInvalidCount += i * invalidPixelCount;
+                        } else if (i > 0) {
+                            rightInvalidCount -= i * invalidPixelCount;
+                        }
                     }
                 }
 
@@ -1108,7 +1118,11 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 					canvas.drawMarker(x, y, 0, 255, 0);
 				}
 			} else {
-				sideInvalidCount += i;
+                if (i < 0) {
+                    leftInvalidCount -= i;
+                } else if (i > 0) {
+                    rightInvalidCount += i;
+                }
 
 				if (debug) {
 					canvas.drawMarker(x, y, 255, 0, 0);
@@ -1126,13 +1140,15 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 					ball->straightAheadInfo = Object::StraightAheadInfo{
 							.reach = reach,
 							.driveability = (float)validCount / (float)totalCount,
-							.sideMetric = (float)sideInvalidCount / (float)totalCount
+							.leftSideMetric = (float)leftInvalidCount / (float)totalSideCount,
+							.rightSideMetric = (float)rightInvalidCount / (float)totalSideCount
 					};
 				} else {
 					ball->straightAheadInfo = Object::StraightAheadInfo{
 							.reach = reach,
 							.driveability = 0.0,
-							.sideMetric = 0.0
+							.leftSideMetric = 0.0,
+							.rightSideMetric = 0.0
 					};
 				}
 			}
@@ -1142,7 +1158,8 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 	return Object::StraightAheadInfo {
 		.reach = reach,
 		.driveability = (float)validCount / (float)totalCount,
-		.sideMetric = 2.0f * (float)sideInvalidCount / (float)totalCount
+        .leftSideMetric = (float)leftInvalidCount / (float)totalSideCount,
+        .rightSideMetric = (float)rightInvalidCount / (float)totalSideCount
 	};
 }
 

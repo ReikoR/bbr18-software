@@ -293,7 +293,8 @@ void VisionManager::sendState() {
 		ballJson["straightAhead"] = {
 			{"reach", ball->straightAheadInfo.reach},
 			{"driveability", ball->straightAheadInfo.driveability},
-			{"sideMetric", ball->straightAheadInfo.sideMetric},
+			{"leftSideMetric", ball->straightAheadInfo.leftSideMetric},
+			{"rightSideMetric", ball->straightAheadInfo.rightSideMetric},
 		};
 
         j["balls"].push_back(ballJson);
@@ -314,7 +315,8 @@ void VisionManager::sendState() {
     j["metrics"]["straightAhead"] = {
             {"reach", visionResult->straightAheadInfo.reach},
             {"driveability", visionResult->straightAheadInfo.driveability},
-            {"sideMetric", visionResult->straightAheadInfo.sideMetric},
+            {"leftSideMetric", visionResult->straightAheadInfo.leftSideMetric},
+            {"rightSideMetric", visionResult->straightAheadInfo.rightSideMetric},
 	};
 
 	/*for (int colorIndex = 0; colorIndex < blobber->getColorCount(); colorIndex++) {
