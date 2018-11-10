@@ -267,6 +267,10 @@ function handleInfo(info) {
             ) {
                 mainboardState.ballThrown = true;
                 console.log('mainboardState.ballThrown', mainboardState.ballThrown);
+
+                if (visionState.basket) {
+                    console.log('THROWN', visionState.basket.cx);
+                }
             }
 
             if (
@@ -776,7 +780,7 @@ function handleMotionFindBasket() {
     const closestBall = processedVisionState.closestBall;
     const basket = processedVisionState.basket;
     const minRotationSpeed = 0.05;
-    const maxRotationSpeed = 2;
+    const maxRotationSpeed = 4;
     let rotationSpeed = maxRotationSpeed * processedVisionState.lastVisibleBasketDirection;
     let xSpeed = 0;
     let forwardSpeed = 0;
@@ -797,8 +801,19 @@ function handleMotionFindBasket() {
     if (throwerState === throwerStates.THROW_BALL) {
         clearTimeout(findBasketTimeout);
         findBasketTimeout = null;
-        forwardSpeed = 0.1;
+        forwardSpeed = 0.2;
 
+        /*
+        if (closestBall) {
+            const ballCenterX = closestBall.cx;
+            const ballCenterY = closestBall.cy;
+            const ballErrorX = ballCenterX - frameCenterX;
+            const ballErrorY = 0.9 * frameHeight - ballCenterY;
+
+            forwardSpeed += Math.max(0, ballErrorY / 500);
+            //xSpeed = Math.min(0.1, ballErrorX / 800);
+        }
+        */
     } else if (closestBall) {
         const ballCenterX = closestBall.cx;
         const ballCenterY = closestBall.cy;
@@ -806,22 +821,22 @@ function handleMotionFindBasket() {
         const ballErrorY = 0.8 * frameHeight - ballCenterY;
 
         if (
-            ballErrorY > 100 ||
-            Math.abs(ballErrorX) > 100 ||
-            ballCenterX > 950 //ball too close
+            ballErrorY > 200 ||
+            Math.abs(ballErrorX) > 200 ||
+            ballCenterY > 950 //ball too close
         ) {
             setMotionState(motionStates.DRIVE_TO_BALL);
         } else {
             isBallCloseEnough = true;
             forwardSpeed = ballErrorY / 1000;
-            //xSpeed = ballErrorX / 1000;
+            xSpeed = ballErrorX / 400;
         }
     } else {
         setMotionState(motionStates.FIND_BALL);
     }
 
     if (basket && (closestBall || throwerState === throwerStates.THROW_BALL)) {
-        const basketCenterX = basket.cx + calibration.getCenterOffset(mainboardState.lidarDistance);
+        const basketCenterX = basket.cx;// + calibration.getCenterOffset(mainboardState.lidarDistance);
         const basketErrorX = basketCenterX - frameCenterX;
         isBasketErrorXSmallEnough = Math.abs(basketErrorX) < 5;
         rotationSpeed = maxRotationSpeed * -basketErrorX / (frameWidth / 2);
@@ -829,13 +844,28 @@ function handleMotionFindBasket() {
         if (isBasketErrorXSmallEnough && isBallCloseEnough) {
             setThrowerState(throwerStates.THROW_BALL);
         }
+
+        /*
+        if (Math.abs(basketErrorX) > 3) {
+            forwardSpeed = 0;
+        }*/
+
+        console.log('basketErrorX', Math.abs(basketErrorX));
+
+        /*
+        if (basketErrorX) {
+            forwardSpeed /= Math.abs(basketErrorX);
+        }
+
+        forwardSpeed = Math.max(0.05, forwardSpeed);
+        */
     }
 
     if (Math.abs(rotationSpeed) < minRotationSpeed) {
         rotationSpeed = Math.sign(rotationSpeed) * minRotationSpeed;
     }
 
-    xSpeed = rotationSpeed * 0.14;
+    xSpeed += rotationSpeed * 0.2;
 
     setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(xSpeed, forwardSpeed, rotationSpeed, true));
 }
