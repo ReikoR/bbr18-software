@@ -44,6 +44,19 @@ Vision::Vision(Blobber* blobber, Dir dir, int width, int height) : blobber(blobb
 
 	goalColors.push_back("yellow-goal");
     goalColors.push_back("blue-goal");
+
+	const int frameCenterX = Config::cameraWidth / 2;
+	const int sideColumnCount = gridColumnCount / 2;
+	int y;
+
+	for (int yIndex = 0; yIndex < gridRowCount; yIndex++) {
+		for (int xIndex = 0; xIndex < gridColumnCount; xIndex++) {
+			validGrid[xIndex][yIndex] = 0;
+			y = Config::surroundSenseThresholdY - 10 * yIndex;
+			xGrid[xIndex][yIndex] = frameCenterX + (xIndex - sideColumnCount) * (y / 18 + 24);
+			yGrid[xIndex][yIndex] = y;
+		}
+	}
 }
 
 Vision::~Vision() {
@@ -1040,92 +1053,156 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 ) {
 	bool debug = canvas.data != nullptr;
 
-	std::vector<Blobber::BlobColor> validGapColorCombination = {
-			Blobber::BlobColor::white,
-			Blobber::BlobColor::black
-	};
+    std::vector<Blobber::BlobColor> outsideValidGapColorCombination = {
+            Blobber::BlobColor::white,
+            Blobber::BlobColor::black
+    };
+
+    std::vector<Blobber::BlobColor> insideValidGapColorCombination = {
+            Blobber::BlobColor::black,
+            Blobber::BlobColor::white
+    };
 
 	const int frameCenterX = Config::cameraWidth / 2;
 	int yStep = 10;
-	int maxInvalidLineGapCount = 0;
-	int invalidLineGapCount = 0;
 	int maxInvalidPixelCount = 30;
 	int invalidPixelCount = 0;
-	int maxSideColumns = 8;
+	int maxSideColumns = gridColumnCount / 2;
 	int x = 0;
+	int y = 0;
 	int totalCount = 0;
 	int totalSideCount = 0;
 	int validCount = 0;
 	int leftInvalidCount = 0;
 	int rightInvalidCount = 0;
 	int reach = Config::surroundSenseThresholdY;
-	bool isValidLine = false;
 	int columnCount = maxSideColumns * 2 + 1;
-	int lastValidXList[columnCount];
-	int lastValidYList[columnCount];
+	int lastValidXIndexList[columnCount];
+	int lastValidYIndexList[columnCount];
 	int validYListIndex = 0;
 
+	int lastValidXIndex = 0;
+	int lastValidYIndex = 0;
+
+	int lastValidRowIndex;
+	int lastValidRowX = 0;
+
 	for (int i = 0; i < columnCount; i++) {
-		lastValidXList[i] = Config::cameraWidth / 2;
-        lastValidYList[i] = Config::surroundSenseThresholdY;
+		lastValidXIndexList[i] = 0;
+        lastValidYIndexList[i] = 0;
 	}
 
-    for (int y = Config::surroundSenseThresholdY; y > 50; y -= yStep) {
-        maxInvalidPixelCount = y / 20;
+	int xIndex = 0;
+	int yIndex = 0;
+	int i;
 
-        for (int i = -maxSideColumns; i <= maxSideColumns; i++) {
-            x = frameCenterX + i * (y / 18 + 24);
+	for (; yIndex < gridRowCount; yIndex++) {
+		xIndex = 0;
+		y = yGrid[xIndex][yIndex];
+		maxInvalidPixelCount = y / 20;
+
+		lastValidRowIndex = columnCount;
+		lastValidRowX = 0;
+
+		for (; xIndex < gridColumnCount; xIndex++) {
+			x = xGrid[xIndex][yIndex];
+			i = xIndex - maxSideColumns;
+
+			if (i == -maxSideColumns) {
+				lastValidRowX = x;
+			}
 
 			Blobber::BlobColor color = blobber->getColorAt(x, y);
 
 			totalCount += std::abs(i);
 
+			if (find(validColors.begin(), validColors.end(), color) != validColors.end()) {
+				validGrid[xIndex][yIndex] = 1;
+
+				validYListIndex = i + maxSideColumns;
+				invalidPixelCount = yIndex - lastValidYIndexList[xIndex] - 1;
+
+				lastValidXIndex = lastValidXIndexList[xIndex];
+				lastValidYIndex = lastValidYIndexList[xIndex];
+				int lastValidX = xGrid[lastValidXIndex][lastValidYIndex];
+				int lastValidY = yGrid[lastValidXIndex][lastValidYIndex];
+
+				// Found valid pixel after allowed gap length
+				// If there is correct color combination found in the gap,
+				// then the gap pixel can be considered valid
+				if (invalidPixelCount > 0 && invalidPixelCount <= maxInvalidPixelCount) {
+					bool isBoundaryFromOutside = isColorCombinationBetweenPoints(
+							x, y,
+							lastValidX, lastValidY,
+							outsideValidGapColorCombination);
+
+					bool isBoundaryFromInside = isColorCombinationBetweenPoints(
+							x, y,
+							lastValidX, lastValidY,
+							insideValidGapColorCombination);
+
+					if (isBoundaryFromOutside || isBoundaryFromInside) {
+						for (int invalidYIndex = lastValidYIndex + 1; invalidYIndex < yIndex; invalidYIndex++) {
+							validGrid[xIndex][invalidYIndex] = 1;
+						}
+					}
+				}
+
+				if (xIndex - lastValidRowIndex > 1) {
+					bool isBoundaryFromOutside = isColorCombinationBetweenPoints(
+							lastValidRowX, y,
+							x, y,
+							outsideValidGapColorCombination);
+
+					bool isBoundaryFromInside = isColorCombinationBetweenPoints(
+							lastValidRowX, y,
+							x, y,
+							insideValidGapColorCombination);
+
+					if (isBoundaryFromInside || isBoundaryFromOutside) {
+						for (int invalidXIndex = lastValidRowIndex + 1; invalidXIndex < xIndex; invalidXIndex++) {
+							validGrid[invalidXIndex][yIndex] = 1;
+						}
+					}
+				}
+
+				lastValidXIndexList[validYListIndex] = xIndex;
+				lastValidYIndexList[validYListIndex] = yIndex;
+
+				lastValidRowIndex = xIndex;
+				lastValidRowX = x;
+			} else {
+				validGrid[xIndex][yIndex] = 0;
+			}
+		}
+	}
+
+	yIndex = 0;
+
+	for (; yIndex < gridRowCount; yIndex++) {
+		xIndex = 0;
+		y = yGrid[xIndex][yIndex];
+
+		for (; xIndex < gridColumnCount; xIndex++) {
+			i = xIndex - maxSideColumns;
+
+			totalCount += std::abs(i);
+
 			if (i > 0) {
-                totalSideCount += i;
+				totalSideCount += i;
 			}
 
-			if (find(validColors.begin(), validColors.end(), color) != validColors.end()) {
+			if (validGrid[xIndex][yIndex] == 1) {
 				validCount += (maxSideColumns - std::abs(i));
-
-                validYListIndex = i + maxSideColumns;
-                invalidPixelCount = (lastValidYList[validYListIndex] - y) / yStep - 1;
-
-                // Found valid pixel after allowed gap length
-                // If there is correct color combination found in the gap,
-                // then the gap pixel can be considered valid
-                if (invalidPixelCount > 0 && invalidPixelCount <= maxInvalidPixelCount) {
-                    if (isColorCombinationBetweenPoints(
-                            x, y,
-                            lastValidXList[validYListIndex], lastValidYList[validYListIndex],
-                            validGapColorCombination)
-					) {
-                        if (i < 0) {
-                            leftInvalidCount += i * invalidPixelCount;
-                        } else if (i > 0) {
-                            rightInvalidCount -= i * invalidPixelCount;
-                        }
-                    }
-                }
-
-				lastValidXList[validYListIndex] = x;
-                lastValidYList[validYListIndex] = y;
 
 				if (y < reach) {
 					reach = y;
 				}
-
-				if (debug) {
-					canvas.drawMarker(x, y, 0, 255, 0);
-				}
 			} else {
-                if (i < 0) {
-                    leftInvalidCount -= i;
-                } else if (i > 0) {
-                    rightInvalidCount += i;
-                }
-
-				if (debug) {
-					canvas.drawMarker(x, y, 255, 0, 0);
+				if (i < 0) {
+					leftInvalidCount += -i;
+				} else if (i > 0) {
+					rightInvalidCount += i;
 				}
 			}
 		}
@@ -1135,7 +1212,7 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 					ball->y <= y &&
 					ball->y > (y - yStep) &&
 					std::abs(ball->x - Config::cameraWidth) > 50
-			) {
+					) {
 				if (std::abs(ball->x - Config::cameraWidth) > 50) {
 					ball->straightAheadInfo = Object::StraightAheadInfo{
 							.reach = reach,
@@ -1150,6 +1227,25 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 							.leftSideMetric = 0.0,
 							.rightSideMetric = 0.0
 					};
+				}
+			}
+		}
+	}
+
+	if (debug) {
+		yIndex = 0;
+
+		for (; yIndex < gridRowCount; yIndex++) {
+			xIndex = 0;
+			y = yGrid[xIndex][yIndex];
+
+			for (; xIndex < gridColumnCount; xIndex++) {
+				x = xGrid[xIndex][yIndex];
+
+				if (validGrid[xIndex][yIndex] == 1) {
+					canvas.drawMarker(x, y, 0, 255, 0);
+				} else {
+					canvas.drawMarker(x, y, 255, 0, 0);
 				}
 			}
 		}
@@ -1193,6 +1289,9 @@ bool Vision::isColorCombinationBetweenPoints(
 	int gapCount = 0;
 
 	for (auto requiredColor : requiredColors) {
+		colorCount = 0;
+		gapCount = 0;
+
 		while (changingCoordinate <= longerAxisEnd) {
 			if (color == requiredColor) {
 				colorCount++;
@@ -1202,8 +1301,6 @@ bool Vision::isColorCombinationBetweenPoints(
 				}
 
 				if (colorCount >= requiredColorCount) {
-					colorCount = 0;
-					gapCount = 0;
 					break;
 				}
 			} else {
@@ -1233,6 +1330,10 @@ bool Vision::isColorCombinationBetweenPoints(
 			y = isXShorter ? changingCoordinate : interpolatedValue;
 
 			color = blobber->getColorAt(x, y);
+		}
+
+		if (colorCount < requiredColorCount) {
+			return false;
 		}
 	}
 

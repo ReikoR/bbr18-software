@@ -196,6 +196,11 @@ private:
 	ColorDistance whiteDistance;
 	ColorDistance blackDistance;
 
+	const int gridColumnCount = 17;
+	const int gridRowCount = 80; //(Config::surroundSenseThresholdY - 50) / 10;
+    int validGrid[17][80];
+    int xGrid[17][80];
+    int yGrid[17][80];
 };
 
 #endif // VISION_H
