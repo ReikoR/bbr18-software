@@ -229,6 +229,13 @@ function close() {
  * @param {HubInfo} info
  * @param {MainboardFeedback} info.message
  */
+
+let previousBall0 = null;
+let previousBall1 = null;
+let previousBall0Counter = 0;
+let previousBall1Counter = 1;
+const ballSensorFilterSize = 3;
+
 function handleInfo(info) {
     let shouldUpdate = false;
 
@@ -250,8 +257,33 @@ function handleInfo(info) {
             mainboardState.speeds[5] = info.message.speed6;
 
             mainboardState.prevBalls = mainboardState.balls.slice();
-            mainboardState.balls[0] = info.message.ball1;
-            mainboardState.balls[1] = info.message.ball2;
+
+            //mainboardState.balls[0] = info.message.ball1;
+            //mainboardState.balls[1] = info.message.ball2;
+
+            if(info.message.ball1 == previousBall0) {
+                previousBall0Counter ++;
+            } else {
+                previousBall0Counter = 0;
+            }
+
+            if(info.message.ball2 == previousBall1) {
+                previousBall1Counter ++;
+            } else {
+                previousBall1Counter = 0;
+            }
+
+            if(previousBall0Counter > ballSensorFilterSize){
+                mainboardState.balls[0] = info.message.ball1;
+            }
+            if(previousBall1Counter > ballSensorFilterSize){
+                mainboardState.balls[1] = info.message.ball2;
+            }
+
+            previousBall0 = info.message.ball1;
+            previousBall1 = info.message.ball2;
+
+
 
             if (mainboardState.balls[0] && mainboardState.balls[1]) {
                 mainboardState.ballGrabbed = true;
