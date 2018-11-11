@@ -12,28 +12,30 @@ function getSpeed (distance) {
     return trainingUtils.interpolate(measurements, distance);
 }
 
-const distanceToSpeedMap1600 = [
-    [0.27, 6000],
-    [0.57, 7900],
-    [0.95, 9100],
-    [1.48, 11300],
-    [2.72, 15000],
-    [3.27, 16700],
+const distanceToSpeedMap1650 = [
+    [0.26, 6900],
+    [0.49, 8200],
+    [0.80, 9300],
+    [1.05, 10200],
+    [1.45, 11900],
+    [1.92, 13400],
+    [2.45, 16000]
 ];
 
 const distanceToSpeedMap1050 = [
-    [0.62, 7000],
-    [1.12, 8100],
-    [1.83, 9800],
-    [2.72, 11600],
-    [3.65, 13100],
-    [4.45, 14900],
+    [1.44, 8500],
+    [1.76, 9500],
+    [2.15, 10200],
+    [2.65, 11500],
+    [3.55, 13350],
+    [4.40, 14920],
+    [5.20, 17000]
 ];
 
-const angleSwapDistance = 2.5;
+const angleSwapDistance = 2.2;
 
 function getAngle(distance) {
-    return distance > angleSwapDistance ? 1050 : 1600;
+    return distance > angleSwapDistance ? 1050 : 1650;
 }
 
 function getSpeedPrev(distance) {
@@ -43,7 +45,7 @@ function getSpeedPrev(distance) {
     if(distance > angleSwapDistance){
         map = distanceToSpeedMap1050;
     } else {
-        map = distanceToSpeedMap1600;
+        map = distanceToSpeedMap1650;
     }
 
     let lowerDistance = map[0][0];
