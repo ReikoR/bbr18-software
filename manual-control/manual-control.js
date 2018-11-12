@@ -139,7 +139,11 @@ function clone(obj) {
 }
 
 controller.on('data', (data) => {
-    //console.log(data.button, data.bottom);
+    //console.log(data.status);
+
+    if (data.status !== 'input') {
+        return;
+    }
 
     if (!prevButtons.A && data.button.A) {
         console.log('A');
