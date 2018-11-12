@@ -18,6 +18,7 @@ const publicConf = require('./public-conf.json');
  * @property {boolean} ball2
  * @property {number} distance
  * @property {boolean} isSpeedChanged
+ * @property {string} refereeCommand
  * @property {number} time
  */
 
@@ -43,7 +44,8 @@ const publicConf = require('./public-conf.json');
  * @typedef {Object} VisionStraightAheadInfo
  * @property {number} driveability
  * @property {number} reach
- * @property {number} sideMetric
+ * @property {number} leftSideMetric
+ * @property {number} rightSideMetric
  */
 
 /**
@@ -174,12 +176,19 @@ let mainboardState = {
     prevBalls: [false, false],
     ballThrown: false,
     ballGrabbed: false,
-    lidarDistance: 0,
-    realsenseDistance: 0
+    realsenseDistance: 0,
+    refereeCommand: 'X',
+    prevRefereeCommand: 'X'
 };
-let aiState = {speeds: [0, 0, 0, 0, 0, 0, minServo]};
 
 let basketState = {distance: 0, angel: 0};
+
+let aiState = {
+    speeds: [0, 0, 0, 0, 0, minServo],
+    fieldID: 'Z',
+    robotID: 'Z',
+    shouldSendAck: false
+};
 
 let basketColour = basketColours.blue;
 
@@ -291,12 +300,24 @@ function handleInfo(info) {
                 mainboardState.ballGrabbed = false;
             }
 
+            mainboardState.prevRefereeCommand = mainboardState.refereeCommand;
+            mainboardState.refereeCommand = info.message.refereeCommand;
+
+            if (mainboardState.refereeCommand !== mainboardState.prevRefereeCommand) {
+                handleRefereeCommandChanged();
+            }
+
             if (
                 !mainboardState.ballThrown
                 && mainboardState.prevBalls[1] === true
                 && mainboardState.balls[1] === false
             ) {
                 mainboardState.ballThrown = true;
+                console.log('mainboardState.ballThrown', mainboardState.ballThrown);
+
+                if (visionState.basket) {
+                    console.log('THROWN', visionState.basket.cx);
+                }
             }
 
             if (
@@ -305,8 +326,6 @@ function handleInfo(info) {
             ) {
                 handleBallValueChanged();
             }
-
-            mainboardState.lidarDistance = info.message.distance;
 
             sendState();
 
@@ -331,9 +350,6 @@ function handleInfo(info) {
             basketState.distance = info.data.distance;
             break;
         }
-        case 'training':
-            thrower.reloadMeasurements();
-            break;
     }
 
     if (shouldUpdate) {
@@ -391,7 +407,7 @@ function computeBallConfidence(ball, basket, otherBasket) {
         bottomMetric +
         topMetric +
         distanceFromBasketMetric +
-        0.05 * Math.abs(ball.straightAhead.sideMetric) +
+        //0.05 * Math.abs(ball.straightAhead.sideMetric) +
         0.05 * ball.straightAhead.driveability;
 }
 
@@ -481,12 +497,12 @@ function sendState() {
         throwerState,
         ballSensors: mainboardState.balls,
         ballThrown: mainboardState.ballThrown,
-        lidarDistance: mainboardState.lidarDistance,
         realSenseData: basketState,
         visionMetrics: visionState.metrics,
         closestBall: processedVisionState.closestBall,
         basket: processedVisionState.basket,
-        otherBasket: processedVisionState.otherBasket
+        otherBasket: processedVisionState.otherBasket,
+        refereeCommand: mainboardState.refereeCommand
     };
 
     sendToHub({type: 'message', topic: 'ai_state', state: state}, () => {
@@ -506,10 +522,6 @@ function sendToHub(info, onSent) {
             onSent(err);
         }
     });
-}
-
-function formatSpeedCommand(wheelRPMs) {
-    return wheelRPMs.slice();
 }
 
 /**
@@ -534,6 +546,14 @@ function handleBallValueChanged() {
             mainboardState.ballGrabbed = true;
         }
     }*/
+}
+
+function handleRefereeCommandChanged() {
+    console.log('refereeCommand', mainboardState.prevRefereeCommand, '->', mainboardState.refereeCommand);
+
+    if (mainboardState.refereeCommand === 'P') {
+        aiState.shouldSendAck = true;
+    }
 }
 
 function handleMotionIdle() {
@@ -616,8 +636,18 @@ function handleMotionDriveToBall() {
 
     if (closestBall) {
         const driveability = closestBall.straightAhead.driveability;
-        const sideMetric = closestBall.straightAhead.sideMetric;
+        const leftSideMetric = closestBall.straightAhead.leftSideMetric;
+        const rightSideMetric = closestBall.straightAhead.rightSideMetric;
+        let sideMetric = -leftSideMetric + rightSideMetric;
         const reach = closestBall.straightAhead.reach;
+
+        if (sideMetric < 0.1 && (leftSideMetric > 0.1 || rightSideMetric > 0.1)) {
+            if (sideMetric > 0) {
+                sideMetric = rightSideMetric;
+            } else {
+                sideMetric = -leftSideMetric;
+            }
+        }
 
         const centerX = closestBall.cx;
         const centerY = closestBall.cy;
@@ -725,8 +755,12 @@ function handleMotionGrabBall() {
 
         if (isBasketTooClose) {
             setThrowerState(throwerStates.GRAB_BALL);
-
             forwardSpeed = maxBasketForwardSpeed * Math.pow(normalizedErrorY, 2);
+        } else if (Math.abs(sideMetric) >= 0.1) {
+            //driveToBallStartTime = Date.now();
+            //forwardSpeed = forwardSpeed * 0.5;
+            //rotationSpeed = 0;
+            sideSpeed = -Math.sign(sideMetric) * Math.max(2 * Math.abs(sideMetric), 0.2);
 
             if (forwardSpeed > maxBasketForwardSpeed) {
                 forwardSpeed = maxBasketForwardSpeed;
@@ -741,7 +775,7 @@ function handleMotionGrabBall() {
             sideSpeed = -Math.sign(sideMetric) * Math.max(4 * Math.abs(sideMetric), 0.2);
             const normalizedCloseToBallErrorY = Math.abs(errorY) / 400;
             if (normalizedCloseToBallErrorY < 1) {
-                sideSpeed *= Math.pow(normalizedCloseToBallErrorY, 2);
+                sideSpeed *= Math.pow(normalizedCloseToBallErrorY, 4);
             }
         }
 
@@ -851,13 +885,10 @@ function handleMotionFindBasket() {
     const maxThrowDistance = 6.0;
     const maxForwardSpeed = 1;
     const minValidAimFrames = 5;
-
     let rotationSpeed = maxRotationSpeed * processedVisionState.lastVisibleBasketDirection;
     let xSpeed = 0;
     let forwardSpeed = 0;
     let isBasketErrorXSmallEnough = false;
-
-
 
     if (findBasketTimeout === null) {
         findBasketTimeout = setTimeout(() => {
@@ -898,18 +929,10 @@ function handleMotionFindBasket() {
             forwardSpeed = maxForwardSpeed * Math.max((maxBasketDistance - basket.y2) / 8, 0.3);
         }
 
-        if (Math.abs(rotationSpeed) < minRotationSpeed) {
-            rotationSpeed = Math.sign(rotationSpeed) * minRotationSpeed;
-        }
-
-        let throwError = maxThrowDistance / basketState.distance * minThrowError;
-
-        if (throwError < minThrowError) {
-            throwError = minThrowError;
-        }
-
-        isBasketErrorXSmallEnough = Math.abs(basketErrorX) < throwError;
-
+        /*
+                if (Math.abs(rotationSpeed) < minRotationSpeed) {
+                    rotationSpeed = Math.sign(rotationSpeed) * minRotationSpeed;
+                }*/
         if (isBasketErrorXSmallEnough && !isBasketTooClose && !isBasketTooFar) {
             validAimFrames ++;
             if (validAimFrames > minValidAimFrames){
@@ -919,13 +942,10 @@ function handleMotionFindBasket() {
             }
 
         }
-
+        setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, forwardSpeed, rotationSpeed, true));
     }
-    setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, forwardSpeed, rotationSpeed, true));
+
 }
-
-
-
 function resetMotionFindBasket() {
     clearTimeout(findBasketTimeout);
     findBasketTimeout = null;
@@ -948,13 +968,13 @@ function handleThrowerThrowBall() {
 
     requiredFrames = requiredFrames < minRequiredFrames ? minRequiredFrames : requiredFrames;
 
-    stabilizedFlames ++;
+    stabilizedFlames++;
 
-    if(stabilizedFlames < requiredFrames) {
+    if (stabilizedFlames < requiredFrames) {
         return;
     }
 
-    aiState.speeds[5]  = 250;
+    aiState.speeds[5] = 250;
 
     if (!mainboardState.balls[1]) {
         mainboardState.ballThrown = true;
@@ -972,14 +992,14 @@ function handleThrowerGrabBall() {
     const feederGrabSpeed = 100;
     const feederTweakSpeed = 25;
 
-    if(!mainboardState.ballGrabbed && !mainboardState.balls[1]) {
+    if (!mainboardState.ballGrabbed && !mainboardState.balls[1]) {
         aiState.speeds[5] = feederGrabSpeed;
     } else if (mainboardState.balls[1] && !mainboardState.balls[0]) {
         aiState.speeds[5] = -feederTweakSpeed;
     }
 
-    if(mainboardState.ballGrabbed || mainboardState.balls[1]) {
-        if(motionState !== motionStates.FIND_BASKET_TIMEOUT) {
+    if (mainboardState.ballGrabbed || mainboardState.balls[1]) {
+        if (motionState !== motionStates.FIND_BASKET_TIMEOUT) {
             setMotionState(motionStates.FIND_BASKET);
         }
         setThrowerState(throwerStates.HOLD_BALL);
@@ -988,10 +1008,10 @@ function handleThrowerGrabBall() {
 
 function handleThrowerHoldBall() {
 
-    if(!mainboardState.ballGrabbed && !mainboardState.balls[1]) {
+    if (!mainboardState.ballGrabbed && !mainboardState.balls[1]) {
         setMotionState(motionStates.FIND_BALL);
         setThrowerState(throwerStates.IDLE);
-    } else if (!mainboardState.ballGrabbed && mainboardState.balls[1]){
+    } else if (!mainboardState.ballGrabbed && mainboardState.balls[1]) {
         setThrowerState(throwerStates.GRAB_BALL);
     }
 
@@ -1046,6 +1066,7 @@ function setThrowerState(newState) {
         /*if (throwerState === throwerStates.THROW_BALL) {
             throwBallTimeout = setTimeout(() => {
                 setThrowerState(throwerStates.IDLE);
+                setMotionState(motionStates.FIND_BALL);
             }, throwBallTimeoutDelay);
         }*/
     }
@@ -1056,10 +1077,17 @@ function update() {
     throwerStateHandlers[throwerState]();
 
     if (motionState !== motionStates.IDLE || throwerState !== throwerStates.IDLE) {
-        sendToHub({type: 'message', topic: 'mainboard_command', command: formatSpeedCommand(aiState.speeds)});
+        const mainboardCommand = {
+            speeds: aiState.speeds,
+            fieldID: aiState.fieldID,
+            robotID: aiState.robotID,
+            shouldSendAck: aiState.shouldSendAck
+        };
+
+        aiState.shouldSendAck = false;
+
+        sendToHub({type: 'message', topic: 'mainboard_command', command: mainboardCommand});
     }
 }
 
 sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command', 'training', 'goal_distance']});
-
-//sendToHub({type: 'message', topic: 'mainboard_command', command: 'fs:1'});

@@ -7,8 +7,29 @@ const mbedPort = publicConf.mbedPort;
 const mbedAddress = publicConf.mbedIpAddress;
 
 const robotName = process.argv[2];
-
 console.log('robotName', robotName);
+/**
+ * @typedef {Object} CommandObject
+ * @property {number[]} speeds
+ * @property {string} fieldID
+ * @property {string} robotID
+ * @property {boolean} shouldSendAck
+ */
+
+const commandBuffer = Buffer.alloc(13);
+const defaultCommandObject =  {
+    speeds: [0, 0, 0, 0, 0, ],
+    fieldID: 'Z',
+    robotID: 'Z',
+    shouldSendAck: false,
+};
+
+const defaultCommandObject001TRT =  {
+    speeds: [0, 0, 0, 0, 0, 0, 1200],
+    fieldID: 'Z',
+    robotID: 'Z',
+    shouldSendAck: false,
+};
 
 socketMainboard.on('error', (err) => {
     console.log(`socketMainboard error:\n${err.stack}`);
@@ -24,9 +45,9 @@ socketMainboard.on('listening', () => {
     console.log(`socketMainboard listening ${address.address}:${address.port}`);
 
     if (robotName === '001TRT') {
-        sendCommandToMainboard([0, 0, 0, 0, 0, 0, 1200]);
+        sendCommandToMainboard(defaultCommandObject001TRT);
     } else {
-        sendCommandToMainboard([0, 0, 0, 0, 0]);
+        sendCommandToMainboard(defaultCommandObject);
     }
 });
 
@@ -76,6 +97,21 @@ function close() {
     });
 }
 
+/**
+ * @param {CommandObject} commandObject
+ */
+function updateCommandBuffer(commandObject) {
+    const speeds = commandObject.speeds;
+
+    for (let i = 0; i < speeds.length; i++) {
+        commandBuffer.writeInt16LE(speeds[i], 2 * i);
+    }
+
+    commandBuffer.writeUInt8(commandObject.fieldID.charCodeAt(0), 10);
+    commandBuffer.writeUInt8(commandObject.robotID.charCodeAt(0), 11);
+    commandBuffer.writeUInt8(commandObject.shouldSendAck ? 1 : 0, 12);
+}
+
 function handleInfo(info, address, port) {
     console.log('handleInfo', info);
     if (info.topic === 'mainboard_command') {
@@ -83,34 +119,12 @@ function handleInfo(info, address, port) {
     }
 }
 
-function sendToMainboard(command) {
-    const message = Buffer.from(command);
-    //console.log('send:', command, 'to', '192.168.4.1', 8042);
-
-    socketMainboard.send(message, mbedPort, mbedAddress, (err) => {
-        if (err) {
-            console.error(err);
-        }
-    });
-}
-
 /**
- *
- * @param {Array.<number>} speeds
+ * @param {CommandObject} command
  */
-function sendCommandToMainboard(speeds) {
-    let command = new Int16Array(5);
-
-    if (robotName === '001TRT') {
-        command = new Int16Array(7);
-    }
-
-    for (let i = 0; i < speeds.length && i < command.length; i++) {
-        command[i] = speeds[i];
-    }
-
-    let message = new Buffer.from(command.buffer);
-    socketMainboard.send(message, 0, message.length, mbedPort, mbedAddress);
+function sendCommandToMainboard(command) {
+    updateCommandBuffer(command);
+    socketMainboard.send(commandBuffer, 0, commandBuffer.length, mbedPort, mbedAddress);
 }
 
 function handleMainboardMessage(message) {
@@ -124,10 +138,11 @@ function handleMainboardMessage(message) {
             speed4: message.readInt16LE(6),
             speed5: message.readInt16LE(8),
             speed6: message.readInt16LE(10),
-            ball1: message.readUInt8(12) === 1,
-            ball2: message.readUInt8(13) === 1,
+            ball1: message.readUInt8(10) === 1,
+            ball2: message.readUInt8(11) === 1,
             isSpeedChanged: message.readUInt8(14) === 1,
-            time: message.readInt32LE(15)
+            refereeCommand: String.fromCharCode(message.readUInt8(15)),
+            time: message.readInt32LE(16)
         };
     } else {
         data = {
@@ -140,14 +155,15 @@ function handleMainboardMessage(message) {
             ball2: message.readUInt8(11) === 1,
             distance: message.readUInt16LE(12),
             isSpeedChanged: message.readUInt8(14) === 1,
-            time: message.readInt32LE(15)
+            refereeCommand: String.fromCharCode(message.readUInt8(15)),
+            time: message.readInt32LE(16)
         };
+
+        console.log(data);
+
+        const info = {type: 'message', topic: 'mainboard_feedback', message: data};
+        sendToHub(info);
     }
-
-    console.log(data);
-
-    const info = {type: 'message', topic: 'mainboard_feedback', message: data};
-    sendToHub(info);
 }
 
 function sendToHub(info, onSent) {

@@ -15,68 +15,45 @@ function onSocketMessage(message) {
         }
 
         if (info.type === 'measurements') {
-            /*
-            const data = {
-                x: info.values.map(value => value.x),
-                y: info.values.map(value => value.y),
-                z: info.values.map(value => value.z),
-                mode: 'markers',
-                type: 'scatter3d',
-                marker: {
-                    size: 1,
-                    symbol: 'circle',
-                    line: {
-                        color: 'rgb(204, 204, 204)',
-                        width: 1
-                    },
-                    opacity: 0.8
-                },
-            };
-            */
-
             info.measurements.sort((a, b) => a.x - b.x);
 
-            var trace = {
+            const throwerSpeedData = {
                 x: info.measurements.map(obj => obj.x),
                 y: info.measurements.map(obj => obj.z),
                 mode: 'lines+markers',
             };
 
-            var trace_upper = {
+            const throwerSpeedDataUpper = {
                 x: info.measurements.map(obj => obj.x),
                 y: info.measurements.map(obj => obj.z + obj.c),
                 mode: 'lines+markers',
-                marker: {
-                    color: 'rgb(128, 0, 128)',
-                    size: 8
-                },
                 line: {
-                    color: 'rgb(128, 0, 128)',
-                    width: 1
+                    color: 'rgb(255, 0, 0)'
                 }
             };
 
-            var trace_lower = {
+            const throwerSpeedDataLower = {
                 x: info.measurements.map(obj => obj.x),
                 y: info.measurements.map(obj => obj.z - obj.c),
                 mode: 'lines+markers',
-                marker: {
-                    color: 'rgb(128, 0, 128)',
-                    size: 8
-                },
                 line: {
-                    color: 'rgb(128, 0, 128)',
-                    width: 1
+                    color: 'rgb(255, 0, 0)'
                 }
             };
-          
-            var data = [trace, trace_upper, trace_lower];
-            
-            var layout = {
-                title:'Calibration'
+
+            const centerOffsetData = {
+                x: info.measurements.map(obj => obj.x),
+                y: info.measurements.map(obj => obj.p),
+                mode: 'lines+markers',
             };
-            
-            Plotly.newPlot('plot', data, layout);
+
+            Plotly.newPlot('thrower-speed-plot', [throwerSpeedDataLower, throwerSpeedData, throwerSpeedDataUpper], {
+                title: 'Thrower Speed Calibration'
+            });
+
+            Plotly.newPlot('center-offset-plot', [centerOffsetData], {
+                title: 'Center Offset Calibration'
+            });
         }
     } catch (error) {
         console.info(error);
@@ -117,7 +94,7 @@ function createWebsocket(onMessage, onOpened, onClosed) {
     const socket = new WebSocket('ws://' + location.host);
 
     socket.addEventListener('message', function (event) {
-        console.log(event.data);
+        //console.log(event.data);
 
         onMessage(event.data);
     });
@@ -144,10 +121,15 @@ function createWebsocket(onMessage, onOpened, onClosed) {
 let lastAiState;
 
 function renderState(state) {
+    if (document.getElementById('feedback').style.display === 'block') {
+        return;
+    }
+
     lastAiState = state;
     
     document.getElementById('info-distance').innerHTML = state.lidarDistance;
-    document.getElementById('info-throwing-speed').innerHTML = state.throwingSpeed;
+    document.getElementById('info-thrower-speed').innerHTML = state.throwerSpeed;
+    document.getElementById('info-center-offset').innerHTML = state.centerOffset;
 
     if (state.ballThrown) {
         document.getElementById('feedback').style.display = 'block';
@@ -163,6 +145,12 @@ function sendFeedback(feedback) {
         feedback
     });
 
+    console.log(feedback);
+
+    document.getElementById('feedback').style.display = 'none';
+}
+
+function skipFeedback() {
     document.getElementById('feedback').style.display = 'none';
 }
 

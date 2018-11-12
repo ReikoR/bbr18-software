@@ -6,23 +6,52 @@
     <link rel="stylesheet" type="text/css" href="main.css">
 </head>
 <body>
-hello Grete!
+<table style="width: 100%;">
+    <tbody>
+    <tr>
+        <td>
+            <div id="thrower-speed-plot"></div>
+            <div id="center-offset-plot"></div>
+        </td>
 
-<div id="plot"></div>
-<div id="info">
-    <dt>Distance:</dt>
-    <dd id="info-distance"></dd>
-    <dt>Throwing speed:</dt>
-    <dd id="info-throwing-speed"></dd>
-</div>
-<div id="feedback" style="display: none;">
-    <button id="fb-negative" onclick="sendFeedback(-1)">Weaker</button>
-    <button id="fb-ok" onclick="sendFeedback(0)">In</button>
-    <button id="fb-positive" onclick="sendFeedback(1)">Stronger</button>
-</div>
+        <td style="vertical-align: top; width: 300px">
+            <div id="info">
+                <dt>Distance:</dt>
+                <dd id="info-distance"></dd>
+                <dt>Thrower speed:</dt>
+                <dd id="info-thrower-speed"></dd>
+                <dt>Center offset:</dt>
+                <dd id="info-center-offset"></dd>
+            </div>
+
+            <div id="feedback" style="display: none;">
+                <table>
+                    <tbody>
+                    <tr>
+                        <td><button onclick="sendFeedback([1, -1])">&#8598;</button></td>
+                        <td><button onclick="sendFeedback([1, 0])">&#8593;</button></td>
+                        <td><button onclick="sendFeedback([1, 1])">&#8599;</button></td>
+                    </tr>
+                    <tr>
+                        <td><button onclick="sendFeedback([0, -1])">&#8592;</button></td>
+                        <td><button onclick="sendFeedback([0, 0])">&#9900;</button></td>
+                        <td><button onclick="sendFeedback([0, 1])">&#8594;</button></td>
+                    </tr>
+                    <tr>
+                        <td><button onclick="sendFeedback([-1, -1])">&#8601;</button></td>
+                        <td><button onclick="sendFeedback([-1, 0])">&#8595;</button></td>
+                        <td><button onclick="sendFeedback([-1, 1])">&#8600;</button></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <button id="fb-skip" onclick="skipFeedback(1)">Skip</button>
+            </div>
+        </td>
+    </tr>
+    </tbody>
+</table>
 
 <script src="plotly-latest.min.js"></script>
-<script src="interpolate.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

@@ -39,7 +39,7 @@ def clamp(value, bottom, top):
 
 hub_port = 8091
 hub_addr = "127.0.0.1"
-server = (hub_addr, 8096)
+server = (hub_addr, 8097)
 socket = soc.socket(soc.AF_INET, soc.SOCK_DGRAM)
 
 topic = "goal_distance"
