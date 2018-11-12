@@ -1063,6 +1063,12 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
             Blobber::BlobColor::white
     };
 
+    std::vector<Blobber::BlobColor> centerLineValidGapColorCombination = {
+            Blobber::BlobColor::orange,
+            Blobber::BlobColor::white,
+            Blobber::BlobColor::orange
+    };
+
 	const int frameCenterX = Config::cameraWidth / 2;
 	int yStep = 10;
 	int maxInvalidPixelCount = 30;
@@ -1131,39 +1137,45 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 				// If there is correct color combination found in the gap,
 				// then the gap pixel can be considered valid
 				if (invalidPixelCount > 0 && invalidPixelCount <= maxInvalidPixelCount) {
-					bool isBoundaryFromOutside = isColorCombinationBetweenPoints(
-							x, y,
-							lastValidX, lastValidY,
-							outsideValidGapColorCombination);
-
-					bool isBoundaryFromInside = isColorCombinationBetweenPoints(
-							x, y,
-							lastValidX, lastValidY,
-							insideValidGapColorCombination);
-
-					if (isBoundaryFromOutside || isBoundaryFromInside) {
-						for (int invalidYIndex = lastValidYIndex + 1; invalidYIndex < yIndex; invalidYIndex++) {
-							validGrid[xIndex][invalidYIndex] = 1;
-						}
-					}
+				    if (
+				            isColorCombinationBetweenPoints(
+				                    x, y - 20,
+				                    lastValidX, lastValidY + 20,
+				                    centerLineValidGapColorCombination) ||
+                            isColorCombinationBetweenPoints(
+                                    x, y,
+                                    lastValidX, lastValidY,
+                                    insideValidGapColorCombination) ||
+							isColorCombinationBetweenPoints(
+							        x, y,
+							        lastValidX, lastValidY,
+							        outsideValidGapColorCombination)
+                    ) {
+                        for (int invalidYIndex = lastValidYIndex + 1; invalidYIndex < yIndex; invalidYIndex++) {
+                            validGrid[xIndex][invalidYIndex] = 1;
+                        }
+				    }
 				}
 
 				if (xIndex - lastValidRowIndex > 1) {
-					bool isBoundaryFromOutside = isColorCombinationBetweenPoints(
-							lastValidRowX, y,
-							x, y,
-							outsideValidGapColorCombination);
-
-					bool isBoundaryFromInside = isColorCombinationBetweenPoints(
-							lastValidRowX, y,
-							x, y,
-							insideValidGapColorCombination);
-
-					if (isBoundaryFromInside || isBoundaryFromOutside) {
-						for (int invalidXIndex = lastValidRowIndex + 1; invalidXIndex < xIndex; invalidXIndex++) {
-							validGrid[invalidXIndex][yIndex] = 1;
-						}
-					}
+				    if (
+                            isColorCombinationBetweenPoints(
+                                    lastValidRowX - 20, y,
+                                    x + 20, y,
+                                    centerLineValidGapColorCombination) ||
+                            isColorCombinationBetweenPoints(
+                                    lastValidRowX, y,
+                                    x, y,
+                                    insideValidGapColorCombination) ||
+                            isColorCombinationBetweenPoints(
+                                    lastValidRowX, y,
+                                    x, y,
+                                    outsideValidGapColorCombination)
+                    ) {
+                        for (int invalidXIndex = lastValidRowIndex + 1; invalidXIndex < xIndex; invalidXIndex++) {
+                            validGrid[invalidXIndex][yIndex] = 1;
+                        }
+				    }
 				}
 
 				lastValidXIndexList[validYListIndex] = xIndex;
