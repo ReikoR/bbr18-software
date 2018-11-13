@@ -396,6 +396,11 @@ function processVisionInfo(info) {
     processedVisionState.otherBasket = otherBasket;
 
     for (let i = 0; i < balls.length; i++) {
+        // Ignore bad balls by top arc metric
+        if (balls[i].metrics[1] < 0.4) {
+            continue;
+        }
+
         balls[i].size = balls[i].w * balls[i].h;
         balls[i].confidence = computeBallConfidence(balls[i], basket, otherBasket);
 
