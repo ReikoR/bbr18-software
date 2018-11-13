@@ -16,9 +16,10 @@ console.log('robotName', robotName);
  * @property {boolean} shouldSendAck
  */
 
-const commandBuffer = Buffer.alloc(13);
+const commandBuffer = Buffer.alloc(17);
+
 const defaultCommandObject =  {
-    speeds: [0, 0, 0, 0, 0, ],
+    speeds: [0, 0, 0, 0, 0],
     fieldID: 'Z',
     robotID: 'Z',
     shouldSendAck: false,
@@ -103,13 +104,15 @@ function close() {
 function updateCommandBuffer(commandObject) {
     const speeds = commandObject.speeds;
 
-    for (let i = 0; i < speeds.length; i++) {
+    let i;
+
+    for (i = 0; i < speeds.length; i++) {
         commandBuffer.writeInt16LE(speeds[i], 2 * i);
     }
 
-    commandBuffer.writeUInt8(commandObject.fieldID.charCodeAt(0), 10);
-    commandBuffer.writeUInt8(commandObject.robotID.charCodeAt(0), 11);
-    commandBuffer.writeUInt8(commandObject.shouldSendAck ? 1 : 0, 12);
+    commandBuffer.writeUInt8(commandObject.fieldID.charCodeAt(0), 2 * i);
+    commandBuffer.writeUInt8(commandObject.robotID.charCodeAt(0), 2 * i + 1);
+    commandBuffer.writeUInt8(commandObject.shouldSendAck ? 1 : 0, 2 * i  +2);
 }
 
 function handleInfo(info, address, port) {
@@ -123,6 +126,7 @@ function handleInfo(info, address, port) {
  * @param {CommandObject} command
  */
 function sendCommandToMainboard(command) {
+    console.log("sendCommandToMainboard");
     updateCommandBuffer(command);
     socketMainboard.send(commandBuffer, 0, commandBuffer.length, mbedPort, mbedAddress);
 }
@@ -138,8 +142,8 @@ function handleMainboardMessage(message) {
             speed4: message.readInt16LE(6),
             speed5: message.readInt16LE(8),
             speed6: message.readInt16LE(10),
-            ball1: message.readUInt8(10) === 1,
-            ball2: message.readUInt8(11) === 1,
+            ball1: message.readUInt8(12) === 1,
+            ball2: message.readUInt8(13) === 1,
             isSpeedChanged: message.readUInt8(14) === 1,
             refereeCommand: String.fromCharCode(message.readUInt8(15)),
             time: message.readInt32LE(16)
@@ -159,11 +163,12 @@ function handleMainboardMessage(message) {
             time: message.readInt32LE(16)
         };
 
-        console.log(data);
 
-        const info = {type: 'message', topic: 'mainboard_feedback', message: data};
-        sendToHub(info);
     }
+    console.log(data);
+
+    const info = {type: 'message', topic: 'mainboard_feedback', message: data};
+    sendToHub(info);
 }
 
 function sendToHub(info, onSent) {

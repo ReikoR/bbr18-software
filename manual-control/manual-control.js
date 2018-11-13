@@ -100,7 +100,7 @@ let xSpeed = 0;
 let rotation = 0;
 
 const minServo = 1050;
-const maxServo = 1700;
+const maxServo = 1650;
 const servoRange = maxServo - minServo;
 let servo = minServo;
 
