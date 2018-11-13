@@ -124,6 +124,7 @@ const basketColours = {
 const frameHeight = 1024;
 const frameWidth = 1280;
 const frameCenterX = frameWidth / 2;
+const frameCenterY = frameHeight / 2;
 
 const minServo = 1050;
 const maxServo = 1650;
@@ -133,11 +134,12 @@ let servo = maxServo;
 let motionState = motionStates.IDLE;
 let throwerState = throwerStates.IDLE;
 
-const findBallRotatePattern = [[-1, 100], [-8, 200], [-1, 100], [-8, 200], [-1, 50]];
-let findBallRotatePatternIndex = 0;
-let findBallRotateTimeout = null;
-let findBallRotateLoopCount = 0;
-const findBallRotateLoopLimit = 5;
+const findObjectRotatePattern = [[-1, 100], [-7, 200], [-1, 100], [-7, 200], [-1, 50]];
+let findObjectRotatePatternIndex = 0;
+let findObjectRotateTimeout = null;
+let findObjectRotateLoopCount = 0;
+const findObjectRotateLoopLimit = 5;
+
 const throwerIdleSpeed = 5000;
 
 let throwBallTimeout = 0;
@@ -564,7 +566,7 @@ function handleMotionIdle() {
 
 function handleMotionFindBall() {
 
-    if(mainboardState.balls[1] || mainboardState.balls[1]) {
+    if(mainboardState.balls[0] || mainboardState.balls[1]) {
         setThrowerState(throwerStates.GRAB_BALL);
     } else {
         setThrowerState(throwerStates.IDLE);
@@ -575,22 +577,22 @@ function handleMotionFindBall() {
             return;
         }
 
-        const patternStep = findBallRotatePattern[findBallRotatePatternIndex];
+        const patternStep = findObjectRotatePattern[findObjectRotatePatternIndex];
 
-        if (findBallRotateLoopCount === findBallRotateLoopLimit) {
+        if (findObjectRotateLoopCount === findObjectRotateLoopLimit) {
             setMotionState(motionStates.IDLE);
-        } else if (findBallRotateTimeout == null) {
-            findBallRotateTimeout = setTimeout(() => {
-                findBallRotateTimeout = null;
-                findBallRotatePatternIndex++;
+        } else if (findObjectRotateTimeout == null) {
+            findObjectRotateTimeout = setTimeout(() => {
+                findObjectRotateTimeout = null;
+                findObjectRotatePatternIndex++;
 
-                if (findBallRotatePatternIndex >= findBallRotatePattern.length) {
-                    findBallRotatePatternIndex = 0;
-                    findBallRotateLoopCount++;
+                if (findObjectRotatePatternIndex >= findObjectRotatePattern.length) {
+                    findObjectRotatePatternIndex = 0;
+                    findObjectRotateLoopCount++;
                 }
-            }, patternStep[1] * (findBallRotateLoopCount + 1));
+            }, patternStep[1] * (findObjectRotateLoopCount + 1));
 
-            setAiStateSpeeds(omniMotion.calculateSpeeds(0, 0, patternStep[0] / (findBallRotateLoopCount + 1), true));
+            setAiStateSpeeds(omniMotion.calculateSpeeds(0, 0, patternStep[0] / (findObjectRotateLoopCount + 1), true));
         }
     }
 
@@ -598,26 +600,26 @@ function handleMotionFindBall() {
 }
 
 function resetMotionFindBall() {
-    clearTimeout(findBallRotateTimeout);
-    findBallRotateTimeout = null;
-    findBallRotatePatternIndex = 0;
-    findBallRotateLoopCount = 0;
+    clearTimeout(findObjectRotateTimeout);
+    findObjectRotateTimeout = null;
+    findObjectRotatePatternIndex = 0;
+    findObjectRotateLoopCount = 0;
 }
 
-const driveToBallMinSpeed = 0.5;
-const driveToBallMaxSpeed = 6;
+const driveToBallMinSpeed = 0.6;
+const driveToBallMaxSpeed = 5;
 const driveToBallStartSpeed = 1;
 let driveToBallStartTime = null;
 
-const driveToBallRotationSpeedRampUpLimit = 0.05;
-const driveToBallMaxRotationSpeed = 6;
-let driveToBallCurrentRotationSpeedLimit = 3;
+const driveToBallRotationSpeedRampUpLimit = 0.04;
+const driveToBallMaxRotationSpeed = 5;
+let driveToBallCurrentRotationSpeedLimit = 2;
 
 function getDriveToBallMaxSpeed(startTime, startSpeed, speedLimit) {
     const currentTime = Date.now();
     const timeDiff = currentTime - startTime;
     const speedDiff = speedLimit - startSpeed;
-    const rampUpTime = 1000;
+    const rampUpTime = 2000;
     const timePassedPercent = timeDiff / rampUpTime;
 
     if (timeDiff >= rampUpTime) {
@@ -664,18 +666,30 @@ function handleMotionDriveToBall() {
             driveToBallStartTime, driveToBallStartSpeed, driveToBallMaxSpeed
         );
 
+        const maxRotationSpeed = driveToBallCurrentRotationSpeedLimit;
+
         const maxErrorForwardSpeed = 6;
-        const maxErrorRotationSpeed = 8;
+        const maxErrorRotationSpeed = 10;
         const normalizedErrorY = errorY / frameHeight;
-        const normalizedErrorX = errorX / frameWidth;
 
         let forwardSpeed = maxErrorForwardSpeed * Math.pow(normalizedErrorY, 2);
-        let rotationSpeed = maxErrorRotationSpeed * -normalizedErrorX;
+        let rotationSpeed = maxErrorRotationSpeed * -errorX / frameWidth;
 
         if (forwardSpeed > maxForwardSpeed) {
             forwardSpeed = maxForwardSpeed;
         } else if (forwardSpeed < driveToBallMinSpeed) {
             forwardSpeed = driveToBallMinSpeed;
+        }
+
+
+        if (rotationSpeed > maxRotationSpeed) {
+            rotationSpeed = maxRotationSpeed;
+        }
+
+        driveToBallCurrentRotationSpeedLimit += driveToBallRotationSpeedRampUpLimit;
+
+        if (driveToBallCurrentRotationSpeedLimit >= driveToBallMaxRotationSpeed) {
+            driveToBallCurrentRotationSpeedLimit = driveToBallMaxRotationSpeed;
         }
 
         let sideSpeed = 0;
@@ -721,11 +735,11 @@ function handleMotionGrabBall() {
             driveToBallStartTime, driveToBallStartSpeed, driveToBallMaxSpeed
         );
 
-        const maxErrorForwardSpeed = 7;
-        const maxErrorRotationSpeed = 8;
+        const maxErrorForwardSpeed = 6;
+        const maxErrorRotationSpeed = 4;
         const normalizedErrorY = errorY / frameHeight;
         let forwardSpeed = maxErrorForwardSpeed * Math.pow(normalizedErrorY, 2);
-        let rotationSpeed = maxErrorRotationSpeed * -errorX / frameWidth;
+        let rotationSpeed = maxErrorRotationSpeed * -errorX / frameWidth * -normalizedErrorY * 1.2;
 
         const maxRotationSpeed = driveToBallCurrentRotationSpeedLimit;
 
@@ -756,18 +770,12 @@ function handleMotionGrabBall() {
         if (isBasketTooClose) {
             setThrowerState(throwerStates.GRAB_BALL);
             forwardSpeed = maxBasketForwardSpeed * Math.pow(normalizedErrorY, 2);
-        } else if (Math.abs(sideMetric) >= 0.1) {
-            //driveToBallStartTime = Date.now();
-            //forwardSpeed = forwardSpeed * 0.5;
-            //rotationSpeed = 0;
-            sideSpeed = -Math.sign(sideMetric) * Math.max(2 * Math.abs(sideMetric), 0.2);
 
             if (forwardSpeed > maxBasketForwardSpeed) {
                 forwardSpeed = maxBasketForwardSpeed;
             } else if (forwardSpeed < minBasketForwardSpeed) {
                 forwardSpeed = minBasketForwardSpeed;
             }
-
         }
 
 
@@ -809,7 +817,9 @@ function resetMotionDriveToBall() {
 }
 
 let findBasketFallbackTimeout = null;
-const findBasketFallbackTimeoutDelay = 1000;
+const findBasketFallbackTimeoutDelay = 200;
+let findBasketDriveTimeout = null;
+const findBasketDriveTimeoutDelay = 1000;
 let enableSpin = true;
 let spinTimeout = true;
 let droveForward = false;
@@ -817,6 +827,9 @@ let basketFrameCount = 0;
 
 function resetHandleMotionFindBasketTimeout() {
     clearTimeout(findBasketFallbackTimeout);
+    findBasketFallbackTimeout = null;
+    clearTimeout(findBasketDriveTimeout);
+    findBasketDriveTimeout = null;
     enableSpin = true;
     spinTimeout = true;
     droveForward = false;
@@ -844,19 +857,43 @@ function handleMotionFindBasketTimeout() {
     }
 
     const visionMetrics = visionState.metrics;
-    const sideMetric = visionMetrics.straightAhead.sideMetric;
+    const leftSideMetric = visionMetrics.straightAhead.leftSideMetric;
+    const rightSideMetric = visionMetrics.straightAhead.rightSideMetric;
+    let sideMetric = -leftSideMetric + rightSideMetric
+
+    if (sideMetric < 0.1 && (leftSideMetric > 0.1 || rightSideMetric > 0.1)) {
+        if (sideMetric > 0) {
+            sideMetric = rightSideMetric;
+        } else {
+            sideMetric = -leftSideMetric;
+        }
+    }
+
+    if (Math.abs(sideMetric) >= 0.1) {
+        sideSpeed = -Math.sign(sideMetric) * Math.max(2 * Math.abs(sideMetric), 0.2);
+    }
+
     const reach = visionMetrics.straightAhead.reach;
 
     if(spinTimeout){
         rotationSpeed = maxRotationSpeed;
     } else {
+        if (findBasketDriveTimeout == null) {
+            findBasketDriveTimeout = setTimeout(() => {
+                findBasketDriveTimeout = null;
+                enableSpin = true;
+                droveForward = true;
+            }, findBasketDriveTimeoutDelay);
+        }
+
         if (reach < 150) {
             forwardSpeed = 1;
             droveForward = true;
         } else if (!droveForward) {
-            rotationSpeed = maxRotationSpeed * 50 / reach;
+            rotationSpeed = 3;
         } else {
             enableSpin = true;
+            clearTimeout(findBasketDriveTimeout);
         }
     }
 
@@ -868,15 +905,32 @@ function handleMotionFindBasketTimeout() {
         }
         rotationSpeed = 0.1;
     }
-    setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, forwardSpeed, rotationSpeed, true));
+    setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
 }
 
 let findBasketTimeout = null;
 const findBasketTimeoutDelay = 5000;
-
 let validAimFrames = 0;
+let movedForThrowFlag = false;
+
+function resetMotionFindBasket() {
+    clearTimeout(findObjectRotateTimeout);
+    findObjectRotateTimeout = null;
+    findObjectRotatePatternIndex = 0;
+    findObjectRotateLoopCount = 0;
+
+    clearTimeout(findBasketTimeout);
+    findBasketTimeout = null;
+    movedForThrowFlag = false;
+}
 
 function handleMotionFindBasket() {
+
+    if(!mainboardState.ballGrabbed){
+        setMotionState(motionStates.FIND_BALL);
+        return;
+    }
+
 
     const basket = processedVisionState.basket;
     const minRotationSpeed = 0.1;
@@ -884,11 +938,29 @@ function handleMotionFindBasket() {
     const minThrowError = 4;
     const maxThrowDistance = 6.0;
     const maxForwardSpeed = 1;
-    const minValidAimFrames = 5;
-    let rotationSpeed = maxRotationSpeed * processedVisionState.lastVisibleBasketDirection;
-    let xSpeed = 0;
+    const defaultAimFrames = 5;
+    const minValidAimFrames = movedForThrowFlag ? defaultAimFrames * 1 : defaultAimFrames;
+
+    let sideSpeed = 0;
     let forwardSpeed = 0;
     let isBasketErrorXSmallEnough = false;
+
+    const patternStep = findObjectRotatePattern[findObjectRotatePatternIndex];
+
+    if (findObjectRotateTimeout == null) {
+        findObjectRotateTimeout = setTimeout(() => {
+            findObjectRotateTimeout = null;
+            findObjectRotatePatternIndex++;
+
+            if (findObjectRotatePatternIndex >= findObjectRotatePattern.length) {
+                findObjectRotatePatternIndex = 0;
+                findObjectRotateLoopCount++;
+            }
+        }, patternStep[1] * (findObjectRotateLoopCount + 1));
+
+    }
+
+    let rotationSpeed = patternStep[0] / (findObjectRotateLoopCount + 1);
 
     if (findBasketTimeout === null) {
         findBasketTimeout = setTimeout(() => {
@@ -898,12 +970,8 @@ function handleMotionFindBasket() {
 
             setThrowerState(throwerStates.HOLD_BALL);
             setMotionState(motionStates.FIND_BASKET_TIMEOUT);
-            //setThrowerState(throwerStates.IDLE);
-            //setMotionState(motionStates.IDLE);
         }, findBasketTimeoutDelay);
     }
-
-    rotationSpeed = maxRotationSpeed;
 
     if (throwerState === throwerStates.THROW_BALL) {
         clearTimeout(findBasketTimeout);
@@ -912,27 +980,44 @@ function handleMotionFindBasket() {
 
     if (basket) {
         const basketCenterX = basket.cx;
+        const basketCenterY = basket.cy;
         const basketErrorX = basketCenterX - frameCenterX;
+        const basketErrorY = basketCenterY - frameCenterY;
         const minBasketDistance = 400;
         const maxBasketDistance = 110;
 
         aiState.speeds[4] = throwerIdleSpeed;
 
-        rotationSpeed = maxRotationSpeed * -basketErrorX / (frameWidth / 2);
+        rotationSpeed = maxRotationSpeed * -basketErrorX / (frameWidth / 2) * -frameCenterY / basketErrorY / 2;
 
         let isBasketTooClose = basket && basket.y2 > minBasketDistance;
         let isBasketTooFar = basket && basket.y2 < maxBasketDistance;
 
         if (isBasketTooClose) {
+            movedForThrowFlag = true;
             forwardSpeed = -maxForwardSpeed * minBasketDistance / basket.y2;
         } else if (isBasketTooFar) {
+            movedForThrowFlag = true;
             forwardSpeed = maxForwardSpeed * Math.max((maxBasketDistance - basket.y2) / 8, 0.3);
         }
 
-        /*
-                if (Math.abs(rotationSpeed) < minRotationSpeed) {
-                    rotationSpeed = Math.sign(rotationSpeed) * minRotationSpeed;
-                }*/
+
+        if (Math.abs(rotationSpeed) < minRotationSpeed) {
+            rotationSpeed = Math.sign(rotationSpeed) * minRotationSpeed;
+        }
+
+        if (Math.abs(rotationSpeed) > maxRotationSpeed) {
+            rotationSpeed = Math.sign(rotationSpeed) * maxRotationSpeed;
+        }
+
+        let throwError = maxThrowDistance / basketState.distance * minThrowError;
+
+        if (throwError < minThrowError) {
+            throwError = minThrowError;
+        }
+
+        isBasketErrorXSmallEnough = Math.abs(basketErrorX) < throwError;
+
         if (isBasketErrorXSmallEnough && !isBasketTooClose && !isBasketTooFar) {
             validAimFrames ++;
             if (validAimFrames > minValidAimFrames){
@@ -942,13 +1027,10 @@ function handleMotionFindBasket() {
             }
 
         }
-        setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, forwardSpeed, rotationSpeed, true));
     }
 
-}
-function resetMotionFindBasket() {
-    clearTimeout(findBasketTimeout);
-    findBasketTimeout = null;
+    setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
+
 }
 
 function handleThrowerIdle() {
