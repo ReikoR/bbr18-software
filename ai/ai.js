@@ -192,7 +192,7 @@ let aiState = {
     shouldSendAck: false
 };
 
-let basketColour = basketColours.blue;
+let basketColour = basketColours.magenta;
 
 socket.on('error', (err) => {
     console.log(`socketPublisher error:\n${err.stack}`);
@@ -842,8 +842,9 @@ function handleMotionFindBasketTimeout() {
 
     let rotationSpeed = 0;
     let forwardSpeed = 0;
+    let sideSpeed = 0;
 
-    const basketMinFrameCount = 50;
+    const basketMinFrameCount = 20;
 
     if (findBasketFallbackTimeout == null && enableSpin) {
         spinTimeout = true;
