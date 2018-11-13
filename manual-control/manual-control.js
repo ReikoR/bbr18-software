@@ -141,6 +141,12 @@ function clone(obj) {
 controller.on('data', (data) => {
     //console.log(data.center);//, data.bottom);
 
+    //console.log(data.status);
+
+    if (data.status !== 'input') {
+        return;
+    }
+
     if (!prevButtons.L && data.center.L) {
         console.log('L');
 
@@ -336,17 +342,8 @@ function sendControllerActiveMessages() {
             type: 'message',
             topic: 'ai_command',
             commandInfo: {
-                command: 'set_motion_state',
-                state: 'IDLE',
-            }
-        });
-
-        sendToHub({
-            type: 'message',
-            topic: 'ai_command',
-            commandInfo: {
-                command: 'set_thrower_state',
-                state: 'IDLE',
+                command: 'set_manual_control',
+                state: true,
             }
         });
     } else {
@@ -354,8 +351,8 @@ function sendControllerActiveMessages() {
             type: 'message',
             topic: 'ai_command',
             commandInfo: {
-                command: 'set_motion_state',
-                state: 'FIND_BALL',
+                command: 'set_manual_control',
+                state: false,
             }
         });
     }

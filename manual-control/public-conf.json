@@ -1,5 +1,5 @@
 {
-    "port": 8095,
-    "hubIpAddress": "192.168.2.100",
-    "hubPort": 8091
+  "port": 8096,
+  "hubIpAddress": "127.0.0.1",
+  "hubPort": 8091
 }

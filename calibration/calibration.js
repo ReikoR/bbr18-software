@@ -56,7 +56,7 @@ function interpolate (z, x, y = 0) {
 
     // Find two closest objects with different x-positions
     const obj1 = sortedData.find(obj => obj.x < x) || sortedData[0];
-    const obj2 = sortedData.find(obj => obj.x > x) || sortedData.find(obj => obj.x !== obj1.x);
+    const obj2 = sortedData.find(obj => obj.x > x && obj.x !== obj1.x) || sortedData.find(obj => obj.x !== obj1.x);
 
     // Get 2 closest object interpolation
     const a = (obj1[z] - obj2[z]) / (obj1.x - obj2.x);

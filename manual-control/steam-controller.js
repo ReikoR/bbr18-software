@@ -16,6 +16,12 @@ var INPUT_MASK_ORIENTATION = 0x10;
 
 //https://github.com/XanClic/g1/blob/master/include/steam_controller.hpp
 
+let controllerStatusBinary = {
+    0x04: 'idle',
+    0x01: 'input',
+    0x03: 'hotplug',
+};
+
 function SteamController() {
 
     SteamController.prototype.connect = function () {
@@ -124,6 +130,8 @@ function initEvents(controller) {
         current = commands;
 
         //console.log(data);
+
+        commands.status = controllerStatusBinary[data[2]] || 'idle';
 
         if (data.readUInt16BE(13) === 0x0C64) {
             return;
