@@ -7,6 +7,21 @@
 </head>
 <body>
 <div id="controls"></div>
+<div id="configuration">
+    <label>Field ID:</label>
+    <input id="fieldID" oninput="setConfiguration('fieldID', this.value)">
+    <label>Robot ID:</label>
+    <input id="robotID" oninput="setConfiguration('robotID', this.value)">
+    <label>Basket colour:</label>
+    <select id="basketColour" onchange="setConfiguration('basketColour', this.value)">
+        <option value="blue"> Blue </option>
+        <option value="magenta"> Magenta </option>
+    </select>
+    <label>Competition</label>
+    <input type="checkbox" id="isCompetition" onchange="toggleConfiguration('isCompetition')">
+    <label>Manual control</label>
+    <input type="checkbox" id="isManualOverride" onchange="toggleConfiguration('isManualOverride')">
+</div>
 <div id="state"></div>
 <script src="main.js"></script>
 </body>

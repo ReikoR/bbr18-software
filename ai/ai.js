@@ -183,10 +183,11 @@ let aiState = {
     speeds: [0, 0, 0, 0, 0],
     fieldID: 'Z',
     robotID: 'Z',
-    shouldSendAck: false
+    shouldSendAck: false,
+    isManualOverride: false,
+    isCompetition: true,
+    basketColour: basketColours.blue
 };
-
-let basketColour = basketColours.blue;
 
 socket.on('error', (err) => {
     console.log(`socketPublisher error:\n${err.stack}`);
@@ -297,7 +298,10 @@ function handleInfo(info) {
         case 'ai_command': {
             const commandInfo = info.commandInfo;
 
-            if (commandInfo.command === 'set_motion_state') {
+            if (commandInfo.command === 'set_manual_control') {
+                aiState.isManualOverride = commandInfo.state === true;
+                console.log('isManualOverride', aiState.isManualOverride);
+            } else if (commandInfo.command === 'set_motion_state') {
                 if (motionStates[commandInfo.state]) {
                     setMotionState(commandInfo.state);
                 }
@@ -309,6 +313,35 @@ function handleInfo(info) {
 
             break;
         }
+        case 'ai_configuration':
+            if (info.toggle) {
+                switch (info.key) {
+                    default:
+                        aiState[info.key] = !aiState[info.key];
+                        break;
+                    case 'basketColour':
+                        aiState.basketColour = (aiState.basketColour === basketColours.blue)
+                            ? basketColours.magenta : basketColours.blue;
+                        break;
+                    case 'isManualOverride':
+                        aiState.isManualOverride = !aiState.isManualOverride;
+
+                        if (aiState.isManualOverride) {
+                            setMotionState(motionStates.IDLE);
+                            setThrowerState(throwerStates.IDLE);
+                        } else if (!aiState.isCompetition) {
+                            setMotionState(motionStates.FIND_BALL);
+                            setThrowerState(throwerStates.IDLE);
+                        }
+                        break;
+                    case 'isCompetition':
+                        aiState.isCompetition = !aiState.isCompetition;
+                        break;
+                }
+            } else {
+                aiState[info.key] = info.value;
+            }
+            break;
         case 'training':
             calibration.reloadMeasurements();
             break;
@@ -390,7 +423,7 @@ function processVisionInfo(info) {
     for (let i = 0; i < baskets.length; i++) {
         baskets[i].y2 = baskets[i].cy + baskets[i].h / 2;
 
-        if (baskets[i].color === basketColour) {
+        if (baskets[i].color === aiState.basketColour) {
             if (!basket || basket.w * basket.h < baskets[i].w * baskets[i].h) {
                 basket = baskets[i];
             }
@@ -469,7 +502,12 @@ function sendState() {
         closestBall: processedVisionState.closestBall,
         basket: processedVisionState.basket,
         otherBasket: processedVisionState.otherBasket,
-        refereeCommand: mainboardState.refereeCommand
+        refereeCommand: mainboardState.refereeCommand,
+        fieldID: aiState.fieldID,
+        robotID: aiState.robotID,
+        isManualOverride: aiState.isManualOverride,
+        isCompetition: aiState.isCompetition,
+        basketColour: aiState.basketColour
     };
 
     sendToHub({type: 'message', topic: 'ai_state', state: state}, () => {
@@ -515,10 +553,20 @@ function handleBallValueChanged() {
 }
 
 function handleRefereeCommandChanged() {
+    if (!aiState.isCompetition) {
+        return;
+    }
+
     console.log('refereeCommand', mainboardState.prevRefereeCommand, '->', mainboardState.refereeCommand);
 
     if (mainboardState.refereeCommand === 'P') {
         aiState.shouldSendAck = true;
+    } else if (mainboardState.refereeCommand === 'S') {
+        setMotionState(motionStates.FIND_BALL);
+        setThrowerState(throwerStates.IDLE);
+    } else if (mainboardState.refereeCommand === 'T') {
+        setMotionState(motionStates.IDLE);
+        setThrowerState(throwerStates.IDLE);
     }
 }
 
@@ -1026,7 +1074,8 @@ function update() {
     motionStateHandlers[motionState]();
     throwerStateHandlers[throwerState]();
 
-    if (motionState !== motionStates.IDLE || throwerState !== throwerStates.IDLE) {
+    //if (motionState !== motionStates.IDLE || throwerState !== throwerStates.IDLE) {
+    if (!aiState.isManualOverride) {
         const mainboardCommand = {
             speeds: aiState.speeds,
             fieldID: aiState.fieldID,
@@ -1040,4 +1089,4 @@ function update() {
     }
 }
 
-sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command', 'training']});
+sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command', 'ai_configuration', 'training']});
