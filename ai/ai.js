@@ -164,6 +164,9 @@ let processedVisionState = {
     metrics: null
 };
 
+const lidarDistanceSampleCount = 5;
+let lidarDistanceSamples = [];
+
 let mainboardState = {
     speeds: [0, 0, 0, 0, 0],
     balls: [false, false], prevBalls: [false, false],
@@ -171,6 +174,7 @@ let mainboardState = {
     ballGrabbed: false,
     ballEjected: false,
     lidarDistance: 0,
+    lidarDistanceFiltered: 0,
     refereeCommand: 'X',
     prevRefereeCommand: 'X'
 };
@@ -281,6 +285,11 @@ function handleInfo(info) {
             }
 
             mainboardState.lidarDistance = info.message.distance;
+
+            lidarDistanceSamples.push(mainboardState.lidarDistance);
+            lidarDistanceSamples = lidarDistanceSamples.slice(-lidarDistanceSampleCount);
+
+            mainboardState.lidarDistanceFiltered = util.average(lidarDistanceSamples);
 
             sendState();
 
@@ -917,6 +926,7 @@ function handleThrowerThrowBall() {
     aiState.speeds[4] = calibration.getThrowerSpeed(mainboardState.lidarDistance);
 
     console.log('Thrower speed: expected', aiState.speeds[4], 'actual', mainboardState.speeds[4]);
+    console.log('lidarDistance', mainboardState.lidarDistance, 'filtered', mainboardState.lidarDistanceFiltered);
 
     if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;
