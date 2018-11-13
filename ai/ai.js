@@ -798,11 +798,16 @@ function resetMotionDriveWithBall() {
 let findBasketTimeout = null;
 const findBasketTimeoutDelay = 5000;
 
+const requiredStableThrowerSpeedCount = 5;
+let stableThrowerSpeedCount = 0;
+let isThrowerSpeedStable = false;
+
 function handleMotionFindBasket() {
     const closestBall = processedVisionState.closestBall;
     const basket = processedVisionState.basket;
     const minRotationSpeed = 0.05;
     const maxRotationSpeed = 3;
+    const maxForwardSpeed = 5;
     let rotationSpeed = maxRotationSpeed * processedVisionState.lastVisibleBasketDirection;
     let xSpeed = 0;
     let forwardSpeed = 0;
@@ -823,7 +828,27 @@ function handleMotionFindBasket() {
     if (throwerState === throwerStates.THROW_BALL) {
         clearTimeout(findBasketTimeout);
         findBasketTimeout = null;
-        forwardSpeed = 0.2;
+
+        const expectedThrowerSpeed = aiState.speeds[4];
+        const actualThrowerSpeed = mainboardState.speeds[4];
+        const throwerSpeedDiff =  actualThrowerSpeed - expectedThrowerSpeed;
+
+        console.log('throwerSpeedDiff', throwerSpeedDiff);
+
+        if (!isThrowerSpeedStable) {
+            if (Math.abs(throwerSpeedDiff) < 50) {
+                stableThrowerSpeedCount++;
+
+                if (stableThrowerSpeedCount >= requiredStableThrowerSpeedCount) {
+                    isThrowerSpeedStable = true;
+                    console.log('isThrowerSpeedStable', isThrowerSpeedStable);
+                }
+            } else {
+                stableThrowerSpeedCount = 0;
+            }
+        }
+
+        forwardSpeed = isThrowerSpeedStable ? 0.2 : 0;
 
     } else if (closestBall) {
         const ballCenterX = closestBall.cx;
@@ -850,7 +875,7 @@ function handleMotionFindBasket() {
     if (basket && (closestBall || throwerState === throwerStates.THROW_BALL)) {
         const basketCenterX = basket.cx;// + calibration.getCenterOffset(mainboardState.lidarDistance);
         const basketErrorX = basketCenterX - frameCenterX;
-        isBasketErrorXSmallEnough = Math.abs(basketErrorX) < 5;
+        isBasketErrorXSmallEnough = Math.abs(basketErrorX) < 40;
         rotationSpeed = maxRotationSpeed * -basketErrorX / (frameWidth / 2);
 
         if (isBasketErrorXSmallEnough && isBallCloseEnough) {
@@ -866,12 +891,17 @@ function handleMotionFindBasket() {
 
     xSpeed += rotationSpeed * 0.2;
 
+    xSpeed = util.clamp(xSpeed, -maxForwardSpeed, maxForwardSpeed);
+    forwardSpeed = util.clamp(forwardSpeed, -maxForwardSpeed, maxForwardSpeed);
+
     setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(xSpeed, forwardSpeed, rotationSpeed, true));
 }
 
 function resetMotionFindBasket() {
     clearTimeout(findBasketTimeout);
     findBasketTimeout = null;
+    isThrowerSpeedStable = false;
+    stableThrowerSpeedCount = 0;
 }
 
 function handleThrowerIdle() {
@@ -881,7 +911,7 @@ function handleThrowerIdle() {
 function handleThrowerThrowBall() {
     aiState.speeds[4] = calibration.getThrowerSpeed(mainboardState.lidarDistance);
 
-    //console.log('HELLO SPEED IS', aiState.speeds[4]);
+    console.log('Thrower speed: expected', aiState.speeds[4], 'actual', mainboardState.speeds[4]);
 
     if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;
