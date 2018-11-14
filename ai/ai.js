@@ -196,8 +196,8 @@ const mainboardLedStates = {
 
 let aiState = {
     speeds: [0, 0, 0, 0, 0],
-    fieldID: 'A',
-    robotID: 'A',
+    fieldID: 'Z',
+    robotID: 'Z',
     shouldSendAck: false,
     isManualOverride: false,
     isCompetition: true,
