@@ -1,16 +1,17 @@
 const fs = require('fs');
-let measurements = require('./measurements.json');
+const config = require('./public-conf.json');
+let measurements = require('./' + config.hoop);
 
 exports.reloadMeasurements = function () {
-    delete require.cache[require.resolve('./measurements.json')];
+    delete require.cache[require.resolve('./' + config.hoop)];
 
-    measurements = require('./measurements.json');
+    measurements = require('./' + config.hoop);
 
     console.log('RELOADED MEASUREMENTS', measurements.length);
 };
 
 exports.getThrowerSpeed = function (distance) {
-    return interpolate('z', distance);
+    return Math.min(20000, interpolate('z', distance));
 };
 
 exports.getCenterOffset = function (distance) {
@@ -42,7 +43,7 @@ exports.recordFeedback = function (x, fb) {
         p: exports.getCenterOffset(x) + fb[1]
     });
 
-    fs.writeFileSync(__dirname + '/measurements.json', JSON.stringify(measurements, null, 2));
+    fs.writeFileSync(__dirname + '/' + config.hoop, JSON.stringify(measurements, null, 2));
 };
 
 exports.getMeasurements = function () {

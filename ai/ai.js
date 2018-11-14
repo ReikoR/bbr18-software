@@ -136,7 +136,7 @@ let findBallRotateLoopCount = 0;
 const findBallRotateLoopLimit = 5;
 
 let throwBallTimeout = 0;
-const throwBallTimeoutDelay = 5000;
+const throwBallTimeoutDelay = 3000;
 
 const lastClosestBallLimit = 10;
 let lastClosestBallCount = 0;
@@ -990,7 +990,7 @@ function handleMotionFindBasket() {
     }
 
     if (basket && (closestBall || throwerState === throwerStates.THROW_BALL)) {
-        const basketCenterX = basket.cx;// + calibration.getCenterOffset(mainboardState.lidarDistance);
+        const basketCenterX = basket.cx + calibration.getCenterOffset(mainboardState.lidarDistance);
         const basketErrorX = basketCenterX - frameCenterX;
         isBasketErrorXSmallEnough = Math.abs(basketErrorX) < 40;
         rotationSpeed = maxRotationSpeed * -basketErrorX / (frameWidth / 2);

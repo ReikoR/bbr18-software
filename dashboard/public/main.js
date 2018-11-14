@@ -158,7 +158,7 @@ function startSendInterval() {
     clearInterval(sendInterval);
 
     sendInterval = setInterval(() => {
-        wsSend({type: 'mainboard_command', info: [0, 0, 0, 0, throwerSpeed]});
+        wsSend({type: 'mainboard_command', info: { speeds: [0, 0, 0, 0, throwerSpeed] } });
     }, 200);
 }
 
@@ -166,7 +166,7 @@ function stopSendInterval() {
     clearInterval(sendInterval);
     sendInterval = null;
 
-    wsSend({type: 'mainboard_command', info: [0, 0, 0, 0, 0]});
+    wsSend({type: 'mainboard_command', info: { speeds: [0, 0, 0, 0, 0] } });
 }
 
 function setConfiguration(key, value) {

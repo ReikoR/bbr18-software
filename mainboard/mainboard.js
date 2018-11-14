@@ -90,6 +90,8 @@ function close() {
  * @param {CommandObject} commandObject
  */
 function updateCommandBuffer(commandObject) {
+    commandObject = { ...defaultCommandObject, ...commandObject };
+
     const speeds = commandObject.speeds;
 
     for (let i = 0; i < speeds.length; i++) {
