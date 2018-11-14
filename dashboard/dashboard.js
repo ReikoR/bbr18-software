@@ -88,6 +88,13 @@ function handleWsMessage(message) {
             topic: 'ai_command',
             commandInfo: message.info
         });
+    } else if (message.type === 'ai_configuration') {
+        sendToHub({
+            type: 'message',
+            topic: 'ai_configuration',
+            key: message.key,
+            value: message.value
+        });
     } else if (message.type === 'mainboard_command') {
         sendToHub({
             type: 'message',

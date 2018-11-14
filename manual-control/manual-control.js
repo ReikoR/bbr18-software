@@ -158,7 +158,7 @@ if (robotName === '001TRT') {
 robotConfig.metricToRobot = 225 / (robotConfig.wheelRadius * 2 * Math.PI);
 
 const commandObject =  {
-    speeds: [0, 0, 0, 0, 0],
+    speeds: [0, 0, 0, 0, 0, 0, 1200],
     fieldID: 'Z',
     robotID: 'Z',
     shouldSendAck: false,
@@ -179,10 +179,24 @@ function clamp(value, min, max) {
 }
 
 controller.on('data', (data) => {
+    //console.log(data.center);//, data.bottom);
+
     //console.log(data.status);
 
     if (data.status !== 'input') {
         return;
+    }
+
+    if (!prevButtons.L && data.center.L) {
+        console.log('L');
+
+        toggleBasketColour();
+    }
+
+    if (!prevButtons.R && data.center.R) {
+        console.log('R');
+
+        toggleIsCompetition();
     }
 
     if (!prevButtons.A && data.button.A) {
@@ -257,8 +271,10 @@ controller.on('data', (data) => {
         console.log('servo', servo);
     }
 
-    prevButtons = clone(data.button);
+
     prevTriggers = clone(data.trigger);
+
+    prevButtons = clone({ ...data.button, ...data.center });
 
     xSpeed = data.joystick.x / 32768 * maxSpeed;
     ySpeed = data.joystick.y / 32768 * maxSpeed;
@@ -291,6 +307,9 @@ function handleInfo(info) {
                 handleBallValueChanged();
             }
 
+            break;
+        case 'ai_state':
+            isControllerActive = info.state.isManualOverride;
             break;
     }
 }
@@ -365,10 +384,35 @@ function rotationRadiansToMetersPerSecond(radiansPerSecond) {
     return radiansPerSecond * robotConfig.wheelFromCenter;
 }
 
-function toggleController() {
-    isControllerActive = !isControllerActive;
+function toggleBasketColour() {
+    sendToHub({
+        type: 'message',
+        topic: 'ai_configuration',
+        key: 'basketColour',
+        toggle: true
+    });
+}
 
-    sendControllerActiveMessages();
+function toggleIsCompetition() {
+    sendToHub({
+        type: 'message',
+        topic: 'ai_configuration',
+        key: 'isCompetition',
+        toggle: true
+    });
+}
+
+function toggleController() {
+    //isControllerActive = !isControllerActive;
+    
+    sendToHub({
+        type: 'message',
+        topic: 'ai_configuration',
+        key: 'isManualOverride',
+        toggle: true
+    });
+
+    //sendControllerActiveMessages();
 }
 
 function sendControllerActiveMessages() {
@@ -377,17 +421,8 @@ function sendControllerActiveMessages() {
             type: 'message',
             topic: 'ai_command',
             commandInfo: {
-                command: 'set_motion_state',
-                state: 'IDLE',
-            }
-        });
-
-        sendToHub({
-            type: 'message',
-            topic: 'ai_command',
-            commandInfo: {
-                command: 'set_thrower_state',
-                state: 'IDLE',
+                command: 'set_manual_control',
+                state: true,
             }
         });
     } else {
@@ -395,8 +430,8 @@ function sendControllerActiveMessages() {
             type: 'message',
             topic: 'ai_command',
             commandInfo: {
-                command: 'set_motion_state',
-                state: 'FIND_BALL',
+                command: 'set_manual_control',
+                state: false,
             }
         });
     }
@@ -453,5 +488,5 @@ function sendToHub(info, onSent) {
     });
 }
 
-sendToHub({type: 'subscribe', topics: ['mainboard_feedback']});
-sendControllerActiveMessages();
+sendToHub({type: 'subscribe', topics: ['mainboard_feedback', 'ai_state']});
+//sendControllerActiveMessages();

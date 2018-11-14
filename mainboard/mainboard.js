@@ -14,6 +14,7 @@ console.log('robotName', robotName);
  * @property {string} fieldID
  * @property {string} robotID
  * @property {boolean} shouldSendAck
+ * @property {number} led
  */
 
 const commandBuffer = Buffer.alloc(17);
@@ -23,6 +24,7 @@ const defaultCommandObject =  {
     fieldID: 'Z',
     robotID: 'Z',
     shouldSendAck: false,
+    led: 2
 };
 
 const defaultCommandObject001TRT =  {
@@ -126,8 +128,8 @@ function handleInfo(info, address, port) {
  * @param {CommandObject} command
  */
 function sendCommandToMainboard(command) {
-    console.log("sendCommandToMainboard");
     updateCommandBuffer(command);
+    console.log("sendCommandToMainboard",command, commandBuffer);
     socketMainboard.send(commandBuffer, 0, commandBuffer.length, mbedPort, mbedAddress);
 }
 
@@ -162,8 +164,6 @@ function handleMainboardMessage(message) {
             refereeCommand: String.fromCharCode(message.readUInt8(15)),
             time: message.readInt32LE(16)
         };
-
-
     }
     console.log(data);
 

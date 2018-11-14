@@ -19,6 +19,7 @@ const publicConf = require('./public-conf.json');
  * @property {number} distance
  * @property {boolean} isSpeedChanged
  * @property {string} refereeCommand
+ * @property {number} button
  * @property {number} time
  */
 
@@ -172,6 +173,15 @@ let processedVisionState = {
     metrics: null
 };
 
+const lidarDistanceSampleCount = 5;
+let lidarDistanceSamples = [];
+
+const mainboardButtonEvents = {
+    NONE: 0,
+    PRESSED: 1,
+    PRESSED_LONG: 2
+};
+
 let mainboardState = {
     speeds: [0, 0, 0, 0, 0, minServo],
     balls: [false, false],
@@ -183,16 +193,23 @@ let mainboardState = {
     prevRefereeCommand: 'X'
 };
 
+const mainboardLedStates = {
+    MAGENTA_BASKET: 0,
+    BLUE_BASKET: 1,
+    UNKNOWN_BASKET: 2
+};
+
 let basketState = {distance: 0, angel: 0};
 
 let aiState = {
-    speeds: [0, 0, 0, 0, 0, minServo],
+    speeds: [0, 0, 0, 0, 0, 0, minServo],
     fieldID: 'Z',
     robotID: 'Z',
-    shouldSendAck: false
+    shouldSendAck: false,
+    isManualOverride: false,
+    isCompetition: true,
+    basketColour: basketColours.blue
 };
-
-let basketColour = basketColours.magenta;
 
 socket.on('error', (err) => {
     console.log(`socketPublisher error:\n${err.stack}`);
@@ -305,8 +322,15 @@ function handleInfo(info) {
             mainboardState.prevRefereeCommand = mainboardState.refereeCommand;
             mainboardState.refereeCommand = info.message.refereeCommand;
 
+            mainboardState.prevButton = mainboardState.button;
+            mainboardState.button = info.message.button;
+
             if (mainboardState.refereeCommand !== mainboardState.prevRefereeCommand) {
                 handleRefereeCommandChanged();
+            }
+
+            if (mainboardState.button !== mainboardState.prevButton) {
+                handleMainboardButtonChanged();
             }
 
             if (
@@ -328,14 +352,16 @@ function handleInfo(info) {
             ) {
                 handleBallValueChanged();
             }
-
             sendState();
 
             break;
         case 'ai_command': {
             const commandInfo = info.commandInfo;
 
-            if (commandInfo.command === 'set_motion_state') {
+            if (commandInfo.command === 'set_manual_control') {
+                aiState.isManualOverride = commandInfo.state === true;
+                console.log('isManualOverride', aiState.isManualOverride);
+            } else if (commandInfo.command === 'set_motion_state') {
                 if (motionStates[commandInfo.state]) {
                     setMotionState(commandInfo.state);
                 }
@@ -352,11 +378,55 @@ function handleInfo(info) {
             basketState.distance = info.data.distance;
             break;
         }
+        case 'ai_configuration':
+            shouldUpdate = true;
+            console.log("ai_configuration: ", info);
+            if (info.toggle) {
+                switch (info.key) {
+                    default:
+                        aiState[info.key] = !aiState[info.key];
+                        break;
+                    case 'basketColour':
+                        toggleBasketColour();
+                        break;
+                    case 'isManualOverride':
+                        aiState.isManualOverride = !aiState.isManualOverride;
+                        console.log('isManualOverride', aiState.isManualOverride);
+
+                        if (aiState.isManualOverride) {
+                            setMotionState(motionStates.IDLE);
+                            setThrowerState(throwerStates.IDLE);
+                        } else if (!aiState.isCompetition) {
+                            setMotionState(motionStates.FIND_BALL);
+                            setThrowerState(throwerStates.IDLE);
+                        }
+                        break;
+                    case 'isCompetition':
+                        aiState.isCompetition = !aiState.isCompetition;
+                        console.log('isCompetition', aiState.isCompetition);
+                        break;
+                }
+            } else {
+                aiState[info.key] = info.value;
+            }
+            break;
     }
 
     if (shouldUpdate) {
         update();
     }
+}
+
+function setBasketColour(colour) {
+    if (Object.values(basketColours).includes(colour)) {
+        console.log('setBasketColour', colour);
+        aiState.basketColour = colour;
+    }
+}
+
+function toggleBasketColour() {
+    setBasketColour((aiState.basketColour === basketColours.blue)
+        ? basketColours.magenta : basketColours.blue);
 }
 
 /**
@@ -430,7 +500,7 @@ function processVisionInfo(info) {
     for (let i = 0; i < baskets.length; i++) {
         baskets[i].y2 = baskets[i].cy + baskets[i].h / 2;
 
-        if (baskets[i].color === basketColour) {
+        if (baskets[i].color === aiState.basketColour) {
             if (!basket || basket.w * basket.h < baskets[i].w * baskets[i].h) {
                 basket = baskets[i];
             }
@@ -445,6 +515,11 @@ function processVisionInfo(info) {
     processedVisionState.otherBasket = otherBasket;
 
     for (let i = 0; i < balls.length; i++) {
+        // Ignore bad balls by top arc metric
+        if (balls[i].metrics[1] < 0.4) {
+            continue;
+        }
+
         balls[i].size = balls[i].w * balls[i].h;
         balls[i].confidence = computeBallConfidence(balls[i], basket, otherBasket);
 
@@ -504,7 +579,12 @@ function sendState() {
         closestBall: processedVisionState.closestBall,
         basket: processedVisionState.basket,
         otherBasket: processedVisionState.otherBasket,
-        refereeCommand: mainboardState.refereeCommand
+        refereeCommand: mainboardState.refereeCommand,
+        fieldID: aiState.fieldID,
+        robotID: aiState.robotID,
+        isManualOverride: aiState.isManualOverride,
+        isCompetition: aiState.isCompetition,
+        basketColour: aiState.basketColour
     };
 
     sendToHub({type: 'message', topic: 'ai_state', state: state}, () => {
@@ -551,10 +631,40 @@ function handleBallValueChanged() {
 }
 
 function handleRefereeCommandChanged() {
+    if (!aiState.isCompetition) {
+        return;
+    }
+
     console.log('refereeCommand', mainboardState.prevRefereeCommand, '->', mainboardState.refereeCommand);
 
     if (mainboardState.refereeCommand === 'P') {
         aiState.shouldSendAck = true;
+    } else if (mainboardState.refereeCommand === 'S') {
+        setMotionState(motionStates.FIND_BALL);
+        setThrowerState(throwerStates.IDLE);
+    } else if (mainboardState.refereeCommand === 'T') {
+        setMotionState(motionStates.IDLE);
+        setThrowerState(throwerStates.IDLE);
+    }
+}
+
+function handleMainboardButtonChanged() {
+    console.log('mainboard button', mainboardState.prevButton, '->', mainboardState.button);
+
+    switch (mainboardState.button) {
+        case mainboardButtonEvents.PRESSED:
+            // Basket colour can be changed any time if not competition or during competition when idling
+            if (!aiState.isCompetition || motionState === motionStates.IDLE) {
+                toggleBasketColour();
+            }
+            break;
+        case mainboardButtonEvents.PRESSED_LONG:
+            // During competition, starting is only allowed while idling
+            if (!aiState.isCompetition || motionState === motionStates.IDLE) {
+                setMotionState(motionStates.FIND_BALL);
+                setThrowerState(throwerStates.IDLE);
+            }
+            break;
     }
 }
 
@@ -1194,18 +1304,29 @@ function update() {
     motionStateHandlers[motionState]();
     throwerStateHandlers[throwerState]();
 
-    if (motionState !== motionStates.IDLE || throwerState !== throwerStates.IDLE) {
+    //if (motionState !== motionStates.IDLE || throwerState !== throwerStates.IDLE) {
+    if (!aiState.isManualOverride) {
         const mainboardCommand = {
             speeds: aiState.speeds,
             fieldID: aiState.fieldID,
             robotID: aiState.robotID,
-            shouldSendAck: aiState.shouldSendAck
+            shouldSendAck: aiState.shouldSendAck,
+            led: mainboardLedStates.UNKNOWN_BASKET
         };
 
         aiState.shouldSendAck = false;
+
+        switch (aiState.basketColour) {
+            case basketColours.magenta:
+                mainboardCommand.led = mainboardLedStates.MAGENTA_BASKET;
+                break;
+            case basketColours.blue:
+                mainboardCommand.led = mainboardLedStates.BLUE_BASKET;
+                break;
+        }
 
         sendToHub({type: 'message', topic: 'mainboard_command', command: mainboardCommand});
     }
 }
 
-sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command', 'training', 'goal_distance']});
+sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command', 'ai_configuration', 'goal_distance']});

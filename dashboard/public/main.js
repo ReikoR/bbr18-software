@@ -78,6 +78,18 @@ function createWebsocket(onMessage, onOpened, onClosed) {
 function renderState(state) {
     const elState = document.querySelector('#state');
     elState.innerText = JSON.stringify(state, null, 2);
+
+    // write configuration data on dashboard
+    document.getElementById("fieldID").value = state.fieldID;
+    document.getElementById("robotID").value = state.robotID;
+
+    for (let child of document.getElementById("basketColour").children) {
+        child.selected = state.basketColour === child.value;
+    }
+
+    document.getElementById("isCompetition").checked = state.isCompetition;
+    document.getElementById("isManualOverride").checked = state.isManualOverride;
+
 }
 
 function createButton(name, onClick) {
@@ -155,6 +167,21 @@ function stopSendInterval() {
     sendInterval = null;
 
     wsSend({type: 'mainboard_command', info: [0, 0, 0, 0, 0]});
+}
+
+function setConfiguration(key, value) {
+    wsSend({
+        type: 'ai_configuration',
+        key,
+        value
+    });
+}
+
+function toggleConfiguration(key) {
+    wsSend({
+        type: 'ai_configuration',
+        key
+    });
 }
 
 renderControls();
