@@ -19,6 +19,7 @@ const publicConf = require('./public-conf.json');
  * @property {number} distance
  * @property {boolean} isSpeedChanged
  * @property {string} refereeCommand
+ * @property {number} button
  * @property {number} time
  */
 
@@ -167,6 +168,12 @@ let processedVisionState = {
 const lidarDistanceSampleCount = 5;
 let lidarDistanceSamples = [];
 
+const mainboardButtonEvents = {
+    NONE: 0,
+    PRESSED: 1,
+    PRESSED_LONG: 2
+};
+
 let mainboardState = {
     speeds: [0, 0, 0, 0, 0],
     balls: [false, false], prevBalls: [false, false],
@@ -176,13 +183,21 @@ let mainboardState = {
     lidarDistance: 0,
     lidarDistanceFiltered: 0,
     refereeCommand: 'X',
-    prevRefereeCommand: 'X'
+    prevRefereeCommand: 'X',
+    button: mainboardButtonEvents.NONE,
+    prevButton: mainboardButtonEvents.NONE
+};
+
+const mainboardLedStates = {
+    MAGENTA_BASKET: 0,
+    BLUE_BASKET: 1,
+    UNKNOWN_BASKET: 2
 };
 
 let aiState = {
     speeds: [0, 0, 0, 0, 0],
-    fieldID: 'Z',
-    robotID: 'Z',
+    fieldID: 'A',
+    robotID: 'A',
     shouldSendAck: false,
     isManualOverride: false,
     isCompetition: true,
@@ -261,8 +276,15 @@ function handleInfo(info) {
             mainboardState.prevRefereeCommand = mainboardState.refereeCommand;
             mainboardState.refereeCommand = info.message.refereeCommand;
 
+            mainboardState.prevButton = mainboardState.button;
+            mainboardState.button = info.message.button;
+
             if (mainboardState.refereeCommand !== mainboardState.prevRefereeCommand) {
                 handleRefereeCommandChanged();
+            }
+
+            if (mainboardState.button !== mainboardState.prevButton) {
+                handleMainboardButtonChanged();
             }
 
             if (
@@ -320,11 +342,11 @@ function handleInfo(info) {
                         aiState[info.key] = !aiState[info.key];
                         break;
                     case 'basketColour':
-                        aiState.basketColour = (aiState.basketColour === basketColours.blue)
-                            ? basketColours.magenta : basketColours.blue;
+                        toggleBasketColour();
                         break;
                     case 'isManualOverride':
                         aiState.isManualOverride = !aiState.isManualOverride;
+                        console.log('isManualOverride', aiState.isManualOverride);
 
                         if (aiState.isManualOverride) {
                             setMotionState(motionStates.IDLE);
@@ -336,6 +358,7 @@ function handleInfo(info) {
                         break;
                     case 'isCompetition':
                         aiState.isCompetition = !aiState.isCompetition;
+                        console.log('isCompetition', aiState.isCompetition);
                         break;
                 }
             } else {
@@ -350,6 +373,18 @@ function handleInfo(info) {
     if (shouldUpdate) {
         update();
     }
+}
+
+function setBasketColour(colour) {
+    if (Object.values(basketColours).includes(colour)) {
+        console.log('setBasketColour', colour);
+        aiState.basketColour = colour;
+    }
+}
+
+function toggleBasketColour() {
+    setBasketColour((aiState.basketColour === basketColours.blue)
+        ? basketColours.magenta : basketColours.blue);
 }
 
 /**
@@ -567,6 +602,26 @@ function handleRefereeCommandChanged() {
     } else if (mainboardState.refereeCommand === 'T') {
         setMotionState(motionStates.IDLE);
         setThrowerState(throwerStates.IDLE);
+    }
+}
+
+function handleMainboardButtonChanged() {
+    console.log('mainboard button', mainboardState.prevButton, '->', mainboardState.button);
+
+    switch (mainboardState.button) {
+        case mainboardButtonEvents.PRESSED:
+            // Basket colour can be changed any time if not competition or during competition when idling
+            if (!aiState.isCompetition || motionState === motionStates.IDLE) {
+                toggleBasketColour();
+            }
+            break;
+        case mainboardButtonEvents.PRESSED_LONG:
+            // During competition, starting is only allowed while idling
+            if (!aiState.isCompetition || motionState === motionStates.IDLE) {
+                setMotionState(motionStates.FIND_BALL);
+                setThrowerState(throwerStates.IDLE);
+            }
+            break;
     }
 }
 
@@ -1080,10 +1135,20 @@ function update() {
             speeds: aiState.speeds,
             fieldID: aiState.fieldID,
             robotID: aiState.robotID,
-            shouldSendAck: aiState.shouldSendAck
+            shouldSendAck: aiState.shouldSendAck,
+            led: mainboardLedStates.UNKNOWN_BASKET
         };
 
         aiState.shouldSendAck = false;
+
+        switch (aiState.basketColour) {
+            case basketColours.magenta:
+                mainboardCommand.led = mainboardLedStates.MAGENTA_BASKET;
+                break;
+            case basketColours.blue:
+                mainboardCommand.led = mainboardLedStates.BLUE_BASKET;
+                break;
+        }
 
         sendToHub({type: 'message', topic: 'mainboard_command', command: mainboardCommand});
     }
