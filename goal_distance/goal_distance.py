@@ -163,7 +163,7 @@ try:
 
         planar_vertex_array = []
 
-        dist = clamp(dist, 0.1, 6)
+        dist = clamp(dist, 0.25, 6)
 
         distance_sample_rate_x = int(math.ceil(6 / dist))
         distance_sample_rate_y = int(math.ceil(12 / dist))

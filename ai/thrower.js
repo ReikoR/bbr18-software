@@ -1,9 +1,9 @@
-const trainingUtils = require('../training/utils');
-let measurements = require('../training/measurements.json');
+const trainingUtils = require('../calibration/calibration');
+let measurements = require('../calibration/measurements.json');
 
 function reloadMeasurements () {
     delete require.cache[require.resolve('../training/measurements.json')];
-    measurements = require('../training/measurements.json');
+    measurements = require('../calibration/measurements.json');
 
     console.log('RELOADED MEASUREMENTS', measurements.length);
 }
@@ -13,21 +13,21 @@ function getSpeed (distance) {
 }
 
 const distanceToSpeedMap1650 = [
-    [0.26, 6900],
-    [0.49, 8200],
-    [0.80, 9300],
-    [1.05, 10200],
-    [1.45, 11900],
-    [1.92, 13400],
-    [2.45, 16000]
+    [0.26, 7200],
+    [0.49, 8350],
+    [0.80, 9350],
+    [1.05, 10300],
+    [1.45, 12100],
+    [1.92, 14000],
+    [2.45, 16500]
 ];
 
 const distanceToSpeedMap1050 = [
     [1.44, 8500],
     [1.76, 9500],
-    [2.15, 10200],
-    [2.65, 11500],
-    [3.55, 13350],
+    [2.15, 10650],
+    [2.65, 11700],
+    [3.55, 13700],
     [4.40, 14920],
     [5.20, 17000]
 ];
