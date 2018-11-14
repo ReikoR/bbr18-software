@@ -12,14 +12,16 @@ const mbedAddress = publicConf.mbedIpAddress;
  * @property {string} fieldID
  * @property {string} robotID
  * @property {boolean} shouldSendAck
+ * @property {number} led
  */
 
-const commandBuffer = Buffer.alloc(13);
+const commandBuffer = Buffer.alloc(14);
 const defaultCommandObject =  {
     speeds: [0, 0, 0, 0, 0],
     fieldID: 'Z',
     robotID: 'Z',
     shouldSendAck: false,
+    led: 2
 };
 
 socketMainboard.on('error', (err) => {
@@ -97,6 +99,7 @@ function updateCommandBuffer(commandObject) {
     commandBuffer.writeUInt8(commandObject.fieldID.charCodeAt(0), 10);
     commandBuffer.writeUInt8(commandObject.robotID.charCodeAt(0), 11);
     commandBuffer.writeUInt8(commandObject.shouldSendAck ? 1 : 0, 12);
+    commandBuffer.writeUInt8(commandObject.led, 13);
 }
 
 function handleInfo(info, address, port) {
@@ -127,7 +130,8 @@ function handleMainboardMessage(message) {
         distance: message.readUInt16LE(12),
         isSpeedChanged: message.readUInt8(14) === 1,
         refereeCommand: String.fromCharCode(message.readUInt8(15)),
-        time: message.readInt32LE(16)
+        button: message.readUInt8(16),
+        time: message.readInt32LE(17)
     };
 
     console.log(data);
