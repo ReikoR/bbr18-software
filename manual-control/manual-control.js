@@ -126,6 +126,7 @@ const commandObject =  {
     fieldID: 'Z',
     robotID: 'Z',
     shouldSendAck: false,
+    led: 2
 };
 
 function clone(obj) {
