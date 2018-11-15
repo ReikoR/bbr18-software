@@ -126,6 +126,7 @@ function handleInfo(info) {
             type: 'ai_state',
             state: {
                 ...info.state,
+                technique: calibration.getThrowerTechnique(info.state.lidarDistance),
                 throwerSpeed: calibration.getThrowerSpeed(info.state.lidarDistance),
                 centerOffset: calibration.getCenterOffset(info.state.lidarDistance)
             }

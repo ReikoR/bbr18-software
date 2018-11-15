@@ -1,24 +1,39 @@
 const fs = require('fs');
 const config = require('./public-conf.json');
-let measurements = require('./' + config.hoop);
+
+exports.getThrowerTechnique = function (distance, angle = 0) {
+    if (distance > 250) {
+        return 'hoop';
+    } else {
+        return 'dunk';
+    }
+};
 
 exports.reloadMeasurements = function () {
     delete require.cache[require.resolve('./' + config.hoop)];
+    delete require.cache[require.resolve('./' + config.dunk)];
 
-    measurements = require('./' + config.hoop);
-
-    console.log('RELOADED MEASUREMENTS', measurements.length);
+    console.log('RELOADED MEASUREMENTS');
 };
 
 exports.getThrowerSpeed = function (distance) {
-    return Math.min(20000, interpolate('z', distance));
+    const technique = exports.getThrowerTechnique(distance);
+    const measurements = require('./' + config[technique]);
+
+    return Math.min(20000, interpolate(measurements, 'z', distance));
 };
 
 exports.getCenterOffset = function (distance) {
-    return interpolate('p', distance);
+    const technique = exports.getThrowerTechnique(distance);
+    const measurements = require('./' + config[technique]);
+
+    return interpolate(measurements, 'p', distance);
 };
 
 exports.recordFeedback = function (x, fb) {
+    const technique = exports.getThrowerTechnique(x);
+    const measurements = require('./' + config[technique]);
+
     const r = 3; // proximity radius
 
     // Find distance measurements within proximity
@@ -43,14 +58,17 @@ exports.recordFeedback = function (x, fb) {
         p: exports.getCenterOffset(x) + fb[1]
     });
 
-    fs.writeFileSync(__dirname + '/' + config.hoop, JSON.stringify(measurements, null, 2));
+    fs.writeFileSync(__dirname + '/' + config[technique], JSON.stringify(measurements, null, 2));
 };
 
 exports.getMeasurements = function () {
-    return measurements;
+    return {
+        dunk: require('./' + config.dunk),
+        hoop: require('./' + config.hoop)
+    };
 };
 
-function interpolate (z, x, y = 0) {
+function interpolate (measurements, z, x, y = 0) {
     const sortedData = [ ...measurements ].sort((a, b) =>
         Math.abs(a.x - x) - Math.abs(b.x - x)
     );
