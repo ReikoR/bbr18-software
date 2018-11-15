@@ -194,6 +194,8 @@ const mainboardLedStates = {
     UNKNOWN_BASKET: 2
 };
 
+const defaultBallTopArcFilterThreshold = 0.4;
+
 let aiState = {
     speeds: [0, 0, 0, 0, 0],
     fieldID: 'Z',
@@ -201,7 +203,8 @@ let aiState = {
     shouldSendAck: false,
     isManualOverride: false,
     isCompetition: true,
-    basketColour: basketColours.blue
+    basketColour: basketColours.blue,
+    ballTopArcFilterThreshold: defaultBallTopArcFilterThreshold
 };
 
 socket.on('error', (err) => {
@@ -474,7 +477,7 @@ function processVisionInfo(info) {
 
     for (let i = 0; i < balls.length; i++) {
         // Ignore bad balls by top arc metric
-        if (balls[i].metrics[1] < 0.4) {
+        if (balls[i].metrics[1] < aiState.ballTopArcFilterThreshold) {
             continue;
         }
 
@@ -653,6 +656,14 @@ function handleMotionFindBall() {
                 findBallRotatePatternIndex = 0;
                 findBallRotateLoopCount++;
             }
+
+            aiState.ballTopArcFilterThreshold /= 2;
+
+            if (aiState.ballTopArcFilterThreshold < 0.01) {
+                aiState.ballTopArcFilterThreshold = 0;
+            }
+
+            console.log('aiState.ballTopArcFilterThreshold', aiState.ballTopArcFilterThreshold);
         }, patternStep[1] * (findBallRotateLoopCount + 1));
 
         setAiStateSpeeds(omniMotion.calculateSpeeds(0, 0, patternStep[0] / (findBallRotateLoopCount + 1), true));
@@ -1104,6 +1115,9 @@ function setMotionState(newState) {
 
         if (motionState === motionStates.IDLE) {
             resetMotionFindBall();
+
+            aiState.ballTopArcFilterThreshold = defaultBallTopArcFilterThreshold;
+            console.log('aiState.ballTopArcFilterThreshold', aiState.ballTopArcFilterThreshold);
         }
     }
 }
