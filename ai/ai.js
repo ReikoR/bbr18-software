@@ -942,32 +942,7 @@ function handleMotionFindBasket() {
         }, findBasketTimeoutDelay);
     }
 
-    if (throwerState === throwerStates.THROW_BALL) {
-        clearTimeout(findBasketTimeout);
-        findBasketTimeout = null;
-
-        const expectedThrowerSpeed = aiState.speeds[4];
-        const actualThrowerSpeed = mainboardState.speeds[4];
-        const throwerSpeedDiff =  actualThrowerSpeed - expectedThrowerSpeed;
-
-        console.log('throwerSpeedDiff', throwerSpeedDiff);
-
-        if (!isThrowerSpeedStable) {
-            if (Math.abs(throwerSpeedDiff) < 50) {
-                stableThrowerSpeedCount++;
-
-                if (stableThrowerSpeedCount >= requiredStableThrowerSpeedCount) {
-                    isThrowerSpeedStable = true;
-                    console.log('isThrowerSpeedStable', isThrowerSpeedStable);
-                }
-            } else {
-                stableThrowerSpeedCount = 0;
-            }
-        }
-
-        forwardSpeed = isThrowerSpeedStable ? 0.2 : 0;
-
-    } else if (closestBall) {
+    if (closestBall) {
         const ballCenterX = closestBall.cx;
         const ballCenterY = closestBall.cy;
         const ballErrorX = ballCenterX - frameCenterX;
@@ -985,6 +960,34 @@ function handleMotionFindBasket() {
         } else {
             isBallCloseEnough = true;
         }
+
+        if (throwerState === throwerStates.THROW_BALL) {
+            clearTimeout(findBasketTimeout);
+            findBasketTimeout = null;
+
+            const expectedThrowerSpeed = aiState.speeds[4];
+            const actualThrowerSpeed = mainboardState.speeds[4];
+            const throwerSpeedDiff =  actualThrowerSpeed - expectedThrowerSpeed;
+
+            console.log('throwerSpeedDiff', throwerSpeedDiff);
+
+            if (!isThrowerSpeedStable) {
+                if (Math.abs(throwerSpeedDiff) < (expectedThrowerSpeed > 16000 ? 100 : 50)) {
+                    stableThrowerSpeedCount++;
+
+                    if (stableThrowerSpeedCount >= requiredStableThrowerSpeedCount) {
+                        isThrowerSpeedStable = true;
+                        console.log('isThrowerSpeedStable', isThrowerSpeedStable);
+                    }
+                } else {
+                    stableThrowerSpeedCount = 0;
+                }
+            }
+
+            forwardSpeed = isThrowerSpeedStable ? 0.2 : 0;
+
+        }
+
     } else {
         setMotionState(motionStates.FIND_BALL);
     }
