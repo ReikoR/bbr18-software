@@ -403,7 +403,7 @@ function computeBallConfidence(ball, basket, otherBasket) {
     //driveability
 
     const ballDistance = 8000 * Math.pow(ball.cy, -1.85);
-    const ballDistanceMetric = 0.2 * util.clamp((6 - ballDistance) / 6, 0, 1);
+    const ballDistanceMetric = 0.2 * util.clamped((6 - ballDistance) / 6, 0, 1);
     const bottomMetric = 0.1 * ball.metrics[0];
     const topMetric = 0.1 * ball.metrics[1];
     const sizeMetric = Math.min(0.5 * ball.w / 150, 1);
@@ -763,8 +763,8 @@ function handleMotionDriveToBall() {
             }
         }
 
-        sideSpeed = util.clamp(sideSpeed, -maxForwardSpeed, maxForwardSpeed);
-        forwardSpeed = util.clamp(forwardSpeed, -maxForwardSpeed, maxForwardSpeed);
+        sideSpeed = util.clamped(sideSpeed, -maxForwardSpeed, maxForwardSpeed);
+        forwardSpeed = util.clamped(forwardSpeed, -maxForwardSpeed, maxForwardSpeed);
 
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
 
@@ -1008,8 +1008,8 @@ function handleMotionFindBasket() {
 
     xSpeed += rotationSpeed * 0.2;
 
-    xSpeed = util.clamp(xSpeed, -maxForwardSpeed, maxForwardSpeed);
-    forwardSpeed = util.clamp(forwardSpeed, -maxForwardSpeed, maxForwardSpeed);
+    xSpeed = util.clamped(xSpeed, -maxForwardSpeed, maxForwardSpeed);
+    forwardSpeed = util.clamped(forwardSpeed, -maxForwardSpeed, maxForwardSpeed);
 
     setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(xSpeed, forwardSpeed, rotationSpeed, true));
 }
