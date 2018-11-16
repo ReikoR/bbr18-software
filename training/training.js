@@ -1,13 +1,11 @@
 const dgram = require('dgram');
 const socket = dgram.createSocket('udp4');
-const fs = require('fs');
 const publicConf = require('./public-conf.json');
 const calibration = require('../calibration/calibration');
 
 const http = require('http');
 const express = require('express');
 const WebSocket = require('ws');
-const interpolateArray = require('2d-bicubic-interpolate').default;
 
 const app = express();
 
@@ -17,8 +15,8 @@ const wss = new WebSocket.Server({ server });
 app.use(express.static(__dirname + '/public'));
 app.use(express.json());
 
-wss.on('connection', function connection(ws, req) {
-    ws.on('message', function incoming(message) {
+wss.on('connection', function connection (ws, req) {
+    ws.on('message', function incoming (message) {
         console.log('received: %s', message);
 
         try {
@@ -29,8 +27,8 @@ wss.on('connection', function connection(ws, req) {
     });
 
     ws.send(JSON.stringify({
-        type: 'measurements',
-        measurements: calibration.getMeasurements()
+        type: 'calibration',
+        calibration: calibration.getMeasurementsAndNets()
     }));
 });
 
@@ -89,11 +87,15 @@ function close() {
 
 function handleWsMessage(message) {
     if (message.type === 'training_feedback') {
-        calibration.recordFeedback(message.x, message.feedback);
+        calibration.recordFeedback({
+            distance: message.distance,
+            throwerSpeed: message.throwerSpeed,
+            centerOffset: message.centerOffset
+        }, message.feedback);
 
         wss.broadcast(JSON.stringify({
-            type: 'measurements',
-            measurements: calibration.getMeasurements()
+            type: 'calibration',
+            calibration: calibration.getMeasurementsAndNets()
         }));
         
         sendToHub({
@@ -124,12 +126,12 @@ function handleInfo(info) {
     if (info.topic === 'ai_state') {
         wss.broadcast(JSON.stringify({
             type: 'ai_state',
-            state: {
+            state: info.state /* {
                 ...info.state,
                 technique: calibration.getThrowerTechnique(info.state.lidarDistance),
-                throwerSpeed: calibration.getThrowerSpeed(info.state.lidarDistance),
-                centerOffset: calibration.getCenterOffset(info.state.lidarDistance)
-            }
+                //throwerSpeed: calibration.getThrowerSpeed(info.state.lidarDistance),
+                //centerOffset: calibration.getCenterOffset(info.state.lidarDistance)
+            }*/
         }));
     }
 

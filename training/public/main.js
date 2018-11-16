@@ -6,43 +6,82 @@ const socketReconnectDelay = new BackOffDelay();
 let sendInterval;
 let throwerSpeed = 0;
 
-function getThrowerTechniqueData(label, measurements, color1, color2) {
-    measurements.sort((a, b) => a.x - b.x);
+function getDecisionBoundary (net, x, initialBounds) {
+    const bounds = initialBounds.slice();
+    const input = new convnetjs.Vol(1, 1, 2);
+    input.w[0] = x;
+  
+    for (let i = 0; i < 100; ++i) {
+        input.w[1] = (bounds[0] + bounds[1]) / 2;
+        const output = net.forward(input);
 
-    const data = {
-        x: measurements.map(obj => obj.x),
-        y: measurements.map(obj => obj.z),
-        mode: 'lines+markers',
-        name: label,
-        line: {
-            color: color1
+        if (Math.abs(output.w[1] - output.w[0]) < 0.0001) {
+            break;
         }
+
+        bounds[(output.w[0] > output.w[1]) ? 1 : 0] = input.w[1];
+    }
+
+    return input.w[1];
+}
+
+function getThrowerTechniqueData(label, calibration, color1) {
+    const high = calibration.measurements.filter(m => m.fb[0] === -1);
+    const ok = calibration.measurements.filter(m => m.fb[0] === 0);
+    const low = calibration.measurements.filter(m => m.fb[0] === 1);
+
+    const boundary = {
+        x: [],
+        y: [],
+        mode: 'line'
     };
 
-    const dataUpper = {
-        x: measurements.map(obj => obj.x),
-        y: measurements.map(obj => obj.z + obj.c),
-        mode: 'lines+markers',
-        name: null,
-        line: {
-            color: color2
-        }
-    };
+    const net = new convnetjs.Net();
+    net.fromJSON(calibration.throwerSpeedNet);
 
-    const dataLower = {
-        x: measurements.map(obj => obj.x),
-        y: measurements.map(obj => obj.z - obj.c),
-        mode: 'lines+markers',
-        name: null,
-        line: {
-            color: color2
+    for (let x = 0; x <= 520; x += 20) {
+        boundary.x.push(x);
+        boundary.y.push(getDecisionBoundary(net, x, [0, 1]));
+    }
+
+    const throwerSpeedData = [
+        boundary,
+        {
+            x: high.map(obj => obj.distance),
+            y: high.map(obj => obj.throwerSpeed),
+            mode: 'markers',
+            name: label,
+            marker: {
+                color: color1,
+                symbol: 'triangle-down'
+            }
+        },
+        {
+            x: ok.map(obj => obj.distance),
+            y: ok.map(obj => obj.throwerSpeed),
+            mode: 'markers',
+            name: label,
+            marker: {
+                color: color1,
+                symbol: 'x'
+            }
+        },
+        {
+            x: low.map(obj => obj.distance),
+            y: low.map(obj => obj.throwerSpeed),
+            mode: 'markers',
+            name: label,
+            marker: {
+                color: color1,
+                symbol: 'triangle-up'
+            }
         }
-    };
+    ];
 
     const centerOffsetData = {
-        x: measurements.map(obj => obj.x),
-        y: measurements.map(obj => obj.p),
-        mode: 'lines+markers',
+        x: calibration.measurements.map(obj => obj.distance),
+        y: calibration.measurements.map(obj => obj.centerOffset),
+        mode: 'markers',
         name: label,
         line: {
             color: color1
@@ -50,7 +89,7 @@ function getThrowerTechniqueData(label, measurements, color1, color2) {
     };
 
     return {
-        throwerSpeed: [data, dataLower, dataUpper],
+        throwerSpeed: throwerSpeedData,
         centerOffset: [centerOffsetData]
     };
 }
@@ -63,18 +102,17 @@ function onSocketMessage(message) {
             renderState(info.state);
         }
 
-        if (info.type === 'measurements') {
-            const hoop = getThrowerTechniqueData('Hoop', info.measurements.hoop, 'rgb(255, 255, 0)', 'rgb(255, 0, 0)');
-            const dunk = getThrowerTechniqueData('Dunk', info.measurements.dunk, 'rgb(0, 255, 0)', 'rgb(0, 255, 255)');
+        if (info.type === 'calibration') {
+            const dunk = getThrowerTechniqueData('Dunk', info.calibration.dunk, 'rgb(0, 255, 0)', 'rgb(0, 255, 255)');
 
             Plotly.newPlot('thrower-speed-plot', [
-                ...hoop.throwerSpeed, ...dunk.throwerSpeed
+                ...dunk.throwerSpeed
             ], {
                 title: 'Thrower Speed Calibration'
             });
 
             Plotly.newPlot('center-offset-plot', [
-                ...hoop.centerOffset, ...dunk.centerOffset
+                ...dunk.centerOffset
             ], {
                 title: 'Center Offset Calibration'
             });
@@ -153,8 +191,8 @@ function renderState(state) {
 
     document.getElementById('info-technique').innerHTML = state.technique;
     document.getElementById('info-distance').innerHTML = state.lidarDistance;
-    document.getElementById('info-thrower-speed').innerHTML = state.throwerSpeed;
-    document.getElementById('info-center-offset').innerHTML = state.centerOffset;
+    document.getElementById('info-thrower-speed').innerHTML = state.ballThrownSpeed;
+    document.getElementById('info-center-offset').innerHTML = state.ballThrownBasketOffset;
 
     if (state.ballThrown) {
         document.getElementById('feedback').style.display = 'block';
@@ -164,13 +202,11 @@ function renderState(state) {
 function sendFeedback(feedback) {
     wsSend({
         type: 'training_feedback',
-        x: lastAiState.lidarDistance,
-        y: 0,
-        z: lastAiState.throwingSpeed,
+        distance: lastAiState.lidarDistance,
+        centerOffset: lastAiState.ballThrownBasketOffset,
+        throwerSpeed: lastAiState.ballThrownSpeed,
         feedback
     });
-
-    console.log(feedback);
 
     document.getElementById('feedback').style.display = 'none';
 }
