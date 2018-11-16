@@ -889,7 +889,7 @@ function handleMotionDriveToBall() {
             //driveToBallStartTime = Date.now();
             //forwardSpeed = forwardSpeed * 0.5;
             //rotationSpeed = 0;
-            sideSpeed = -Math.sign(sideMetric) * Math.max(2 * Math.abs(sideMetric), 0.2);
+            sideSpeed = -Math.sign(sideMetric) * Math.max(Math.min(forwardSpeed, 1) * 2 * Math.abs(sideMetric), 0.2);
 
             const normalizedCloseToBallErrorY = Math.abs(errorY) / 400;
 
