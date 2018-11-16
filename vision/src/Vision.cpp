@@ -1296,6 +1296,9 @@ bool Vision::isColorCombinationBetweenPoints(
 	int requiredColorCount = 5;
 	int allowedGapSize = endY / 20;
 
+    int maxColorLengthCount = endY / 5;
+    int lastColorStartChangingCoordinate = -1;
+
 	Blobber::BlobColor color = blobber->getColorAt(x, y);
 	int colorCount = 0;
 	int gapCount = 0;
@@ -1311,6 +1314,17 @@ bool Vision::isColorCombinationBetweenPoints(
 				if (debug) {
 					canvas.drawMarker(x, y, 0, 255, 0, true);
 				}
+
+                if (colorCount == 1) {
+                    if (
+                            lastColorStartChangingCoordinate > -1 &&
+                            std::abs(lastColorStartChangingCoordinate - changingCoordinate) > maxColorLengthCount
+                    ) {
+                        return false;
+                    }
+
+                    lastColorStartChangingCoordinate = changingCoordinate;
+                }
 
 				if (colorCount >= requiredColorCount) {
 					break;
