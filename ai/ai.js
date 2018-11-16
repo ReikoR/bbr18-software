@@ -195,6 +195,7 @@ const mainboardLedStates = {
 };
 
 const defaultBallTopArcFilterThreshold = 0.4;
+const defaultBasketBottomFilterThreshold = 0.5;
 
 let aiState = {
     speeds: [0, 0, 0, 0, 0],
@@ -204,7 +205,9 @@ let aiState = {
     isManualOverride: false,
     isCompetition: true,
     basketColour: basketColours.blue,
-    ballTopArcFilterThreshold: defaultBallTopArcFilterThreshold
+    ballTopArcFilterThreshold: defaultBallTopArcFilterThreshold,
+    basketBottomFilterThreshold: defaultBasketBottomFilterThreshold,
+    otherBasketBottomFilterThreshold: defaultBasketBottomFilterThreshold
 };
 
 socket.on('error', (err) => {
@@ -301,6 +304,9 @@ function handleInfo(info) {
                 if (visionState.basket) {
                     console.log('THROWN', visionState.basket.cx);
                 }
+
+                aiState.basketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
+                console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
             }
 
             if (
@@ -457,18 +463,60 @@ function processVisionInfo(info) {
     let basket = null;
     let otherBasket = null;
 
+    let basketCandidate;
+    let bottomLeftMetric;
+    let bottomRightMetric;
+    let threshold;
+    let isTargetColour;
+    let targetBasket;
+
     // Find largest basket
     for (let i = 0; i < baskets.length; i++) {
-        baskets[i].y2 = baskets[i].cy + baskets[i].h / 2;
+        basketCandidate = baskets[i];
+        bottomLeftMetric = basketCandidate.metrics[0];
+        bottomRightMetric = basketCandidate.metrics[1];
 
-        if (baskets[i].color === aiState.basketColour) {
-            if (!basket || basket.w * basket.h < baskets[i].w * baskets[i].h) {
-                basket = baskets[i];
+        basketCandidate.size = basketCandidate.w * basketCandidate.h;
+        basketCandidate.y2 = basketCandidate.cy + basketCandidate.h / 2;
+        basketCandidate.bottomMetric = Math.max(bottomLeftMetric, bottomRightMetric);
+
+        isTargetColour = basketCandidate.color === aiState.basketColour;
+
+        threshold = isTargetColour ?
+            aiState.basketBottomFilterThreshold :
+            aiState.otherBasketBottomFilterThreshold;
+
+        // At least one of the metrics should be above threshold
+        if (basketCandidate.bottomMetric >= threshold) {
+            targetBasket = isTargetColour ? basket : otherBasket;
+
+            if (!targetBasket || targetBasket.size < basketCandidate.size) {
+                if (isTargetColour) {
+                    basket = basketCandidate;
+                } else {
+                    otherBasket = basketCandidate;
+                }
             }
-        } else {
-            if (!otherBasket || otherBasket.w * otherBasket.h < baskets[i].w * baskets[i].h) {
-                otherBasket = baskets[i];
+        }
+
+        // Reset threshold back to default if basket is above it
+        if (isTargetColour) {
+            if (
+                basket &&
+                basket.bottomMetric >= defaultBasketBottomFilterThreshold &&
+                aiState.basketBottomFilterThreshold !== defaultBasketBottomFilterThreshold
+            ) {
+                aiState.basketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
+                console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
             }
+        } else if (
+            otherBasket &&
+            otherBasket.bottomMetric >= defaultBasketBottomFilterThreshold &&
+            aiState.otherBasketBottomFilterThreshold !== defaultBasketBottomFilterThreshold
+        ) {
+            aiState.otherBasketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
+            aiState.basketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
+            console.log('aiState.otherBasketBottomFilterThreshold', aiState.otherBasketBottomFilterThreshold);
         }
     }
 
@@ -990,7 +1038,7 @@ function resetMotionDriveWithBall() {
 }
 
 let findBasketTimeout = null;
-const findBasketTimeoutDelay = 3000;
+const findBasketTimeoutDelay = 2000;
 
 const requiredStableThrowerSpeedCount = 5;
 let stableThrowerSpeedCount = 0;
@@ -1014,28 +1062,38 @@ function handleMotionFindBasket() {
 
             console.log('handleMotionFindBasket: basket not found');
 
-            setThrowerState(throwerStates.GRAB_BALL);
-            setMotionState(motionStates.DRIVE_GRAB_BALL);
+            aiState.basketBottomFilterThreshold -= 0.3;
+
+            if (aiState.basketBottomFilterThreshold < 0.05) {
+                aiState.basketBottomFilterThreshold = 0;
+            } else if (aiState.basketBottomFilterThreshold === 0) {
+                setThrowerState(throwerStates.GRAB_BALL);
+                setMotionState(motionStates.DRIVE_GRAB_BALL);
+            }
+
+            console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
         }, findBasketTimeoutDelay);
     }
 
-    if (closestBall) {
-        const ballCenterX = closestBall.cx;
-        const ballCenterY = closestBall.cy;
-        const ballErrorX = ballCenterX - frameCenterX;
-        const ballErrorY = 0.8 * frameHeight - ballCenterY;
+    if (closestBall || throwerState === throwerStates.THROW_BALL && mainboardState.balls[0]) {
+        if (closestBall) {
+            const ballCenterX = closestBall.cx;
+            const ballCenterY = closestBall.cy;
+            const ballErrorX = ballCenterX - frameCenterX;
+            const ballErrorY = 0.8 * frameHeight - ballCenterY;
 
-        xSpeed = Math.sign(ballErrorX) * Math.pow(Math.abs(ballErrorX) / 400, 1.5);
-        forwardSpeed = ballErrorY / 400;
+            xSpeed = Math.sign(ballErrorX) * Math.pow(Math.abs(ballErrorX) / 400, 1.5);
+            forwardSpeed = ballErrorY / 400;
 
-        if (
-            ballErrorY > 200 ||
-            Math.abs(ballErrorX) > 200 ||
-            ballCenterY > 950 //ball too close
-        ) {
-            setMotionState(motionStates.DRIVE_TO_BALL);
-        } else {
-            isBallCloseEnough = true;
+            if (
+                ballErrorY > 200 ||
+                Math.abs(ballErrorX) > 200 ||
+                ballCenterY > 950 //ball too close
+            ) {
+                setMotionState(motionStates.DRIVE_TO_BALL);
+            } else {
+                isBallCloseEnough = true;
+            }
         }
 
         if (throwerState === throwerStates.THROW_BALL) {
@@ -1062,7 +1120,6 @@ function handleMotionFindBasket() {
             }
 
             forwardSpeed = isThrowerSpeedStable ? 0.2 : 0;
-
         }
 
     } else {
