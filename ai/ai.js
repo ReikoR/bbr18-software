@@ -178,6 +178,9 @@ let mainboardState = {
     speeds: [0, 0, 0, 0, 0],
     balls: [false, false], prevBalls: [false, false],
     ballThrown: false,
+    ballThrowSpeed: 0,
+    ballThrownSpeed: 0,
+    ballThrownBasketOffset: 0,
     ballGrabbed: false,
     ballEjected: false,
     lidarDistance: 0,
@@ -299,6 +302,9 @@ function handleInfo(info) {
                 && mainboardState.balls[1] === false
             ) {
                 mainboardState.ballThrown = true;
+                mainboardState.ballThrownSpeed = mainboardState.speeds[4];
+                mainboardState.ballThrownBasketOffset = processedVisionState.basket ?
+                    processedVisionState.basket.cx - frameCenterX : 0;
                 console.log('mainboardState.ballThrown', mainboardState.ballThrown);
 
                 if (visionState.basket) {
@@ -307,6 +313,13 @@ function handleInfo(info) {
 
                 aiState.basketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
                 console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
+            }
+
+            if (throwerState === throwerStates.THROW_BALL
+                && mainboardState.prevBalls[0] === false
+                && mainboardState.balls[0] === true
+            ) {
+                mainboardState.ballThrowSpeed = mainboardState.speeds[4];
             }
 
             if (
@@ -593,7 +606,10 @@ function sendState() {
         robotID: aiState.robotID,
         isManualOverride: aiState.isManualOverride,
         isCompetition: aiState.isCompetition,
-        basketColour: aiState.basketColour
+        basketColour: aiState.basketColour,
+        ballThrowSpeed: mainboardState.ballThrowSpeed,
+        ballThrownSpeed: mainboardState.ballThrownSpeed,
+        ballThrownBasketOffset: mainboardState.ballThrownBasketOffset,
     };
 
     sendToHub({type: 'message', topic: 'ai_state', state: state}, () => {
