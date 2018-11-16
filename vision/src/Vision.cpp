@@ -282,6 +282,8 @@ ObjectList Vision::processBaskets(Dir dir) {
 }
 
 bool Vision::isValidbasket(Object *basket, Side side) {
+    bool debug = canvas.data != nullptr;
+
     int minAreaSideLength = 20;
     int maxBottomHeight = 40;
     int x1 = basket->x - basket->width / 2;
@@ -295,25 +297,25 @@ bool Vision::isValidbasket(Object *basket, Side side) {
         return false;
     }
 
-	std::vector<Blobber::BlobColor> sideValidColors = {
-			Blobber::BlobColor::orange/*,
-			Blobber::BlobColor::white,
-			Blobber::BlobColor::black*/
-	};
+	/*std::vector<Blobber::BlobColor> sideValidColors = {
+			Blobber::BlobColor::orange,
+			//Blobber::BlobColor::white,
+			//Blobber::BlobColor::black
+	};*/
 
     std::vector<Blobber::BlobColor> bottomValidColors = {
             Blobber::BlobColor::orange
     };
 
-	std::vector<Blobber::BlobColor> topValidColors = {
+	/*std::vector<Blobber::BlobColor> topValidColors = {
 			Blobber::BlobColor::white
-	};
+	};*/
 
 	int sideWidth = std::max(basket->width, minAreaSideLength);
     int boxWidthBottom = sideWidth + basket->width / 2;
     int bottomHeight = std::min(sideWidth, maxBottomHeight);
 
-    float topMetric = getAreaMetric(
+    /*float topMetric = getAreaMetric(
             x1 - sideWidth,
             y1 - sideWidth,
             2 * sideWidth + basket->width,
@@ -335,7 +337,7 @@ bool Vision::isValidbasket(Object *basket, Side side) {
             sideWidth,
             basket->height,
             sideValidColors
-    );
+    );*/
 
 	float bottomLeftMetric = getAreaMetric(
 			basket->x - boxWidthBottom,
@@ -353,9 +355,9 @@ bool Vision::isValidbasket(Object *basket, Side side) {
             bottomValidColors
     );
 
-    basket->surroundMetrics[0] = topMetric;
+    /*basket->surroundMetrics[0] = topMetric;
     basket->surroundMetrics[1] = sideLeftMetric;
-    basket->surroundMetrics[2] = sideRightMetric;
+    basket->surroundMetrics[2] = sideRightMetric;*/
     basket->surroundMetrics[3] = bottomLeftMetric;
     basket->surroundMetrics[4] = bottomRightMetric;
 
@@ -365,10 +367,72 @@ bool Vision::isValidbasket(Object *basket, Side side) {
 	std::cout << "@ BOTTOM RIGHT METRIC: " << bottomRightMetric << std::endl;
 	std::cout << "@ TOP METRIC: " << topMetric << std::endl;*/
 
-    return //(isnan(topMetric) || topMetric > 0.2) &&
-            //(sideLeftMetric > 0.2 || sideRightMetric > 0.2) &&
-            bottomLeftMetric > 0.5 ||
-            bottomRightMetric > 0.5;
+    //return bottomLeftMetric > 0.5 || bottomRightMetric > 0.5;
+
+    if (debug) {
+        /*canvas.drawBox(
+                x1 - sideWidth, y1 - sideWidth,
+                2 * sideWidth + basket->width, sideWidth,
+                255, 0, 0
+        );
+
+        canvas.drawBox(
+                x1 - sideWidth, y1,
+                sideWidth, basket->height,
+                255, 0, 0
+        );
+
+        canvas.drawBox(
+                x1 + basket->width, y1,
+                sideWidth, basket->height,
+                255, 0, 0
+        );*/
+
+        canvas.drawBox(
+                basket->x - boxWidthBottom, basket->y + basket->height / 2,
+                boxWidthBottom, bottomHeight,
+                255, 0, 0
+        );
+
+        canvas.drawBox(
+                basket->x, basket->y + basket->height / 2,
+                boxWidthBottom, bottomHeight,
+                255, 0, 0
+        );
+
+        char buf[256];
+
+        int r = 0, g = 0, b = 0;
+
+        if (basket->type == Side::MAGENTA) {
+            Blobber::ColorClassState* color = blobber->getColor(Blobber::BlobColor::magenta);
+            r = color->r;
+            g = color->g;
+            b = color->b;
+        } else if (basket->type == Side::BLUE) {
+            Blobber::ColorClassState* color = blobber->getColor(Blobber::BlobColor::blue);
+            r = color->r;
+            g = color->g;
+            b = color->b;
+        }
+
+        /*sprintf(buf, "%.2f", basket->surroundMetrics[0]);
+        canvas.drawText(x1 - sideWidth, std::max(y1 - sideWidth, 0), buf, r, g, b);
+
+        sprintf(buf, "%.2f", basket->surroundMetrics[1]);
+        canvas.drawText(x1 - sideWidth, y1, buf, r, g, b);
+
+        sprintf(buf, "%.2f", basket->surroundMetrics[2]);
+        canvas.drawText(x1 + basket->width, y1, buf, r, g, b);*/
+
+        sprintf(buf, "%.2f", basket->surroundMetrics[3]);
+        canvas.drawText(basket->x - boxWidthBottom, basket->y + basket->height / 2, buf, r, g, b);
+
+        sprintf(buf, "%.2f", basket->surroundMetrics[4]);
+        canvas.drawText(basket->x, basket->y + basket->height / 2, buf, r, g, b);
+    }
+
+    return true;
 }
 
 //bool Vision::isValidbasket(Object* goal, Side side) {

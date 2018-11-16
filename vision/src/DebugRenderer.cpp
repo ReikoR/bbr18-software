@@ -150,51 +150,15 @@ void DebugRenderer::renderBaskets(unsigned char *image, const ObjectList &basket
 			r = color->r;
 			g = color->g;
 			b = color->b;
-		}/* else {
-			continue;
-		}*/
+		}
 
 		canvas.drawBoxCentered(basket->x, basket->y, basket->width, basket->height, r, g, b);
 		//canvas.drawLine(basket->x - basket->width / 2, basket->y - basket->height / 2, basket->x + basket->width / 2, basket->y + basket->height / 2, r, g, b);
 		//canvas.drawLine(basket->x - basket->width / 2, basket->y + basket->height / 2, basket->x + basket->width / 2, basket->y - basket->height / 2, r, g, b);
 
 		int minAreaSideLength = 20;
-        int maxBottomHeight = 40;
-        int x1 = basket->x - basket->width / 2;
-        int y1 = basket->y - basket->height / 2;
-        int sideWidth = std::max(basket->width, minAreaSideLength);
-        int boxWidthBottom = sideWidth + basket->width / 2;
-        int bottomHeight = std::min(sideWidth, maxBottomHeight);
 
-		canvas.drawBox(
-				x1 - sideWidth, y1 - sideWidth,
-                2 * sideWidth + basket->width, sideWidth,
-				255, 0, 0
-		);
 
-		canvas.drawBox(
-				x1 - sideWidth, y1,
-                sideWidth, basket->height,
-				255, 0, 0
-		);
-
-		canvas.drawBox(
-				x1 + basket->width, y1,
-                sideWidth, basket->height,
-				255, 0, 0
-		);
-
-		canvas.drawBox(
-				basket->x - boxWidthBottom, basket->y + basket->height / 2,
-				boxWidthBottom, bottomHeight,
-				255, 0, 0
-		);
-
-		canvas.drawBox(
-				basket->x, basket->y + basket->height / 2,
-				boxWidthBottom, bottomHeight,
-				255, 0, 0
-		);
 
 		int offsetY = 20;
 
@@ -204,20 +168,7 @@ void DebugRenderer::renderBaskets(unsigned char *image, const ObjectList &basket
 		//sprintf(buf, "%d x %d, %d", basket->x, basket->y + basket->height / 2, basket->area);
 		//canvas.drawText(basket->x - basket->width / 2 + 2, basket->y + basket->height / 2 + offsetY + 10, buf, r, g, b);
 
-		sprintf(buf, "%.2f", basket->surroundMetrics[0]);
-		canvas.drawText(x1 - sideWidth, std::max(y1 - sideWidth, 0), buf, r, g, b);
 
-		sprintf(buf, "%.2f", basket->surroundMetrics[1]);
-		canvas.drawText(x1 - sideWidth, y1, buf, r, g, b);
-
-		sprintf(buf, "%.2f", basket->surroundMetrics[2]);
-		canvas.drawText(x1 + basket->width, y1, buf, r, g, b);
-
-		sprintf(buf, "%.2f", basket->surroundMetrics[3]);
-		canvas.drawText(basket->x - boxWidthBottom, basket->y + basket->height / 2, buf, r, g, b);
-
-		sprintf(buf, "%.2f", basket->surroundMetrics[4]);
-		canvas.drawText(basket->x, basket->y + basket->height / 2, buf, r, g, b);
 
 		/*int boxArea = basket->width * basket->height;
 
