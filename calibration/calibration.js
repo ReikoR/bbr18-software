@@ -1,8 +1,9 @@
 const fs = require('fs');
 const config = require('./public-conf.json');
+const regression = require('simple-linear-regression');
 
 exports.getThrowerTechnique = function (distance, angle = 0) {
-    if (distance > 250) {
+    if (distance > 200) {
         return 'hoop';
     } else {
         return 'dunk';
@@ -46,13 +47,13 @@ exports.recordFeedback = function (x, fb) {
         measurements.splice(measurements.indexOf(obj), 1)
     );
 
-    const c = interpolate('c', x) * (fb[0] ? 0.75 : 0.25);
+    const c = interpolate(measurements, 'c', x) * (fb[0] ? 0.75 : 0.25);
 
     // Add new measurement
     measurements.push({
         x,
         y: 0,
-        z: exports.getThrowerSpeed(x) + fb[0] * Math.max(100, c), //message.feedback * c,
+        z: exports.getThrowerSpeed(x) + fb[0] * Math.max(50, c), //message.feedback * c,
         c,
         n: closeObjs.reduce((sum, obj) => sum + obj.n, 1),
         p: exports.getCenterOffset(x) + fb[1]
@@ -69,17 +70,32 @@ exports.getMeasurements = function () {
 };
 
 function interpolate (measurements, z, x, y = 0) {
-    const sortedData = [ ...measurements ].sort((a, b) =>
-        Math.abs(a.x - x) - Math.abs(b.x - x)
-    );
+    let closeData = measurements;//.filter(m => Math.abs(m.x - x) <= 10);
 
-    // Find two closest objects with different x-positions
-    const obj1 = sortedData.find(obj => obj.x < x) || sortedData[0];
-    const obj2 = sortedData.find(obj => obj.x > x && obj.x !== obj1.x) || sortedData.find(obj => obj.x !== obj1.x);
+    // Find two closest points if there are no points close enough
+    if (closeData.length < 2) {
+        const sortedData = [...measurements].sort((a, b) =>
+            Math.abs(a.x - x) - Math.abs(b.x - x)
+        );
 
+        // Find two closest objects with different x-positions
+        const obj1 = sortedData.find(obj => obj.x < x) || sortedData[0];
+        const obj2 = sortedData.find(obj => obj.x > x && obj.x !== obj1.x) || sortedData.find(obj => obj.x !== obj1.x);
+
+        closeData = [obj1, obj2];
+    }
+
+    const line = regression(closeData.map(m => m.x), closeData.map(m => m[z]));
+
+    console.log(closeData.length, line, line.a * x + line.b);
+
+    /*
     // Get 2 closest object interpolation
     const a = (obj1[z] - obj2[z]) / (obj1.x - obj2.x);
     const b = obj1[z] - a*obj1.x;
 
     return a*x + b;
+    */
+
+    return line.a * x + line.b;
 }
