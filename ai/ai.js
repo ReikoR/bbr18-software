@@ -714,15 +714,16 @@ function resetMotionFindBall() {
     findObjectRotateTimeout = null;
     findObjectRotatePatternIndex = 0;
     findObjectRotateLoopCount = 0;
+    driveToBallStartTime = null;
 }
 
-const driveToBallMinSpeed = 0.1;
-const driveToBallMaxSpeed = 4;
+const driveToBallMinSpeed = 0.2;
+const driveToBallMaxSpeed = 3.0;
 const driveToBallStartSpeed = 0.5;
 let driveToBallStartTime = null;
 
-const driveToBallRotationSpeedRampUpLimit = 0.05;
-const driveToBallMaxRotationSpeed = 5;
+const driveToBallRotationSpeedRampUpLimit = 0.03;
+const driveToBallMaxRotationSpeed = 4;
 let driveToBallCurrentRotationSpeedLimit = 0.5;
 
 function getDriveToBallMaxSpeed(startTime, startSpeed, speedLimit) {
@@ -764,7 +765,7 @@ function handleMotionDriveToBall() {
         const centerX = closestBall.cx;
         const centerY = closestBall.cy;
         const errorX = centerX - frameCenterX;
-        const errorY = 0.8 * frameHeight - centerY;
+        const errorY = 0.87 * frameHeight - centerY;
 
         if(710 > centerX > 660 && centerY > 950) {
             setThrowerState(throwerStates.EJECT_BALL);
@@ -780,12 +781,12 @@ function handleMotionDriveToBall() {
 
         const normalizedErrorY = errorY / frameHeight;
 
-        const maxErrorForwardSpeed = util.clamp(12 * Math.pow(normalizedErrorY, 3) , 3, 6);
-        const maxErrorRotationSpeed = 10;
+        const maxErrorForwardSpeed = 5;
+        const maxErrorRotationSpeed = 8;
 
 
-        let forwardSpeed = maxErrorForwardSpeed * normalizedErrorY /*Math.pow(normalizedErrorY, 2)*/;
-        let rotationSpeed = maxErrorRotationSpeed * -errorX / frameWidth;
+        let forwardSpeed = maxErrorForwardSpeed * Math.pow(normalizedErrorY, 2);
+        let rotationSpeed = maxErrorRotationSpeed * - errorX / frameWidth;
 
         if (forwardSpeed > maxForwardSpeed) {
             forwardSpeed = maxForwardSpeed;
@@ -825,7 +826,7 @@ function handleMotionDriveToBall() {
         if (
             errorY <= 100 &&
             Math.abs(errorX) <= 100 &&
-            centerY <= 950 //avoid too close ball
+            centerY <= 900 //avoid too close ball
         ) {
             setMotionState(motionStates.GRAB_BALL);
         }
@@ -834,8 +835,8 @@ function handleMotionDriveToBall() {
     }
 }
 
-const grabBallStartSpeed = 2;
-const grabBallMaxSpeed = 6;
+const grabBallStartSpeed = 0.5;
+const grabBallMaxSpeed = 1.5;
 
 function handleMotionGrabBall() {
 
@@ -870,7 +871,7 @@ function handleMotionGrabBall() {
             driveToBallStartTime, grabBallStartSpeed, grabBallMaxSpeed
         );
 
-        const maxErrorForwardSpeed = 5;
+        const maxErrorForwardSpeed = 3;
         const maxErrorRotationSpeed = 8;
         const normalizedErrorY = errorY / frameHeight;
         let forwardSpeed = maxErrorForwardSpeed * normalizedErrorY;
@@ -900,7 +901,7 @@ function handleMotionGrabBall() {
         let isBasketTooClose = closestBasket && closestBasket.y2 > 400;
 
         const minBasketForwardSpeed = 0.1;
-        const maxBasketForwardSpeed = 2;
+        const maxBasketForwardSpeed = 1.0;
 
 
         if (isBasketTooClose) {
@@ -940,7 +941,7 @@ function resetMotionDriveToBall() {
 }
 
 let findBasketFallbackTimeout = null;
-const findBasketFallbackTimeoutDelay = 200;
+const findBasketFallbackTimeoutDelay = 150;
 let findBasketDriveTimeout = null;
 const findBasketDriveTimeoutDelay = 1000;
 let enableSpin = true;
@@ -1055,15 +1056,21 @@ function handleMotionFindBasket() {
     const maxRotationSpeed = 4;
     const minThrowError = 4;
     const maxThrowDistance = 6.0;
-    const maxForwardSpeed = 1;
-    const defaultAimFrames = 6;
-    const minValidAimFrames = defaultAimFrames;
+    const maxForwardSpeed = 1.5;
+    const defaultAimFrames = 6
+    let minValidAimFrames = defaultAimFrames;
 
     let sideSpeed = 0;
     let forwardSpeed = 0;
     let isBasketErrorXSmallEnough = false;
 
     const patternStep = findObjectRotatePattern[findObjectRotatePatternIndex];
+
+    /*if(!(throwerState === throwerStates.GRAB_BALL || throwerState === throwerStates.THROW_BALL)){
+        setMotionState(motionStates.FIND_BALL);
+        setThrowerState(throwerStates.IDLE);
+        return;
+    }*/
 
     if (findObjectRotateTimeout == null) {
         findObjectRotateTimeout = setTimeout(() => {
@@ -1102,15 +1109,15 @@ function handleMotionFindBasket() {
         const basketErrorX = basketCenterX - frameCenterX;
         const basketErrorY = basketCenterY - frameCenterY;
         const minBasketDistance = 400;
-        const maxBasketDistance = 110;
+        const maxBasketDistance = 120;
 
         aiState.speeds[4] = throwerIdleSpeed;
 
         //rotationSpeed = maxRotationSpeed * -basketErrorX / (frameWidth / 2) * -frameCenterY / basketErrorY / 3;
 
-        const maxErrorRotationSpeed = 10;
+        const maxErrorRotationSpeed = 6;
 
-        rotationSpeed = maxErrorRotationSpeed * -basketErrorX / frameWidth;
+        rotationSpeed = maxErrorRotationSpeed * - basketErrorX / frameWidth;
 
         let isBasketTooClose = basket && basket.y2 > minBasketDistance;
         let isBasketTooFar = basket && basket.y2 < maxBasketDistance;
@@ -1120,7 +1127,7 @@ function handleMotionFindBasket() {
             forwardSpeed = -maxForwardSpeed * minBasketDistance / basket.y2;
         } else if (isBasketTooFar) {
             movedForThrowFlag = true;
-            forwardSpeed = maxForwardSpeed * Math.max((maxBasketDistance - basket.y2) / 8, 0.3);
+            forwardSpeed = maxForwardSpeed * Math.max(Math.min((maxBasketDistance - basket.y2) / 10, 1), 0.3);
         }
 
 
@@ -1140,10 +1147,15 @@ function handleMotionFindBasket() {
 
         isBasketErrorXSmallEnough = Math.abs(basketErrorX) < throwError;
 
+        if (movedForThrowFlag)
+            minValidAimFrames = minValidAimFrames * 5;
+
         if (isBasketErrorXSmallEnough && !isBasketTooClose && !isBasketTooFar) {
             validAimFrames ++;
             rotationSpeed = 0;
-            if (validAimFrames > minValidAimFrames){
+            forwardSpeed = 0;
+            sideSpeed = 0;
+            if (validAimFrames > minValidAimFrames ){
                 setThrowerState(throwerStates.THROW_BALL);
                 validAimFrames = 0;
             }
