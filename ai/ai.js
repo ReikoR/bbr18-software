@@ -1387,6 +1387,7 @@ function setMotionState(newState) {
 
         if (motionState === motionStates.IDLE) {
             resetMotionFindBall();
+            aiState.ballTopArcFilterThreshold = defaultBallTopArcFilterThreshold;
         }
     }
 }
