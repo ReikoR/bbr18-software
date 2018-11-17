@@ -109,7 +109,9 @@ function updateCommandBuffer(commandObject) {
     let i;
 
     for (i = 0; i < speeds.length; i++) {
-        commandBuffer.writeInt16LE(speeds[i], 2 * i);
+        if (speeds[i] <= 32000 && speeds[i] >= -32000) {
+            commandBuffer.writeInt16LE(speeds[i], 2 * i);
+        }
     }
 
     commandBuffer.writeUInt8(commandObject.fieldID.charCodeAt(0), 2 * i);
