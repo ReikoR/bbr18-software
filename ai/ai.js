@@ -205,6 +205,8 @@ const mainboardLedStates = {
 
 let basketState = {distance: 0, angel: 0};
 
+const defaultBallTopArcFilterThreshold = 0.4;
+
 let aiState = {
     speeds: [0, 0, 0, 0, 0, 0, minServo],
     fieldID: 'Z',
@@ -212,7 +214,8 @@ let aiState = {
     shouldSendAck: false,
     isManualOverride: false,
     isCompetition: true,
-    basketColour: basketColours.blue
+    basketColour: basketColours.blue,
+    ballTopArcFilterThreshold: defaultBallTopArcFilterThreshold
 };
 
 socket.on('error', (err) => {
@@ -520,7 +523,7 @@ function processVisionInfo(info) {
 
     for (let i = 0; i < balls.length; i++) {
         // Ignore bad balls by top arc metric
-        if (balls[i].metrics[1] < 0.4) {
+        if (balls[i].metrics[1] < aiState.ballTopArcFilterThreshold) {
             continue;
         }
 
@@ -703,6 +706,11 @@ function handleMotionFindBall() {
                 if (findObjectRotatePatternIndex >= findObjectRotatePattern.length) {
                     findObjectRotatePatternIndex = 0;
                     findObjectRotateLoopCount++;
+                }
+
+                aiState.ballTopArcFilterThreshold /= 2;
+                if (aiState.ballTopArcFilterThreshold < 0.01) {
+                    aiState.ballTopArcFilterThreshold = 0;
                 }
             }, patternStep[1] * (findObjectRotateLoopCount + 1));
 
