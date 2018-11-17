@@ -1157,7 +1157,7 @@ function handleMotionFindBasket() {
 
     }
 
-    let rotationSpeed = patternStep[0] / (findObjectRotateLoopCount + 1);
+
 
     if (findBasketTimeout === null) {
         findBasketTimeout = setTimeout(() => {
@@ -1174,6 +1174,30 @@ function handleMotionFindBasket() {
         clearTimeout(findBasketTimeout);
         findBasketTimeout = null;
     }
+
+    const visionMetrics = visionState.metrics;
+    const reach = visionMetrics.straightAhead.reach;
+    const drivability = visionMetrics.driveability;
+    const leftSideMetric = visionMetrics.straightAhead.leftSideMetric;
+    const rightSideMetric = visionMetrics.straightAhead.rightSideMetric;
+    let sideMetric = -leftSideMetric + rightSideMetric;
+
+    if (sideMetric < 0.1 && (leftSideMetric > 0.1 || rightSideMetric > 0.1)) {
+        if (sideMetric > 0) {
+            sideMetric = rightSideMetric;
+        } else {
+            sideMetric = -leftSideMetric;
+        }
+    }
+
+    if(reach > 210) {
+        forwardSpeed = -1;
+        if (Math.abs(sideMetric) >= 0.1) {
+            sideSpeed = -Math.sign(sideMetric) * Math.max(2 * Math.abs(sideMetric), 0.2);
+        }
+    }
+    else
+        rotationSpeed = patternStep[0] / (findObjectRotateLoopCount + 1);
 
     if (basket) {
         const basketCenterX = basket.cx;
