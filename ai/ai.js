@@ -798,7 +798,7 @@ function handleMotionDriveToBall() {
         const centerX = closestBall.cx;
         const centerY = closestBall.cy;
         const errorX = centerX - frameCenterX;
-        const errorY = 0.8 * frameHeight - centerY;
+        const errorY = 0.85 * frameHeight - centerY;
         const maxForwardSpeed = getDriveToBallMaxSpeed(
             driveToBallStartTime, driveToBallStartSpeed, driveToBallMaxSpeed
         );
