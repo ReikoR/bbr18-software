@@ -775,6 +775,7 @@ function getDriveToBallMaxSpeed(startTime, startSpeed, speedLimit) {
 
 function handleMotionDriveToBall() {
     const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
+    const basket = processedVisionState.basket;
 
     if (!driveToBallStartTime) {
         driveToBallStartTime = Date.now();
@@ -799,6 +800,7 @@ function handleMotionDriveToBall() {
         const centerY = closestBall.cy;
         const errorX = centerX - frameCenterX;
         const errorY = 0.85 * frameHeight - centerY;
+        const maxSideSpeed = 5;
         const maxForwardSpeed = getDriveToBallMaxSpeed(
             driveToBallStartTime, driveToBallStartSpeed, driveToBallMaxSpeed
         );
@@ -809,11 +811,15 @@ function handleMotionDriveToBall() {
         let forwardSpeed = maxErrorForwardSpeed * Math.pow(normalizedErrorY, 2);
         let rotationSpeed = maxErrorRotationSpeed * -errorX / frameWidth;
 
+        forwardSpeed *= util.mapFromRangeToRange(driveability, 0.6, 1, 0.1, 1);
+
         if (forwardSpeed > maxForwardSpeed) {
             forwardSpeed = maxForwardSpeed;
         } else if (forwardSpeed < driveToBallMinSpeed) {
             forwardSpeed = driveToBallMinSpeed;
         }
+
+        rotationSpeed *= util.clamped(0.8 - normalizedErrorY, 0.5, 1);
 
         if (rotationSpeed > maxRotationSpeed) {
             rotationSpeed = maxRotationSpeed;
@@ -825,29 +831,43 @@ function handleMotionDriveToBall() {
             driveToBallCurrentRotationSpeedLimit = driveToBallMaxRotationSpeed;
         }
 
+
+
         let sideSpeed = 0;
         let closestBasket = getClosestBasket();
 
         let isBasketTooClose = closestBasket && closestBasket.y2 > 400;
+
+        const normalizedCloseToBallErrorY = Math.abs(errorY) / 400;
+
+        let avoidObstacleSideSpeed = 0;
+        let turnToBasketSideSpeed = 0;
 
         if (isBasketTooClose && errorY <= 50 && Math.abs(errorX) <= 50) {
             setThrowerState(throwerStates.GRAB_BALL);
             setMotionState(motionStates.DRIVE_GRAB_BALL);
 
         } else if (Math.abs(sideMetric) >= 0.1) {
-            //driveToBallStartTime = Date.now();
-            //forwardSpeed = forwardSpeed * 0.5;
-            //rotationSpeed = 0;
-            sideSpeed = -Math.sign(sideMetric) * Math.max(Math.min(forwardSpeed, 1) * 2 * Math.abs(sideMetric), 0.2);
-
-            const normalizedCloseToBallErrorY = Math.abs(errorY) / 400;
+            avoidObstacleSideSpeed = -Math.sign(sideMetric) *
+                Math.max(Math.min(forwardSpeed, 1) * 2 * Math.abs(sideMetric), 0.2);
 
             if (normalizedCloseToBallErrorY < 1) {
-                sideSpeed *= Math.pow(normalizedCloseToBallErrorY, 4);
+                avoidObstacleSideSpeed *= Math.pow(normalizedCloseToBallErrorY, 4);
             }
         }
 
-        sideSpeed = util.clamped(sideSpeed, -maxForwardSpeed, maxForwardSpeed);
+        const maxTurnToBasketSideSpeed = 0.1;
+
+        if (basket && Math.abs(sideMetric) < 0.1) {
+            const basketCenterX = basket.cx;
+            const basketErrorX = basketCenterX - frameCenterX;
+            turnToBasketSideSpeed = maxTurnToBasketSideSpeed * -basketErrorX / (frameWidth / 2);
+        }
+
+        sideSpeed += avoidObstacleSideSpeed;
+        sideSpeed += turnToBasketSideSpeed * forwardSpeed;
+
+        sideSpeed = util.clamped(sideSpeed, -maxSideSpeed, maxSideSpeed);
         forwardSpeed = util.clamped(forwardSpeed, -maxForwardSpeed, maxForwardSpeed);
 
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
