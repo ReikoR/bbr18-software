@@ -1008,6 +1008,8 @@ const findBasketTimeoutDelay = 2000;
 const requiredStableThrowerSpeedCount = 5;
 let stableThrowerSpeedCount = 0;
 let isThrowerSpeedStable = false;
+let basketNotFoundCount = 0;
+const basketNotFoundLimit = 2;
 
 function handleMotionFindBasket() {
     const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
@@ -1025,13 +1027,15 @@ function handleMotionFindBasket() {
         findBasketTimeout = setTimeout(() => {
             findBasketTimeout = null;
 
-            console.log('handleMotionFindBasket: basket not found');
+            basketNotFoundCount++;
+
+            console.log('handleMotionFindBasket: basket not found', basketNotFoundCount);
 
             aiState.basketBottomFilterThreshold -= 0.3;
 
             if (aiState.basketBottomFilterThreshold < 0.05) {
                 aiState.basketBottomFilterThreshold = 0;
-            } else if (aiState.basketBottomFilterThreshold === 0) {
+            } else if (aiState.basketBottomFilterThreshold === 0 || basketNotFoundCount > basketNotFoundLimit) {
                 setThrowerState(throwerStates.GRAB_BALL);
                 setMotionState(motionStates.DRIVE_GRAB_BALL);
             }
@@ -1121,6 +1125,7 @@ function resetMotionFindBasket() {
     findBasketTimeout = null;
     isThrowerSpeedStable = false;
     stableThrowerSpeedCount = 0;
+    basketNotFoundCount = 0;
 }
 
 function handleThrowerIdle() {
