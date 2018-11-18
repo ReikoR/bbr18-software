@@ -624,17 +624,19 @@ function handleMainboardButtonChanged() {
 
     switch (mainboardState.button) {
         case mainboardButtonEvents.PRESSED:
-            // Basket colour can be changed any time if not competition or during competition when idling
-            if (!aiState.isCompetition || motionState === motionStates.IDLE) {
-                toggleBasketColour();
-            }
-            break;
-        case mainboardButtonEvents.PRESSED_LONG:
             // During competition, starting is only allowed while idling
             if (!aiState.isCompetition || motionState === motionStates.IDLE) {
                 setMotionState(motionStates.FIND_BALL);
                 setThrowerState(throwerStates.IDLE);
             }
+
+            break;
+        case mainboardButtonEvents.PRESSED_LONG:
+            // Basket colour can be changed any time if not competition or during competition when idling
+            if (!aiState.isCompetition || motionState === motionStates.IDLE) {
+                toggleBasketColour();
+            }
+
             break;
     }
 }
