@@ -1184,8 +1184,6 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 
 			Blobber::BlobColor color = blobber->getColorAt(x, y);
 
-			totalCount += std::abs(i);
-
 			if (find(validColors.begin(), validColors.end(), color) != validColors.end()) {
 				validGrid[xIndex][yIndex] = 1;
 
@@ -1269,7 +1267,7 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 			}
 
 			if (validGrid[xIndex][yIndex] == 1) {
-				validCount += (maxSideColumns - std::abs(i));
+				validCount += std::abs(i);
 
 				if (y < reach) {
 					reach = y;
