@@ -131,8 +131,8 @@ const frameWidth = 1280;
 const frameCenterX = frameWidth / 2;
 const frameCenterY = frameHeight / 2;
 
-const minServo = 1050;
-const maxServo = 1650;
+const minServo = thrower.getServoMin();
+const maxServo = thrower.getServoMax();
 const servoRange = maxServo - minServo;
 let servo = maxServo;
 

@@ -1,6 +1,9 @@
 const trainingUtils = require('../calibration/calibration');
 let measurements = require('../calibration/measurements.json');
 
+const minServo = 1085;
+const maxServo = 1650;
+
 function reloadMeasurements () {
     delete require.cache[require.resolve('../training/measurements.json')];
     measurements = require('../calibration/measurements.json');
@@ -12,17 +15,17 @@ function getSpeed (distance) {
     return trainingUtils.interpolate(measurements, distance);
 }
 
-const distanceToSpeedMap1650 = [
-    [0.26, 7600],
-    [0.49, 8650],
-    [0.80, 9550],
-    [1.05, 10550],
-    [1.45, 12450],
+const distanceToSpeedMapClose = [
+    [0.26, 7700],
+    [0.49, 8700],
+    [0.80, 9700],
+    [1.05, 11000],
+    [1.45, 13000],
     [1.92, 14100],
     [2.45, 16500]
 ];
 
-const distanceToSpeedMap1050 = [
+const distanceToSpeedMapFar = [
     [1.44, 8500],
     [1.76, 9500],
     [2.15, 10650],
@@ -34,8 +37,17 @@ const distanceToSpeedMap1050 = [
 
 const angleSwapDistance = 2.2;
 
+function getServoMin() {
+    return minServo;
+}
+
+function getServoMax() {
+    return maxServo;
+}
+
+
 function getAngle(distance) {
-    return distance > angleSwapDistance ? 1050 : 1650;
+    return distance > angleSwapDistance ? minServo : maxServo;
 }
 
 function getSpeedPrev(distance) {
@@ -43,9 +55,9 @@ function getSpeedPrev(distance) {
     let map;
 
     if(distance > angleSwapDistance){
-        map = distanceToSpeedMap1050;
+        map = distanceToSpeedMapFar;
     } else {
-        map = distanceToSpeedMap1650;
+        map = distanceToSpeedMapClose;
     }
 
     let lowerDistance = map[0][0];
@@ -91,5 +103,7 @@ module.exports = {
     getSpeed,
     getSpeedPrev,
     getAngle,
-    reloadMeasurements
+    reloadMeasurements,
+    getServoMin,
+    getServoMax
 };
