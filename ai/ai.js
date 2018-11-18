@@ -662,7 +662,20 @@ function handleMotionFindBall() {
     const patternStep = findBallRotatePattern[findBallRotatePatternIndex];
 
     if (isFindBallDriveToBasket) {
-        //TODO: this duplicates other code
+        const visionMetrics = visionState.metrics;
+        const leftSideMetric = visionMetrics.straightAhead.leftSideMetric;
+        const rightSideMetric = visionMetrics.straightAhead.rightSideMetric;
+        let sideMetric = -leftSideMetric + rightSideMetric;
+        const reach = visionMetrics.straightAhead.reach;
+        const driveability = visionMetrics.straightAhead.driveability;
+
+        if (Math.abs(sideMetric) < 0.1 && (leftSideMetric > 0.1 || rightSideMetric > 0.1)) {
+            if (sideMetric > 0) {
+                sideMetric = rightSideMetric;
+            } else {
+                sideMetric = -leftSideMetric;
+            }
+        }
 
         const basket = processedVisionState.basket;
         const otherBasket = processedVisionState.otherBasket;
@@ -670,51 +683,38 @@ function handleMotionFindBall() {
 
         let forwardSpeed = 0;
         let rotationSpeed = 0;
+        let sideSpeed = -sideMetric;
 
         if (driveToBasket) {
-            //TODO: not tested
             const centerX = driveToBasket.cx;
             const basketY = driveToBasket.y2;
             const errorX = centerX - frameCenterX;
-            const errorY = 0.1 * frameHeight - basketY;
-            const normalizedErrorY = errorY / frameHeight;
+            const errorY = 0.4 * frameHeight - basketY;
+            const normalizedErrorY = util.clamped(errorY / frameHeight, 0, 1);
             const maxForwardSpeed = 3;
 
             forwardSpeed = Math.sign(normalizedErrorY) *
-                Math.max(Math.abs(maxForwardSpeed * normalizedErrorY), 0.5);
-            rotationSpeed = Math.sign(-errorX) * Math.max(Math.abs(2 * errorX / frameWidth), 0.1);
+                Math.max(Math.abs(maxForwardSpeed * Math.pow(normalizedErrorY, 0.5)), 0.1);
+            rotationSpeed = Math.sign(-errorX) * Math.max(Math.abs(4 * errorX / frameWidth), 0.1);
 
-            if (basketY < 500) {
+            if (driveToBasket.w > 80) {
                 driveToBasketColour = driveToBasketColour === basketColours.blue ?
                     basketColours.magenta : basketColours.blue;
 
+                console.log('driveToBasketColour', driveToBasketColour);
             }
 
         } else {
-            const visionMetrics = visionState.metrics;
-            const leftSideMetric = visionMetrics.straightAhead.leftSideMetric;
-            const rightSideMetric = visionMetrics.straightAhead.rightSideMetric;
-            let sideMetric = -leftSideMetric + rightSideMetric;
-            const reach = visionMetrics.straightAhead.reach;
-
-            if (sideMetric < 0.1 && (leftSideMetric > 0.1 || rightSideMetric > 0.1)) {
-                if (sideMetric > 0) {
-                    sideMetric = rightSideMetric;
-                } else {
-                    sideMetric = -leftSideMetric;
-                }
-            }
-
-            if (Math.abs(sideMetric) >= 0.01) {
-                rotationSpeed = Math.sign(sideMetric) * Math.max(8 * Math.abs(sideMetric), 0.2);
-            }
+            rotationSpeed = util.clamped((reach / 100), 0, 2);
 
             if (reach < 150) {
-                forwardSpeed = Math.max(2 * (150 - reach) / 150, 0.2);
+                forwardSpeed = Math.max(3 * (150 - reach) / 150, 0.2);
             }
         }
 
-        setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, forwardSpeed, rotationSpeed, true));
+        forwardSpeed *= util.mapFromRangeToRange(driveability, 0.6, 1, 0.1, 1);
+
+        setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
 
     } else if (findBallRotateLoopCount === findBallRotateLoopLimit) {
         isFindBallDriveToBasket = true;
