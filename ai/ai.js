@@ -1,10 +1,12 @@
 const dgram = require('dgram');
 const socket = dgram.createSocket('udp4');
+const publicConf = require('./public-conf.json');
+const HubCom = require('../common/HubCom');
+const hubCom = new HubCom(publicConf.port, publicConf.hubIpAddress, publicConf.hubPort);
 const omniMotion = require('./omni-motion');
 const thrower = require('./thrower');
 const util = require('./util');
 const calibration = require('../calibration/calibration');
-const publicConf = require('./public-conf.json');
 
 /**
  * @name MainboardFeedback
@@ -213,46 +215,7 @@ let aiState = {
     otherBasketBottomFilterThreshold: defaultBasketBottomFilterThreshold
 };
 
-socket.on('error', (err) => {
-    console.log(`socketPublisher error:\n${err.stack}`);
-    socket.close();
-});
-
-socket.on('message', (message, rinfo) => {
-    //console.log(`socket got: ${message} from ${rinfo.address}:${rinfo.port}`);
-
-    const info = JSON.parse(message.toString());
-    handleInfo(info);
-});
-
-socket.on('listening', () => {
-    const address = socket.address();
-    console.log(`socket listening ${address.address}:${address.port}`);
-});
-
-socket.bind(publicConf.port, () => {
-    //socket.setMulticastInterface('127.0.0.1');
-    socket.setMulticastInterface('127.0.0.1');
-});
-
-process.on('SIGINT', close);
-
-process.on('message', (message) => {
-    console.log('CHILD got message:', message);
-
-    if (message.type === 'close') {
-        close();
-    }
-});
-
-function close() {
-    console.log('closing');
-
-    sendToHub({type: 'unsubscribe'}, () => {
-        socket.close();
-        process.exit();
-    });
-}
+hubCom.on('info', handleInfo);
 
 /**
  *
@@ -612,23 +575,7 @@ function sendState() {
         ballThrownBasketOffset: mainboardState.ballThrownBasketOffset,
     };
 
-    sendToHub({type: 'message', topic: 'ai_state', state: state}, () => {
-
-    });
-}
-
-function sendToHub(info, onSent) {
-    const message = Buffer.from(JSON.stringify(info));
-
-    socket.send(message, publicConf.hubPort, publicConf.hubIpAddress, (err) => {
-        if (err) {
-            console.error(err);
-        }
-
-        if (typeof onSent === 'function') {
-            onSent(err);
-        }
-    });
+    hubCom.send({type: 'message', topic: 'ai_state', state: state});
 }
 
 /**
@@ -1306,8 +1253,11 @@ function update() {
                 break;
         }
 
-        sendToHub({type: 'message', topic: 'mainboard_command', command: mainboardCommand});
+        hubCom.send({type: 'message', topic: 'mainboard_command', command: mainboardCommand});
     }
 }
 
-sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command', 'ai_configuration', 'training']});
+hubCom.send({
+    type: 'subscribe',
+    topics: ['vision', 'mainboard_feedback', 'ai_command', 'ai_configuration', 'training']
+});
