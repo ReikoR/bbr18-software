@@ -845,45 +845,23 @@ function handleMotionDriveToBall() {
         //sidespeed for aligning basket to ball, needsfunctions for smoother range of motion
         if (basket) {
             const basketCenterX = basket.cx;
-            const basketY = basket.y2;
-            const centerDiff = centerX - basketCenterX;
-            const normalizedDiff = centerDiff / frameWidth / 2;
-            const minBasketDiff = 20;
+            const basketY = basket.cy;
+            const basketDiff = basketCenterX - (frameWidth / 2);
+            const normalizedBasketDiff = basketDiff / frameWidth;
+            const minBasketDiff = 6;
             const minAlignedFrames = 3;
-            const closeBallSpeedDiff = Math.abs((centerY - 400) / frameWidth);
 
-            if (basketY > centerY){
-                /*
-                0	0
-                320 0
-                640 1
-                960 0
-                1280 0
-                */
-                const ballCenterMultiplier = util.clamp(-1.704192e-14 - 0.009375 * centerX + 0.00004638672 * Math.pow(centerX, 2) - 6.103516e-8 * Math.pow(centerX, 3) + 2.384186e-11 * Math.pow(centerX, 4), 0.1, 1);
-
-                /*
-                0 0
-                200 0.5
-                400 0.75
-                600 1
-                900 0.5
-                1024 0
-                */
-                const ballDistanceMultiplier = util.clamp(0.01129458 + 0.002222709 * centerX + 5.187619e-7 * Math.pow(centerX, 2) - 2.638381e-9 * Math.pow(centerX, 3), 0.1, 1);
-
-                if (Math.abs(centerDiff) > minBasketDiff) {
-                    sideSpeed = Math.sign(normalizedDiff) * Math.max(2 * normalizedDiff, 0.1) * ballCenterMultiplier * ballDistanceMultiplier;
+            if(centerY > basketY) {
+                if (Math.abs(basketDiff) > minBasketDiff) {
+                    sideSpeed = -Math.sign(normalizedBasketDiff) * Math.max(maxForwardSpeed * normalizedBasketDiff, 0.01)/* * ballCenterMultiplier * ballDistanceMultiplier*/;
                     ballBasketAlignedCounter = 0;
                 } else {
                     ballBasketAlignedCounter ++;
                 }
-
-                ballBasketAligned = ballBasketAlignedCounter > minAlignedFrames;
             }
+            ballBasketAligned = ballBasketAlignedCounter > minAlignedFrames;
+
         }
-
-
 
         sideSpeed = util.clamp(sideSpeed, -maxForwardSpeed, maxForwardSpeed);
         forwardSpeed = util.clamp(forwardSpeed, -maxForwardSpeed, maxForwardSpeed);
@@ -992,6 +970,29 @@ function handleMotionGrabBall() {
                 sideSpeed *= Math.pow(normalizedCloseToBallErrorY, 4);
             }
         }
+
+        const basket = processedVisionState.basket;
+
+        //sidespeed for aligning basket to ball, needsfunctions for smoother range of motion
+        if (basket) {
+            const basketCenterX = basket.cx;
+            const basketDiff = basketCenterX - (frameWidth / 2);
+            const normalizedBasketDiff = basketDiff / frameWidth;
+            const minBasketDiff = 6;
+            const minAlignedFrames = 3;
+
+            if (Math.abs(basketDiff) > minBasketDiff) {
+                sideSpeed = -Math.sign(normalizedBasketDiff) * Math.max(2 * maxForwardSpeed * normalizedBasketDiff, 0.01)/* * ballCenterMultiplier * ballDistanceMultiplier*/;
+                ballBasketAlignedCounter = 0;
+            } else {
+                ballBasketAlignedCounter ++;
+            }
+
+            ballBasketAligned = ballBasketAlignedCounter > minAlignedFrames;
+        }
+
+        forwardSpeed = util.clamp(forwardSpeed, -grabBallMaxSpeed, grabBallMaxSpeed);
+        sideSpeed = util.clamp(sideSpeed, -grabBallMaxSpeed, grabBallMaxSpeed);
 
 
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
@@ -1154,10 +1155,7 @@ function handleMotionFindBasket() {
                 findObjectRotateLoopCount++;
             }
         }, patternStep[1] * (findObjectRotateLoopCount + 1));
-
     }
-
-
 
     if (findBasketTimeout === null) {
         findBasketTimeout = setTimeout(() => {
