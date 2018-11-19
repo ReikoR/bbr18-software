@@ -131,7 +131,6 @@ function handleInfo(info, address, port) {
  */
 function sendCommandToMainboard(command) {
     updateCommandBuffer(command);
-    console.log("sendCommandToMainboard",command, commandBuffer);
     socketMainboard.send(commandBuffer, 0, commandBuffer.length, mbedPort, mbedAddress);
 }
 
@@ -167,8 +166,6 @@ function handleMainboardMessage(message) {
             time: message.readInt32LE(16)
         };
     }
-    console.log(data);
-
     const info = {type: 'message', topic: 'mainboard_feedback', message: data};
     sendToHub(info);
 }
