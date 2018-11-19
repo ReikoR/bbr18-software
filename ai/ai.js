@@ -1,10 +1,12 @@
 const dgram = require('dgram');
 const socket = dgram.createSocket('udp4');
+const publicConf = require('./public-conf.json');
+const HubCom = require('../common/HubCom');
+const hubCom = new HubCom(publicConf.port, publicConf.hubIpAddress, publicConf.hubPort);
 const omniMotion = require('./omni-motion');
 const thrower = require('./thrower');
 const util = require('./util');
 const calibration = require('../calibration/calibration');
-const publicConf = require('./public-conf.json');
 
 /**
  * @name MainboardFeedback
@@ -178,6 +180,9 @@ let mainboardState = {
     speeds: [0, 0, 0, 0, 0],
     balls: [false, false], prevBalls: [false, false],
     ballThrown: false,
+    ballThrowSpeed: 0,
+    ballThrownSpeed: 0,
+    ballThrownBasketOffset: 0,
     ballGrabbed: false,
     ballEjected: false,
     lidarDistance: 0,
@@ -195,6 +200,7 @@ const mainboardLedStates = {
 };
 
 const defaultBallTopArcFilterThreshold = 0.4;
+const defaultBasketBottomFilterThreshold = 0.5;
 
 let aiState = {
     speeds: [0, 0, 0, 0, 0],
@@ -204,49 +210,12 @@ let aiState = {
     isManualOverride: false,
     isCompetition: true,
     basketColour: basketColours.blue,
-    ballTopArcFilterThreshold: defaultBallTopArcFilterThreshold
+    ballTopArcFilterThreshold: defaultBallTopArcFilterThreshold,
+    basketBottomFilterThreshold: defaultBasketBottomFilterThreshold,
+    otherBasketBottomFilterThreshold: defaultBasketBottomFilterThreshold
 };
 
-socket.on('error', (err) => {
-    console.log(`socketPublisher error:\n${err.stack}`);
-    socket.close();
-});
-
-socket.on('message', (message, rinfo) => {
-    //console.log(`socket got: ${message} from ${rinfo.address}:${rinfo.port}`);
-
-    const info = JSON.parse(message.toString());
-    handleInfo(info);
-});
-
-socket.on('listening', () => {
-    const address = socket.address();
-    console.log(`socket listening ${address.address}:${address.port}`);
-});
-
-socket.bind(publicConf.port, () => {
-    //socket.setMulticastInterface('127.0.0.1');
-    socket.setMulticastInterface('127.0.0.1');
-});
-
-process.on('SIGINT', close);
-
-process.on('message', (message) => {
-    console.log('CHILD got message:', message);
-
-    if (message.type === 'close') {
-        close();
-    }
-});
-
-function close() {
-    console.log('closing');
-
-    sendToHub({type: 'unsubscribe'}, () => {
-        socket.close();
-        process.exit();
-    });
-}
+hubCom.on('info', handleInfo);
 
 /**
  *
@@ -296,11 +265,24 @@ function handleInfo(info) {
                 && mainboardState.balls[1] === false
             ) {
                 mainboardState.ballThrown = true;
+                mainboardState.ballThrownSpeed = mainboardState.speeds[4];
+                mainboardState.ballThrownBasketOffset = processedVisionState.basket ?
+                    processedVisionState.basket.cx - frameCenterX : 0;
                 console.log('mainboardState.ballThrown', mainboardState.ballThrown);
 
                 if (visionState.basket) {
                     console.log('THROWN', visionState.basket.cx);
                 }
+
+                aiState.basketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
+                console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
+            }
+
+            if (throwerState === throwerStates.THROW_BALL
+                && mainboardState.prevBalls[0] === false
+                && mainboardState.balls[0] === true
+            ) {
+                mainboardState.ballThrowSpeed = mainboardState.speeds[4];
             }
 
             if (
@@ -457,18 +439,60 @@ function processVisionInfo(info) {
     let basket = null;
     let otherBasket = null;
 
+    let basketCandidate;
+    let bottomLeftMetric;
+    let bottomRightMetric;
+    let threshold;
+    let isTargetColour;
+    let targetBasket;
+
     // Find largest basket
     for (let i = 0; i < baskets.length; i++) {
-        baskets[i].y2 = baskets[i].cy + baskets[i].h / 2;
+        basketCandidate = baskets[i];
+        bottomLeftMetric = basketCandidate.metrics[0];
+        bottomRightMetric = basketCandidate.metrics[1];
 
-        if (baskets[i].color === aiState.basketColour) {
-            if (!basket || basket.w * basket.h < baskets[i].w * baskets[i].h) {
-                basket = baskets[i];
+        basketCandidate.size = basketCandidate.w * basketCandidate.h;
+        basketCandidate.y2 = basketCandidate.cy + basketCandidate.h / 2;
+        basketCandidate.bottomMetric = Math.max(bottomLeftMetric, bottomRightMetric);
+
+        isTargetColour = basketCandidate.color === aiState.basketColour;
+
+        threshold = isTargetColour ?
+            aiState.basketBottomFilterThreshold :
+            aiState.otherBasketBottomFilterThreshold;
+
+        // At least one of the metrics should be above threshold
+        if (basketCandidate.bottomMetric >= threshold) {
+            targetBasket = isTargetColour ? basket : otherBasket;
+
+            if (!targetBasket || targetBasket.size < basketCandidate.size) {
+                if (isTargetColour) {
+                    basket = basketCandidate;
+                } else {
+                    otherBasket = basketCandidate;
+                }
             }
-        } else {
-            if (!otherBasket || otherBasket.w * otherBasket.h < baskets[i].w * baskets[i].h) {
-                otherBasket = baskets[i];
+        }
+
+        // Reset threshold back to default if basket is above it
+        if (isTargetColour) {
+            if (
+                basket &&
+                basket.bottomMetric >= defaultBasketBottomFilterThreshold &&
+                aiState.basketBottomFilterThreshold !== defaultBasketBottomFilterThreshold
+            ) {
+                aiState.basketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
+                console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
             }
+        } else if (
+            otherBasket &&
+            otherBasket.bottomMetric >= defaultBasketBottomFilterThreshold &&
+            aiState.otherBasketBottomFilterThreshold !== defaultBasketBottomFilterThreshold
+        ) {
+            aiState.otherBasketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
+            aiState.basketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
+            console.log('aiState.otherBasketBottomFilterThreshold', aiState.otherBasketBottomFilterThreshold);
         }
     }
 
@@ -545,26 +569,13 @@ function sendState() {
         robotID: aiState.robotID,
         isManualOverride: aiState.isManualOverride,
         isCompetition: aiState.isCompetition,
-        basketColour: aiState.basketColour
+        basketColour: aiState.basketColour,
+        ballThrowSpeed: mainboardState.ballThrowSpeed,
+        ballThrownSpeed: mainboardState.ballThrownSpeed,
+        ballThrownBasketOffset: mainboardState.ballThrownBasketOffset,
     };
 
-    sendToHub({type: 'message', topic: 'ai_state', state: state}, () => {
-
-    });
-}
-
-function sendToHub(info, onSent) {
-    const message = Buffer.from(JSON.stringify(info));
-
-    socket.send(message, publicConf.hubPort, publicConf.hubIpAddress, (err) => {
-        if (err) {
-            console.error(err);
-        }
-
-        if (typeof onSent === 'function') {
-            onSent(err);
-        }
-    });
+    hubCom.send({type: 'message', topic: 'ai_state', state: state});
 }
 
 /**
@@ -613,17 +624,19 @@ function handleMainboardButtonChanged() {
 
     switch (mainboardState.button) {
         case mainboardButtonEvents.PRESSED:
-            // Basket colour can be changed any time if not competition or during competition when idling
-            if (!aiState.isCompetition || motionState === motionStates.IDLE) {
-                toggleBasketColour();
-            }
-            break;
-        case mainboardButtonEvents.PRESSED_LONG:
             // During competition, starting is only allowed while idling
             if (!aiState.isCompetition || motionState === motionStates.IDLE) {
                 setMotionState(motionStates.FIND_BALL);
                 setThrowerState(throwerStates.IDLE);
             }
+
+            break;
+        case mainboardButtonEvents.PRESSED_LONG:
+            // Basket colour can be changed any time if not competition or during competition when idling
+            if (!aiState.isCompetition || motionState === motionStates.IDLE) {
+                toggleBasketColour();
+            }
+
             break;
     }
 }
@@ -649,7 +662,20 @@ function handleMotionFindBall() {
     const patternStep = findBallRotatePattern[findBallRotatePatternIndex];
 
     if (isFindBallDriveToBasket) {
-        //TODO: this duplicates other code
+        const visionMetrics = visionState.metrics;
+        const leftSideMetric = visionMetrics.straightAhead.leftSideMetric;
+        const rightSideMetric = visionMetrics.straightAhead.rightSideMetric;
+        let sideMetric = -leftSideMetric + rightSideMetric;
+        const reach = visionMetrics.straightAhead.reach;
+        const driveability = visionMetrics.straightAhead.driveability;
+
+        if (Math.abs(sideMetric) < 0.1 && (leftSideMetric > 0.1 || rightSideMetric > 0.1)) {
+            if (sideMetric > 0) {
+                sideMetric = rightSideMetric;
+            } else {
+                sideMetric = -leftSideMetric;
+            }
+        }
 
         const basket = processedVisionState.basket;
         const otherBasket = processedVisionState.otherBasket;
@@ -657,51 +683,38 @@ function handleMotionFindBall() {
 
         let forwardSpeed = 0;
         let rotationSpeed = 0;
+        let sideSpeed = -sideMetric;
 
         if (driveToBasket) {
-            //TODO: not tested
             const centerX = driveToBasket.cx;
             const basketY = driveToBasket.y2;
             const errorX = centerX - frameCenterX;
-            const errorY = 0.1 * frameHeight - basketY;
-            const normalizedErrorY = errorY / frameHeight;
+            const errorY = 0.4 * frameHeight - basketY;
+            const normalizedErrorY = util.clamped(errorY / frameHeight, 0, 1);
             const maxForwardSpeed = 3;
 
             forwardSpeed = Math.sign(normalizedErrorY) *
-                Math.max(Math.abs(maxForwardSpeed * normalizedErrorY), 0.5);
-            rotationSpeed = Math.sign(-errorX) * Math.max(Math.abs(2 * errorX / frameWidth), 0.1);
+                Math.max(Math.abs(maxForwardSpeed * Math.pow(normalizedErrorY, 0.5)), 0.1);
+            rotationSpeed = Math.sign(-errorX) * Math.max(Math.abs(4 * errorX / frameWidth), 0.1);
 
-            if (basketY < 500) {
+            if (driveToBasket.w > 80) {
                 driveToBasketColour = driveToBasketColour === basketColours.blue ?
                     basketColours.magenta : basketColours.blue;
 
+                console.log('driveToBasketColour', driveToBasketColour);
             }
 
         } else {
-            const visionMetrics = visionState.metrics;
-            const leftSideMetric = visionMetrics.straightAhead.leftSideMetric;
-            const rightSideMetric = visionMetrics.straightAhead.rightSideMetric;
-            let sideMetric = -leftSideMetric + rightSideMetric;
-            const reach = visionMetrics.straightAhead.reach;
-
-            if (sideMetric < 0.1 && (leftSideMetric > 0.1 || rightSideMetric > 0.1)) {
-                if (sideMetric > 0) {
-                    sideMetric = rightSideMetric;
-                } else {
-                    sideMetric = -leftSideMetric;
-                }
-            }
-
-            if (Math.abs(sideMetric) >= 0.01) {
-                rotationSpeed = Math.sign(sideMetric) * Math.max(8 * Math.abs(sideMetric), 0.2);
-            }
+            rotationSpeed = util.clamped((reach / 100), 0, 2);
 
             if (reach < 150) {
-                forwardSpeed = Math.max(2 * (150 - reach) / 150, 0.2);
+                forwardSpeed = Math.max(3 * (150 - reach) / 150, 0.2);
             }
         }
 
-        setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, forwardSpeed, rotationSpeed, true));
+        forwardSpeed *= util.mapFromRangeToRange(driveability, 0.6, 1, 0.1, 1);
+
+        setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
 
     } else if (findBallRotateLoopCount === findBallRotateLoopLimit) {
         isFindBallDriveToBasket = true;
@@ -762,6 +775,7 @@ function getDriveToBallMaxSpeed(startTime, startSpeed, speedLimit) {
 
 function handleMotionDriveToBall() {
     const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
+    const basket = processedVisionState.basket;
 
     if (!driveToBallStartTime) {
         driveToBallStartTime = Date.now();
@@ -785,7 +799,8 @@ function handleMotionDriveToBall() {
         const centerX = closestBall.cx;
         const centerY = closestBall.cy;
         const errorX = centerX - frameCenterX;
-        const errorY = 0.8 * frameHeight - centerY;
+        const errorY = 0.85 * frameHeight - centerY;
+        const maxSideSpeed = 5;
         const maxForwardSpeed = getDriveToBallMaxSpeed(
             driveToBallStartTime, driveToBallStartSpeed, driveToBallMaxSpeed
         );
@@ -796,11 +811,15 @@ function handleMotionDriveToBall() {
         let forwardSpeed = maxErrorForwardSpeed * Math.pow(normalizedErrorY, 2);
         let rotationSpeed = maxErrorRotationSpeed * -errorX / frameWidth;
 
+        forwardSpeed *= util.mapFromRangeToRange(driveability, 0.6, 1, 0.1, 1);
+
         if (forwardSpeed > maxForwardSpeed) {
             forwardSpeed = maxForwardSpeed;
         } else if (forwardSpeed < driveToBallMinSpeed) {
             forwardSpeed = driveToBallMinSpeed;
         }
+
+        rotationSpeed *= util.clamped(0.8 - normalizedErrorY, 0.5, 1);
 
         if (rotationSpeed > maxRotationSpeed) {
             rotationSpeed = maxRotationSpeed;
@@ -812,29 +831,43 @@ function handleMotionDriveToBall() {
             driveToBallCurrentRotationSpeedLimit = driveToBallMaxRotationSpeed;
         }
 
+
+
         let sideSpeed = 0;
         let closestBasket = getClosestBasket();
 
         let isBasketTooClose = closestBasket && closestBasket.y2 > 400;
+
+        const normalizedCloseToBallErrorY = Math.abs(errorY) / 400;
+
+        let avoidObstacleSideSpeed = 0;
+        let turnToBasketSideSpeed = 0;
 
         if (isBasketTooClose && errorY <= 50 && Math.abs(errorX) <= 50) {
             setThrowerState(throwerStates.GRAB_BALL);
             setMotionState(motionStates.DRIVE_GRAB_BALL);
 
         } else if (Math.abs(sideMetric) >= 0.1) {
-            //driveToBallStartTime = Date.now();
-            //forwardSpeed = forwardSpeed * 0.5;
-            //rotationSpeed = 0;
-            sideSpeed = -Math.sign(sideMetric) * Math.max(2 * Math.abs(sideMetric), 0.2);
-
-            const normalizedCloseToBallErrorY = Math.abs(errorY) / 400;
+            avoidObstacleSideSpeed = -Math.sign(sideMetric) *
+                Math.max(Math.min(forwardSpeed, 1) * 2 * Math.abs(sideMetric), 0.2);
 
             if (normalizedCloseToBallErrorY < 1) {
-                sideSpeed *= Math.pow(normalizedCloseToBallErrorY, 4);
+                avoidObstacleSideSpeed *= Math.pow(normalizedCloseToBallErrorY, 4);
             }
         }
 
-        sideSpeed = util.clamped(sideSpeed, -maxForwardSpeed, maxForwardSpeed);
+        const maxTurnToBasketSideSpeed = 0.1;
+
+        if (basket && Math.abs(sideMetric) < 0.1) {
+            const basketCenterX = basket.cx;
+            const basketErrorX = basketCenterX - frameCenterX;
+            turnToBasketSideSpeed = maxTurnToBasketSideSpeed * -basketErrorX / (frameWidth / 2);
+        }
+
+        sideSpeed += avoidObstacleSideSpeed;
+        sideSpeed += turnToBasketSideSpeed * forwardSpeed;
+
+        sideSpeed = util.clamped(sideSpeed, -maxSideSpeed, maxSideSpeed);
         forwardSpeed = util.clamped(forwardSpeed, -maxForwardSpeed, maxForwardSpeed);
 
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
@@ -990,11 +1023,13 @@ function resetMotionDriveWithBall() {
 }
 
 let findBasketTimeout = null;
-const findBasketTimeoutDelay = 3000;
+const findBasketTimeoutDelay = 2000;
 
 const requiredStableThrowerSpeedCount = 5;
 let stableThrowerSpeedCount = 0;
 let isThrowerSpeedStable = false;
+let basketNotFoundCount = 0;
+const basketNotFoundLimit = 2;
 
 function handleMotionFindBasket() {
     const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
@@ -1012,30 +1047,42 @@ function handleMotionFindBasket() {
         findBasketTimeout = setTimeout(() => {
             findBasketTimeout = null;
 
-            console.log('handleMotionFindBasket: basket not found');
+            basketNotFoundCount++;
 
-            setThrowerState(throwerStates.GRAB_BALL);
-            setMotionState(motionStates.DRIVE_GRAB_BALL);
+            console.log('handleMotionFindBasket: basket not found', basketNotFoundCount);
+
+            aiState.basketBottomFilterThreshold -= 0.3;
+
+            if (aiState.basketBottomFilterThreshold < 0.05) {
+                aiState.basketBottomFilterThreshold = 0;
+            } else if (aiState.basketBottomFilterThreshold === 0 || basketNotFoundCount > basketNotFoundLimit) {
+                setThrowerState(throwerStates.GRAB_BALL);
+                setMotionState(motionStates.DRIVE_GRAB_BALL);
+            }
+
+            console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
         }, findBasketTimeoutDelay);
     }
 
-    if (closestBall) {
-        const ballCenterX = closestBall.cx;
-        const ballCenterY = closestBall.cy;
-        const ballErrorX = ballCenterX - frameCenterX;
-        const ballErrorY = 0.8 * frameHeight - ballCenterY;
+    if (closestBall || throwerState === throwerStates.THROW_BALL && mainboardState.balls[0]) {
+        if (closestBall) {
+            const ballCenterX = closestBall.cx;
+            const ballCenterY = closestBall.cy;
+            const ballErrorX = ballCenterX - frameCenterX;
+            const ballErrorY = 0.8 * frameHeight - ballCenterY;
 
-        xSpeed = Math.sign(ballErrorX) * Math.pow(Math.abs(ballErrorX) / 400, 1.5);
-        forwardSpeed = ballErrorY / 400;
+            xSpeed = Math.sign(ballErrorX) * Math.pow(Math.abs(ballErrorX) / 400, 1.5);
+            forwardSpeed = ballErrorY / 400;
 
-        if (
-            ballErrorY > 200 ||
-            Math.abs(ballErrorX) > 200 ||
-            ballCenterY > 950 //ball too close
-        ) {
-            setMotionState(motionStates.DRIVE_TO_BALL);
-        } else {
-            isBallCloseEnough = true;
+            if (
+                ballErrorY > 200 ||
+                Math.abs(ballErrorX) > 200 ||
+                ballCenterY > 950 //ball too close
+            ) {
+                setMotionState(motionStates.DRIVE_TO_BALL);
+            } else {
+                isBallCloseEnough = true;
+            }
         }
 
         if (throwerState === throwerStates.THROW_BALL) {
@@ -1062,7 +1109,6 @@ function handleMotionFindBasket() {
             }
 
             forwardSpeed = isThrowerSpeedStable ? 0.2 : 0;
-
         }
 
     } else {
@@ -1099,6 +1145,7 @@ function resetMotionFindBasket() {
     findBasketTimeout = null;
     isThrowerSpeedStable = false;
     stableThrowerSpeedCount = 0;
+    basketNotFoundCount = 0;
 }
 
 function handleThrowerIdle() {
@@ -1233,8 +1280,11 @@ function update() {
                 break;
         }
 
-        sendToHub({type: 'message', topic: 'mainboard_command', command: mainboardCommand});
+        hubCom.send({type: 'message', topic: 'mainboard_command', command: mainboardCommand});
     }
 }
 
-sendToHub({type: 'subscribe', topics: ['vision', 'mainboard_feedback', 'ai_command', 'ai_configuration', 'training']});
+hubCom.send({
+    type: 'subscribe',
+    topics: ['vision', 'mainboard_feedback', 'ai_command', 'ai_configuration', 'training']
+});
