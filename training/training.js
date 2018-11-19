@@ -12,6 +12,8 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+let selectedTechniques = [];
+
 app.use(express.static(__dirname + '/public'));
 app.use(express.json());
 
@@ -25,11 +27,6 @@ wss.on('connection', function connection (ws, req) {
             console.info(error);
         }
     });
-
-    ws.send(JSON.stringify({
-        type: 'calibration',
-        calibration: calibration.getMeasurementsAndNets()
-    }));
 });
 
 wss.broadcast = function broadcast(data) {
@@ -88,11 +85,13 @@ function close() {
 function handleWsMessage(message) {
     if (message.type === 'training_feedback') {
         calibration.recordFeedback({
+            technique: message.technique,
             distance: message.distance,
             throwerSpeed: message.throwerSpeed,
             centerOffset: message.centerOffset
         }, message.feedback);
 
+        /*
         wss.broadcast(JSON.stringify({
             type: 'calibration',
             calibration: calibration.getMeasurementsAndNets()
@@ -103,6 +102,15 @@ function handleWsMessage(message) {
             topic: 'training',
             event: 'measurements_changed'
         });
+        */
+    } else if (message.type === 'change_technique') {
+        selectedTechniques = message.techniques;
+
+        wss.broadcast(JSON.stringify({
+            type: 'measurements',
+            hoop: message.techniques.includes('hoop') ? calibration.getMeasurements('hoop') : undefined,
+            dunk: message.techniques.includes('dunk') ? calibration.getMeasurements('dunk') : undefined
+        }));
     }
 }
 
@@ -137,5 +145,19 @@ function handleInfo(info) {
 
     //console.log(info);
 }
+
+// Training interval
+let trainingN = 0;
+
+setInterval(() => {
+    const update = calibration.updateNets(selectedTechniques);
+
+    if (++trainingN % 10 === 0) {
+        wss.broadcast(JSON.stringify({
+            type: 'nets',
+            ...update
+        }));
+    }
+}, 100);
 
 sendToHub({type: 'subscribe', topics: ['ai_state']});

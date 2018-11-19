@@ -29,12 +29,10 @@
                 <dd id="info-thrower-speed"></dd>
                 <dt>Center offset:</dt>
                 <dd id="info-center-offset"></dd>
-                <dt>Plot data:</dt>
-                <input id="plot-hoop" type="checkbox" ><label>Hoop</label>
-                <input id="plot-dunk" type="checkbox"><label>Dunk</label>
-                <dt>Train data:</dt>
-                <input id="train-hoop" type="radio" ><label>Hoop</label>
-                <input id="train-dunk" type="radio"><label>Dunk</label>
+                <dt>Train & plot data:</dt>
+                <input id="train-hoop" name="selected-technique" type="radio" onchange="selectTechniques(['hoop'])"><label>Hoop</label>
+                <input id="train-dunk" name="selected-technique" type="radio" onchange="selectTechniques(['dunk'])"><label>Dunk</label>
+                <input id="train-both" name="selected-technique" checked type="radio" onchange="selectTechniques(['hoop', 'dunk'])"><label>Both</label>
             </div>
 
             <div id="feedback" style="display: none;">

@@ -5,11 +5,26 @@ const socketReconnectDelay = new BackOffDelay();
 
 let sendInterval;
 let throwerSpeed = 0;
+let selectedTechniques;
+
+const COLORS = {
+    'hoop': 'rgb(255, 0, 0)',
+    'dunk': 'rgb(0, 255, 0)'
+};
+
+function selectTechniques(techniques) {
+    selectedTechniques = techniques;
+
+    // Load measurements
+    wsSend({
+        type: 'change_technique',
+        techniques
+    });
+}
 
 function getDecisionBoundary (net, x, initialBounds) {
     const bounds = initialBounds.slice();
-    const input = new convnetjs.Vol(1, 1, 2);
-    input.w[0] = x;
+    const input = new convnetjs.Vol([x, 0]);
   
     for (let i = 0; i < 100; ++i) {
         input.w[1] = (bounds[0] + bounds[1]) / 2;
@@ -21,77 +36,118 @@ function getDecisionBoundary (net, x, initialBounds) {
 
         bounds[(output.w[0] > output.w[1]) ? 1 : 0] = input.w[1];
     }
-
+    
     return input.w[1];
 }
 
-function getThrowerTechniqueData(label, calibration, color1) {
-    const high = calibration.measurements.filter(m => m.fb[0] === -1);
-    const ok = calibration.measurements.filter(m => m.fb[0] === 0);
-    const low = calibration.measurements.filter(m => m.fb[0] === 1);
+// Initialize plot with measurements
+function initializePlot(id, title, y, fbIndex, info) {
+    let data = [];
 
-    const boundary = {
-        x: [],
-        y: [],
-        mode: 'line'
-    };
+    for (let technique of selectedTechniques) {
+        const measurements = info[technique];
+        const high =  measurements.filter(m => m.fb[fbIndex] === -1);
+        const ok = measurements.filter(m => m.fb[fbIndex] === 0);
+        const low = measurements.filter(m => m.fb[fbIndex] === 1);
 
-    const net = new convnetjs.Net();
-    net.fromJSON(calibration.throwerSpeedNet);
+        data.push({
+            x: high.map(obj => obj.distance),
+            y: high.map(obj => obj[y]),
+            mode: 'markers',
+            name: 'Too high',
+            marker: {
+                symbol: 'triangle-down',
+                color: COLORS[technique]
+            }
+        });
 
-    for (let x = 0; x <= 520; x += 20) {
-        boundary.x.push(x);
-        boundary.y.push(getDecisionBoundary(net, x, [0, 1]));
+        data.push({
+            x: ok.map(obj => obj.distance),
+            y: ok.map(obj => obj[y]),
+            mode: 'markers',
+            name: 'OK',
+            marker: {
+                symbol: 'x',
+                color: COLORS[technique]
+            }  
+        });
+
+        data.push({
+            x: low.map(obj => obj.distance),
+            y: low.map(obj => obj[y]),
+            mode: 'markers',
+            name: 'Too low',
+            marker: {
+                symbol: 'triangle-up',
+                color: COLORS[technique]
+            }
+        });
+
+        data.push({
+            x: [],
+            y: [],
+            name: 'Decision boundary',
+            mode: 'line'
+        });
     }
 
-    const throwerSpeedData = [
-        boundary,
-        {
-            x: high.map(obj => obj.distance),
-            y: high.map(obj => obj.throwerSpeed),
-            mode: 'markers',
-            name: label,
-            marker: {
-                color: color1,
-                symbol: 'triangle-down'
+    Plotly.newPlot(id, data, {
+        title
+    });
+}
+
+// Plot decision boundary
+function plotDecisionBoundaries(plotId, info, y, bounds, scale) {
+    for (let technique of selectedTechniques) {
+        if (!info[technique] || !info[technique][y]) {
+            continue;
+        }
+
+        const traceIndex = selectedTechniques.indexOf(technique) * 4 + 3;
+
+        Plotly.deleteTraces(plotId, traceIndex);
+
+        const net = new convnetjs.Net();
+        net.fromJSON(info[technique][y]);
+
+        const boundary = {
+            x: [],
+            y: [],
+            name: 'Decision boundary',
+            mode: 'line',
+            line: {
+                color: COLORS[technique]
             }
-        },
-        {
-            x: ok.map(obj => obj.distance),
-            y: ok.map(obj => obj.throwerSpeed),
-            mode: 'markers',
-            name: label,
-            marker: {
-                color: color1,
-                symbol: 'x'
-            }
-        },
-        {
-            x: low.map(obj => obj.distance),
-            y: low.map(obj => obj.throwerSpeed),
-            mode: 'markers',
-            name: label,
-            marker: {
-                color: color1,
-                symbol: 'triangle-up'
+        };
+
+        for (let x = 0; x <= scale[0]; x += Math.floor(scale[0]/50)) {
+            boundary.x.push(x);
+            boundary.y.push(getDecisionBoundary(net, x / scale[0], bounds) * scale[1]);
+        }
+        
+        Plotly.addTraces(plotId, [boundary], traceIndex);
+    }
+
+    /*
+    const t = new convnetjs.Vol([0.3, 0.5]);
+    const one = { x: [], y: [], mode: 'markers', marker: { color: 'rgb(255, 0, 0)' } };
+    const two = { x: [], y: [], mode: 'markers', marker: { color: 'rgb(0, 255, 0)' } };
+
+    for (let x = 0; x <= 1; x += 0.1) {
+        for (let y = 0; y <= 1; y += 0.1) {
+            t.w = [x, y];
+            const output = net.forward(t);
+
+            if (output.w[0] < output.w[1]) {
+                one.x.push(x * 500);
+                one.y.push(y * 20000);
+            } else {
+                two.x.push(x * 500);
+                two.y.push(y * 20000);
             }
         }
-    ];
-
-    const centerOffsetData = {
-        x: calibration.measurements.map(obj => obj.distance),
-        y: calibration.measurements.map(obj => obj.centerOffset),
-        mode: 'markers',
-        name: label,
-        line: {
-            color: color1
-        }
-    };
-
-    return {
-        throwerSpeed: throwerSpeedData,
-        centerOffset: [centerOffsetData]
-    };
+    }
+    */
 }
 
 function onSocketMessage(message) {
@@ -102,28 +158,24 @@ function onSocketMessage(message) {
             renderState(info.state);
         }
 
-        if (info.type === 'calibration') {
-            const dunk = getThrowerTechniqueData('Dunk', info.calibration.dunk, 'rgb(0, 255, 0)', 'rgb(0, 255, 255)');
+        if (info.type === 'measurements') {
+            initializePlot('thrower-speed-plot', 'Thrower speed calibration', 'throwerSpeed', 0, info);
+            initializePlot('center-offset-plot', 'Center offset calibration', 'centerOffset', 1, info);
+        }
 
-            Plotly.newPlot('thrower-speed-plot', [
-                ...dunk.throwerSpeed
-            ], {
-                title: 'Thrower Speed Calibration'
-            });
-
-            Plotly.newPlot('center-offset-plot', [
-                ...dunk.centerOffset
-            ], {
-                title: 'Center Offset Calibration'
-            });
+        if (info.type === 'nets') {
+            plotDecisionBoundaries('thrower-speed-plot', info, 'throwerSpeed', [0, 1], [500, 20000]);
+            plotDecisionBoundaries('center-offset-plot', info, 'centerOffset', [-1, 1], [500, 20]);
         }
     } catch (error) {
-        console.info(error);
+        console.info(error.message, error.stack);
     }
 }
 
 function onSocketOpened() {
     socketReconnectDelay.reset();
+    
+    selectTechniques(['hoop', 'dunk']);
 }
 
 function onSocketClosed() {
@@ -191,7 +243,7 @@ function renderState(state) {
 
     document.getElementById('info-technique').innerHTML = state.technique;
     document.getElementById('info-distance').innerHTML = state.lidarDistance;
-    document.getElementById('info-thrower-speed').innerHTML = state.ballThrownSpeed;
+    document.getElementById('info-thrower-speed').innerHTML = state.ballThrowSpeed;
     document.getElementById('info-center-offset').innerHTML = state.ballThrownBasketOffset;
 
     if (state.ballThrown) {
@@ -202,13 +254,25 @@ function renderState(state) {
 function sendFeedback(feedback) {
     wsSend({
         type: 'training_feedback',
+        technique: lastAiState.ballThrownTechnique,
         distance: lastAiState.lidarDistance,
         centerOffset: lastAiState.ballThrownBasketOffset,
-        throwerSpeed: lastAiState.ballThrownSpeed,
+        throwerSpeed: lastAiState.ballThrowSpeed,
         feedback
     });
 
     document.getElementById('feedback').style.display = 'none';
+
+    // Add feedback to plots
+    Plotly.extendTraces('thrower-speed-plot', {
+        x: [[lastAiState.lidarDistance]],
+        y: [[lastAiState.ballThrowSpeed]]
+    }, [feedback[0] + 1]);
+    
+    Plotly.extendTraces('center-offset-plot', {
+        x: [[lastAiState.lidarDistance]],
+        y: [[lastAiState.ballThrownBasketOffset]]
+    }, [feedback[1] + 1]);
 }
 
 function skipFeedback() {
@@ -232,4 +296,37 @@ function stopSendInterval() {
     sendInterval = null;
 
     wsSend({type: 'mainboard_command', info: [0, 0, 0, 0, 0]});
+}
+
+function demo() {
+    setInterval(() => {
+        const distance = Math.round(Math.random() * 500);
+        const throwerSpeed = Math.round(Math.random() * 20000);
+        const centerOffset = Math.round(Math.random() * 40 - 20);
+
+        let fb = [0, 0];
+        const a = (selectTechniques[0] === 'dunk') ? 40 : 60;
+        const b = (selectTechniques[0] === 'dunk') ? 0 : 1000;
+
+        if (throwerSpeed > (distance * a + b + 30)) {
+            fb[0] = -1;
+        } else if (throwerSpeed < (distance * a + b - 30)) {
+            fb[0] = 1;
+        }
+
+        if (centerOffset > 10) {
+            fb[1] = -1;
+        } else {
+            fb[1] = 1;
+        }
+
+        lastAiState = {
+            ballThrownTechnique: selectedTechniques[0],
+            lidarDistance: distance,
+            ballThrowSpeed: throwerSpeed,
+            ballThrownBasketOffset: centerOffset
+        };
+
+        sendFeedback(fb);
+    }, 2000);
 }
