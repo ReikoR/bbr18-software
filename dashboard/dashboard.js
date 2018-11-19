@@ -124,7 +124,6 @@ function handleInfo(info) {
     if (info.topic === 'ai_state') {
         wss.broadcast(JSON.stringify({type: 'ai_state', state: info.state}));
     }
-
     console.log(info);
 }
 

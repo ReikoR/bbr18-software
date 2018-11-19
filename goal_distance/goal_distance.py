@@ -39,7 +39,7 @@ def clamp(value, bottom, top):
 
 hub_port = 8091
 hub_addr = "127.0.0.1"
-server = (hub_addr, 8097)
+server = (hub_addr, 8098)
 socket = soc.socket(soc.AF_INET, soc.SOCK_DGRAM)
 
 topic = "goal_distance"
@@ -208,7 +208,7 @@ try:
 
         #print "Distane: {}, Angle: {}".format(dist, angle)
 
-        send_data_to_hub({"distance": dist, "angle": angle})
+        send_data_to_hub({"distance": int(dist * 100), "angle": angle})
         get_data()
 
             #print "angle: ".format(angle)

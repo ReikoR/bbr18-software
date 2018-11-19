@@ -1,25 +1,27 @@
 const dgram = require('dgram');
 const socket = dgram.createSocket('udp4');
-const fs = require('fs');
 const publicConf = require('./public-conf.json');
-const measurements = require('./measurements.json');
-const utils = require('./utils');
+const calibration = require('../calibration/calibration');
+//const measurements = require('./measurements.json');
+//const utils = require('./utils');
 
 const http = require('http');
 const express = require('express');
 const WebSocket = require('ws');
-const interpolateArray = require('2d-bicubic-interpolate').default;
 
 const app = express();
 
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-app.use(express.static('public'));
+let selectedTechniques = [];
+
+app.use(express.static(__dirname + '/public'));
+
 app.use(express.json());
 
-wss.on('connection', function connection(ws, req) {
-    ws.on('message', function incoming(message) {
+wss.on('connection', function connection (ws, req) {
+    ws.on('message', function incoming (message) {
         console.log('received: %s', message);
         try {
             handleWsMessage(JSON.parse(message));
@@ -27,10 +29,6 @@ wss.on('connection', function connection(ws, req) {
             console.info(error);
         }
     });
-
-    //const values = interpolateArray(measurements, 10);
-
-    ws.send(JSON.stringify({ type: 'measurements', measurements }));
 });
 
 wss.broadcast = function broadcast(data) {
@@ -52,8 +50,7 @@ socket.on('error', (err) => {
 });
 
 socket.on('message', (message, rinfo) => {
-    console.log(`socket got: ${message} from ${rinfo.address}:${rinfo.port}`);
-
+    console.log(`training socket got: ${message} from ${rinfo.address}:${rinfo.port}`);
     const info = JSON.parse(message.toString());
     handleInfo(info);
 });
@@ -87,62 +84,36 @@ function close() {
 }
 
 function handleWsMessage(message) {
-    if (message.type === 'ai_command') {
-        sendToHub({
-            type: 'message',
-            topic: 'ai_command',
-            commandInfo: message.info
-        });
-    } else if (message.type === 'mainboard_command') {
-        sendToHub({
-            type: 'message',
-            topic: 'mainboard_command',
-            command: message.info
-        });
-    } else if (message.type === 'training_feedback') {
-        console.log('record Mesurement', message);
+    console.log(message);
+    if (message.type === 'training_feedback') {
+        calibration.recordFeedback({
+            technique: message.technique,
+            distance: message.distance,
+            throwerSpeed: message.throwerSpeed,
+            centerOffset: message.centerOffset
+        }, message.feedback);
 
-        const x = message.x;
-        const y = message.y;
-        const r = 25; // proximity radius
-        const correctionRatio = 0.9;
-
-        // Calculate new measurement correction
-        const c = correctionRatio * utils.interpolate(
-            measurements.map(obj => ({ ...obj, z: obj.c })), x, y
-        );
-
-        // Find measurements within proximity
-        const closeObjs = measurements.filter(
-            obj => obj.c > 0 && Math.abs(obj.x - x) < r
-        );
-
-        
-        // Remove previous measurements within proximity
-        closeObjs.forEach(obj =>
-            measurements.splice(measurements.indexOf(obj), 1)
-        );
-
-        // TODO: Check if the new mesurement position is duplicated if c = 0, if so then calculate mean value.
-
-        // Add new measurement
-        measurements.push({
-            x,
-            y,
-            z: message.z + message.feedback * c,
-            c: message.feedback ? c : 0,
-            n: closeObjs.reduce((sum, obj) => sum + obj.n, 1)
-        });
-
-        // Save and send to training dashboard as well as hub
-        fs.writeFileSync('measurements.json', JSON.stringify(measurements, null, 2));
-
-        wss.broadcast(JSON.stringify({ type: 'measurements', measurements }));
+        /*
+        wss.broadcast(JSON.stringify({
+            type: 'calibration',
+            calibration: calibration.getMeasurementsAndNets()
+        }));
         
         sendToHub({
             type: 'measurements_changed',
             topic: 'training'
         });
+        */
+    } else if (message.type === 'change_technique') {
+        selectedTechniques = message.techniques;
+
+        console.log("TECH CHANGE!", message.techniques.includes('hoop'), message.techniques.includes('dunk'));
+
+        wss.broadcast(JSON.stringify({
+            type: 'measurements',
+            hoop: message.techniques.includes('hoop') ? calibration.getMeasurements('hoop') : undefined,
+            dunk: message.techniques.includes('dunk') ? calibration.getMeasurements('dunk') : undefined
+        }));
     }
 }
 
@@ -164,14 +135,35 @@ function sendToHub(info, onSent) {
 
 function handleInfo(info) {
     if (info.topic === 'ai_state') {
+        info.state.technique = selectedTechniques[0];
         wss.broadcast(JSON.stringify({
             type: 'ai_state',
-            state: info.state,
-            throwingSpeed: utils.interpolate(measurements, info.state.lidarDistance)
+            state: info.state /* {
+                ...info.state,
+                technique: calibration.getThrowerTechnique(info.state.lidarDistance),
+                //throwerSpeed: calibration.getThrowerSpeed(info.state.lidarDistance),
+                //centerOffset: calibration.getCenterOffset(info.state.lidarDistance)
+            }*/
         }));
     }
-
     console.log(info);
 }
 
-sendToHub({type: 'subscribe', topics: ['ai_state']});
+// Training interval
+let trainingN = 0;
+
+setInterval(() => {
+    const update = calibration.updateNets(selectedTechniques);
+
+    if (++trainingN % 10 === 0) {
+        wss.broadcast(JSON.stringify({
+            type: 'nets',
+            ...update
+        }));
+    }
+}, 100);
+
+sendToHub({
+    type: 'subscribe',
+    topics: ['ai_state']
+});

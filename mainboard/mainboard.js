@@ -104,13 +104,17 @@ function close() {
  * @param {CommandObject} commandObject
  */
 function updateCommandBuffer(commandObject) {
+    commandObject = { ...defaultCommandObject, ...commandObject };
+
     const speeds = commandObject.speeds;
 
-    let i;
+    let i = 0;
 
-    for (i = 0; i < speeds.length; i++) {
+    for (i; i < speeds.length; i++) {
         if (speeds[i] <= 32000 && speeds[i] >= -32000) {
             commandBuffer.writeInt16LE(speeds[i], 2 * i);
+        } else {
+            console.error('Commanded speed too big', speeds[i]);
         }
     }
 

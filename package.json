@@ -18,5 +18,8 @@
   "homepage": "https://github.com/ReikoR/bbr18-software#readme",
   "devDependencies": {
     "eslint": "^4.19.1"
+  },
+  "dependencies": {
+    "simple-linear-regression": "^1.0.3"
   }
 }

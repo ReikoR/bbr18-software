@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>BBR18</title>
     <link rel="stylesheet" type="text/css" href="main.css">
+    <script src="convnet.js"></script>
 </head>
 <body>
 <table style="width: 100%;">
@@ -16,12 +17,22 @@
 
         <td style="vertical-align: top; width: 300px">
             <div id="info">
+                <dt>Technique:</dt>
+                <dd id="info-technique"></dd>
                 <dt>Distance:</dt>
                 <dd id="info-distance"></dd>
+                <!--
+                <dt>Angle:</dt>
+                <dd id="info-angle"></dd>
+                -->
                 <dt>Thrower speed:</dt>
                 <dd id="info-thrower-speed"></dd>
                 <dt>Center offset:</dt>
                 <dd id="info-center-offset"></dd>
+                <dt>Train & plot data:</dt>
+                <input id="train-hoop" name="selected-technique" type="radio" onchange="selectTechniques(['hoop'])"><label>Hoop</label>
+                <input id="train-dunk" name="selected-technique" type="radio" onchange="selectTechniques(['dunk'])"><label>Dunk</label>
+                <input id="train-both" name="selected-technique" checked type="radio" onchange="selectTechniques(['hoop', 'dunk'])"><label>Both</label>
             </div>
 
             <div id="feedback" style="display: none;">
