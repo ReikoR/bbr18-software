@@ -282,6 +282,7 @@ function handleInfo(info) {
                 console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
 
                 processedVisionState.lastClosestBall = null;
+                lastClosestBallCount = 0;
             }
 
             if (throwerState === throwerStates.THROW_BALL
