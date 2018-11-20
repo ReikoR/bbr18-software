@@ -761,6 +761,11 @@ const driveToBallRotationSpeedRampUpLimit = 0.05;
 const driveToBallMaxRotationSpeed = 8;
 let driveToBallCurrentRotationSpeedLimit = 2;
 
+let lastBallErrorY = 0;
+const maxBallErrorYDiffSamples = 100;
+let ballErrorYDiffSamples = [];
+ballErrorYDiffSamples.fill(20, 0, maxBallErrorYDiffSamples);
+
 function getDriveToBallMaxSpeed(startTime, startSpeed, speedLimit) {
     const currentTime = Date.now();
     const timeDiff = currentTime - startTime;
@@ -813,6 +818,13 @@ function handleMotionDriveToBall() {
         let forwardSpeed = maxErrorForwardSpeed * Math.pow(normalizedErrorY, 2);
         let rotationSpeed = maxErrorRotationSpeed * -errorX / frameWidth;
 
+        if (lastBallErrorY === -1) {
+            lastBallErrorY = errorY;
+        }
+
+        const ballErrorYDiff = lastBallErrorY - errorY;
+        lastBallErrorY = errorY;
+
         forwardSpeed *= util.mapFromRangeToRange(driveability, 0.6, 1, 0.1, 1);
 
         if (forwardSpeed > maxForwardSpeed) {
@@ -822,6 +834,18 @@ function handleMotionDriveToBall() {
         }
 
         rotationSpeed *= util.clamped(0.8 - normalizedErrorY, 0.5, 1);
+        const averageBallErrorYDiff = util.average(ballErrorYDiffSamples);
+
+        if (errorY < 400) {
+            // Increase speed when ball is moving/robot is not reaching it fast enough
+            ballErrorYDiffSamples.push(ballErrorYDiff);
+            ballErrorYDiffSamples = ballErrorYDiffSamples.slice(-maxBallErrorYDiffSamples);
+
+            if (averageBallErrorYDiff <= 10 && averageBallErrorYDiff >= 0) {
+                forwardSpeed *= (14 - Math.abs(averageBallErrorYDiff)) / 4;
+            }
+        }
+
 
         if (rotationSpeed > maxRotationSpeed) {
             rotationSpeed = maxRotationSpeed;
@@ -893,6 +917,9 @@ function handleMotionDriveToBall() {
 function resetMotionDriveToBall() {
     driveToBallCurrentRotationSpeedLimit = 2;
     driveToBallStartTime = null;
+
+    lastBallErrorY = -1;
+    ballErrorYDiffSamples.fill(20, 0, maxBallErrorYDiffSamples);
 }
 
 let driveGrabBallTimeout = null;
