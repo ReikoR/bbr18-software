@@ -1060,6 +1060,7 @@ let stableThrowerSpeedCount = 0;
 let isThrowerSpeedStable = false;
 let basketNotFoundCount = 0;
 const basketNotFoundLimit = 2;
+let unstableThrowerSpeedAllowedError = 100;
 
 function handleMotionFindBasket() {
     const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
@@ -1126,7 +1127,7 @@ function handleMotionFindBasket() {
             console.log('throwerSpeedDiff', throwerSpeedDiff);
 
             if (!isThrowerSpeedStable) {
-                if (Math.abs(throwerSpeedDiff) < (expectedThrowerSpeed > 16000 ? 100 : 50)) {
+                if (Math.abs(throwerSpeedDiff) < (expectedThrowerSpeed > 16000 ? unstableThrowerSpeedAllowedError : 50)) {
                     stableThrowerSpeedCount++;
 
                     if (stableThrowerSpeedCount >= requiredStableThrowerSpeedCount) {
@@ -1135,6 +1136,10 @@ function handleMotionFindBasket() {
                     }
                 } else {
                     stableThrowerSpeedCount = 0;
+
+                    if (expectedThrowerSpeed > 16000) {
+                        unstableThrowerSpeedAllowedError += 10;
+                    }
                 }
             }
 
@@ -1176,6 +1181,7 @@ function resetMotionFindBasket() {
     isThrowerSpeedStable = false;
     stableThrowerSpeedCount = 0;
     basketNotFoundCount = 0;
+    unstableThrowerSpeedAllowedError = 100;
 }
 
 function handleThrowerIdle() {
