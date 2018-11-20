@@ -148,7 +148,7 @@ let findObjectRotateTimeout = null;
 let findObjectRotateLoopCount = 0;
 const findObjectRotateLoopLimit = 3;
 
-const throwerIdleSpeed = 5000;
+const throwerIdleSpeed = 6000;
 
 let throwBallTimeout = 0;
 const throwBallTimeoutDelay = 3000;
@@ -394,6 +394,9 @@ function handleInfo(info) {
             } else {
                 aiState[info.key] = info.value;
             }
+            break;
+        case 'training':
+            calibration.reloadMeasurements();
             break;
     }
 
@@ -1133,7 +1136,7 @@ function handleMotionFindBasket() {
     const minRotationSpeed = 0.05;
     const maxRotationSpeed = 4;
     const minThrowError = 5;
-    const maxThrowDistance = 6.0;
+    const maxThrowDistance = 600;
     const maxForwardSpeed = 1.5;
     const defaultAimFrames = 5;
     let minValidAimFrames = defaultAimFrames;
@@ -1202,19 +1205,17 @@ function handleMotionFindBasket() {
         findObjectRotateLoopCount = 0;
     }
     else
-        rotationSpeed = patternStep[0] / (findObjectRotateLoopCount + 1) * processedVisionState.lastVisibleBasketDirection;
+        rotationSpeed = patternStep[0] / (findObjectRotateLoopCount + 1) * -processedVisionState.lastVisibleBasketDirection;
 
     if (basket) {
         const basketCenterX = basket.cx;
         const basketCenterY = basket.cy;
-        const basketErrorX = basketCenterX - frameCenterX;
+        const basketErrorX = basketCenterX - thrower.getAimOffset(basketState.distance) - frameCenterX;
         const basketErrorY = basketCenterY - frameCenterY;
-        const minBasketDistance = 400;
+        const minBasketDistance = 450;
         const maxBasketDistance = 100;
 
         aiState.speeds[4] = throwerIdleSpeed;
-
-        //rotationSpeed = maxRotationSpeed * -basketErrorX / (frameWidth / 2) * -frameCenterY / basketErrorY / 3;
 
         const maxErrorRotationSpeed = 9;
 
@@ -1222,9 +1223,6 @@ function handleMotionFindBasket() {
 
         let isBasketTooClose = basket && basket.y2 > minBasketDistance;
         let isBasketTooFar = basket && basket.y2 < maxBasketDistance;
-
-        //to override too far basket
-        isBasketTooFar = false;
 
         if (isBasketTooClose) {
             movedForThrowFlag = -1;
@@ -1258,8 +1256,6 @@ function handleMotionFindBasket() {
                 validAimFrames = 0;
             }
 
-        } else {
-            validAimFrames = 0;
         }
     }
 
@@ -1282,12 +1278,13 @@ function resetThrowerThrowBall() {
 function handleThrowerThrowBall() {
     const moveCoeficient = movedForThrowFlag * 0;
     const correctedDistance = basketState.distance + moveCoeficient;
+    //const requiredSpeed = calibration.getThrowerSpeed(correctedDistance);
     const requiredSpeed = thrower.getSpeedPrev(correctedDistance);
     const actualSpeed = mainboardState.speeds[4];
     const rpmThreshold = 50;
     const minRequiredSpeed = requiredSpeed - rpmThreshold;
     const maxRequiredSpeed = requiredSpeed + rpmThreshold;
-    const minStableFrames = 3;
+    const minStableFrames = 5;
     const lingeringFrames = 3;
 
     aiState.speeds[4] = requiredSpeed;
@@ -1351,7 +1348,7 @@ function handleThrowerHoldBall() {
         aiState.speeds[5] = 0;
     }
 
-    aiState.speeds[4] = thrower.getSpeedPrev(basketState.distance);
+    aiState.speeds[4] = throwerIdleSpeed;
 }
 
 function handleThrowerEjectBall() {
@@ -1367,7 +1364,7 @@ function handleThrowerEjectBall() {
 }
 
 function handleThrowerThrowBallMoving() {
-    aiState.speeds[4] = thrower.getSpeedPrev(basketState.distance);
+    aiState.speeds[4] = thrower.getSpeed(basketState.distance);
     aiState.speeds[5] = 150;
     aiState.speeds[6] = thrower.getAngle(basketState.distance);
 }

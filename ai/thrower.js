@@ -12,8 +12,10 @@ function reloadMeasurements () {
 }
 
 function getSpeed (distance) {
-    return trainingUtils.interpolate(measurements, distance);
+    return trainingUtils.getThrowerSpeed(distance);
 }
+
+const aimOffset = 16;
 
 const distanceToSpeedMapClose = [
     /*[0.26, 7700],
@@ -24,25 +26,34 @@ const distanceToSpeedMapClose = [
     [1.92, 14100],
     [2.45, 16500]*/
     [26, 7100],
-    [49, 8400],
+    [49, 8350],
     [80, 9500],
-    [105, 10600],
+    [105, 10730],
+    [124, 11230],
     [145, 12500],
     [192, 14100],
-    [245, 16400]
+    [245, 17100]
 ];
 
 const distanceToSpeedMapFar = [
-    [144, 8500],
-    [176, 9500],
-    [215, 10200],
-    [265, 11500],
-    [355, 13350],
-    [440, 14920],
-    [520, 17000]
+    [124, 8550],
+    [144, 9200],
+    [176, 9950],
+    [215, 11000],
+    [265, 11950],
+    [355, 13800],
+    [440, 15500],
+    [520, 18000]
 ];
 
-const angleSwapDistance = 2.2;
+function getAimOffset(distance) {
+    if(distance < 200)
+        return 0;
+    return Math.round(distance / 300 * aimOffset);
+}
+
+
+const angleSwapDistance = 200;
 
 function getServoMin() {
     return minServo;
@@ -109,6 +120,7 @@ function getSpeedPrev(distance) {
 module.exports = {
     getSpeed,
     getSpeedPrev,
+    getAimOffset,
     getAngle,
     reloadMeasurements,
     getServoMin,
