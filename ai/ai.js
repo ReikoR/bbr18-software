@@ -88,7 +88,8 @@ const motionStates = {
     DRIVE_TO_BALL: 'DRIVE_TO_BALL',
     DRIVE_GRAB_BALL: 'DRIVE_GRAB_BALL',
     DRIVE_WITH_BALL: 'DRIVE_WITH_BALL',
-    FIND_BASKET: 'FIND_BASKET'
+    FIND_BASKET: 'FIND_BASKET',
+    GET_RID_OF_BALL: 'GET_RID_OF_BALL'
 };
 
 /**
@@ -99,7 +100,8 @@ const throwerStates = {
     THROW_BALL: 'THROW_BALL',
     GRAB_BALL: 'GRAB_BALL',
     HOLD_BALL: 'HOLD_BALL',
-    EJECT_BALL: 'EJECT_BALL'
+    EJECT_BALL: 'EJECT_BALL',
+    THROW_BALL_AWAY: 'THROW_BALL_AWAY'
 };
 
 const motionStateHandlers = {
@@ -108,12 +110,14 @@ const motionStateHandlers = {
     DRIVE_TO_BALL: handleMotionDriveToBall,
     DRIVE_GRAB_BALL: handleMotionDriveGrabBall,
     DRIVE_WITH_BALL: handleMotionDriveWithBall,
-    FIND_BASKET: handleMotionFindBasket
+    FIND_BASKET: handleMotionFindBasket,
+    GET_RID_OF_BALL: handleMotionGetRidOfBall
 };
 
 const throwerStateHandlers = {
     IDLE: handleThrowerIdle,
     THROW_BALL: handleThrowerThrowBall,
+    THROW_BALL_AWAY: handleThrowerThrowBallAway,
     GRAB_BALL: handleThrowerGrabBall,
     HOLD_BALL: handleThrowerHoldBall,
     EJECT_BALL: handleThrowerEjectBall
@@ -924,7 +928,7 @@ function resetMotionDriveToBall() {
 }
 
 let driveGrabBallTimeout = null;
-const driveGrabBallTimeoutDelay = 5000;
+const driveGrabBallTimeoutDelay = 3000;
 
 function handleMotionDriveGrabBall() {
     if (driveGrabBallTimeout === null) {
@@ -1067,6 +1071,7 @@ function handleMotionFindBasket() {
     const basket = processedVisionState.basket;
     const minRotationSpeed = 0.05;
     const maxRotationSpeed = 3;
+    const maxSideSpeed = 5;
     const maxForwardSpeed = 5;
     let rotationSpeed = maxRotationSpeed * processedVisionState.lastVisibleBasketDirection;
     let xSpeed = 0;
@@ -1084,11 +1089,21 @@ function handleMotionFindBasket() {
 
             aiState.basketBottomFilterThreshold -= 0.3;
 
+            if (basketNotFoundCount > basketNotFoundLimit) {
+                const visionMetrics = visionState.metrics;
+                const reach = visionMetrics.straightAhead.reach;
+
+                if (reach > 200 || basketNotFoundCount > basketNotFoundLimit + 1) {
+                    setThrowerState(throwerStates.THROW_BALL_AWAY);
+                    setMotionState(motionStates.GET_RID_OF_BALL);
+                } else if (throwerState !== throwerStates.IDLE) {
+                    setThrowerState(throwerStates.GRAB_BALL);
+                    setMotionState(motionStates.DRIVE_GRAB_BALL);
+                }
+            }
+
             if (aiState.basketBottomFilterThreshold < 0.05) {
                 aiState.basketBottomFilterThreshold = 0;
-            } else if (aiState.basketBottomFilterThreshold === 0 || basketNotFoundCount > basketNotFoundLimit) {
-                setThrowerState(throwerStates.GRAB_BALL);
-                setMotionState(motionStates.DRIVE_GRAB_BALL);
             }
 
             console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
@@ -1184,15 +1199,60 @@ function resetMotionFindBasket() {
     unstableThrowerSpeedAllowedError = 100;
 }
 
+function handleMotionGetRidOfBall() {
+    const closestBall = processedVisionState.closestBall;
+
+    let forwardSpeed = 0;
+    let sideSpeed = 0;
+    let rotationSpeed = 0;
+
+    if (closestBall) {
+        const ballCenterX = closestBall.cx;
+        const ballErrorX = ballCenterX - frameCenterX;
+
+        forwardSpeed = 0.1;
+        rotationSpeed = 16 * -ballErrorX / frameWidth;
+
+    } else {
+        setMotionState(motionStates.FIND_BALL);
+        setThrowerState(throwerStates.IDLE);
+    }
+
+    setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
+}
+
 function handleThrowerIdle() {
     aiState.speeds[4] = 0;
 }
 
+function getAllowedThrowerTechnique() {
+    let technique = calibration.getThrowerTechnique(mainboardState.lidarDistance);
+
+    if (!aiState.allowedTechniques.includes(technique)) {
+        technique = aiState.allowedTechniques[0];
+    }
+
+    mainboardState.ballThrownTechnique = technique;
+
+    return technique;
+}
+
 function handleThrowerThrowBall() {
-    aiState.speeds[4] = calibration.getThrowerSpeed(mainboardState.lidarDistance);
+    const technique = getAllowedThrowerTechnique();
+    aiState.speeds[4] = calibration.getThrowerSpeed(technique, mainboardState.lidarDistance);
 
     console.log('Thrower speed: expected', aiState.speeds[4], 'actual', mainboardState.speeds[4]);
     console.log('lidarDistance', mainboardState.lidarDistance, 'filtered', mainboardState.lidarDistanceFiltered);
+
+    if (mainboardState.ballThrown) {
+        mainboardState.ballThrown = false;
+        setMotionState(motionStates.FIND_BALL);
+        setThrowerState(throwerStates.IDLE);
+    }
+}
+
+function handleThrowerThrowBallAway() {
+    aiState.speeds[4] = 15000;
 
     if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;
