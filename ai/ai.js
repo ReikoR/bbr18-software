@@ -878,7 +878,7 @@ function handleMotionDriveToBall() {
             forwardSpeed = driveToBallMinSpeed;
         }
 
-        rotationSpeed *= util.clamped(0.8 - normalizedErrorY, 0.5, 1);
+        rotationSpeed *= util.clamped(1.3 - normalizedErrorY, 0.5, 1);
 
         if (rotationSpeed > maxRotationSpeed) {
             rotationSpeed = maxRotationSpeed;
