@@ -1252,7 +1252,7 @@ function handleMotionFindBasket() {
         const basketErrorX = basketCenterX - thrower.getAimOffset(basketState.distance) - frameCenterX;
         const basketErrorY = basketCenterY - frameCenterY;
         const minBasketDistance = 450;
-        const maxBasketDistance = 100;
+        const maxBasketDistance = 105;
 
         aiState.speeds[4] = throwerIdleSpeed;
 
