@@ -147,10 +147,10 @@ let visionState = {};
 
 /**
  * @typedef {Object} ProcessedVisionStateInfo
- * @property {VisionBallInfo} closestBall
- * @property {VisionBallInfo} lastClosestBall
- * @property {VisionBasketInfo} basket
- * @property {VisionBasketInfo} otherBasket
+ * @property {?VisionBallInfo} closestBall
+ * @property {?VisionBallInfo} lastClosestBall
+ * @property {?VisionBasketInfo} basket
+ * @property {?VisionBasketInfo} otherBasket
  * @property {number} lastVisibleBasketDirection
  * @property {{straightAhead: VisionStraightAheadInfo}} metrics
  */
@@ -276,6 +276,8 @@ function handleInfo(info) {
 
                 aiState.basketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
                 console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
+
+                processedVisionState.lastClosestBall = null;
             }
 
             if (throwerState === throwerStates.THROW_BALL
