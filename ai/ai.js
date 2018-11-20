@@ -753,10 +753,16 @@ let driveToBallStartTime = null;
 
 const driveToBallRotationSpeedRampUpLimit = 0.05;
 const driveToBallMaxRotationSpeed = 5;
-let driveToBallCurrentRotationSpeedLimit = 0.2;
+let driveToBallCurrentRotationSpeedLimit = 0.5;
 
 let ballBasketAligned = false;
 let ballBasketAlignedCounter = 0;
+
+let lastBallErrorY = 0;
+const maxBallErrorYDiffSamples = 100;
+let ballErrorYDiffSamples = [];
+ballErrorYDiffSamples.fill(20, 0, maxBallErrorYDiffSamples);
+let smallDeltaYCounter = 0;
 
 function getDriveToBallMaxSpeed(startTime, startSpeed, speedLimit) {
     const currentTime = Date.now();
@@ -777,6 +783,9 @@ function resetMotionDriveToBall() {
     driveToBallStartTime = null;
     ballBasketAligned = false;
     ballBasketAlignedCounter = 0;
+    lastBallErrorY = -1;
+    ballErrorYDiffSamples.fill(20, 0, maxBallErrorYDiffSamples);
+    smallDeltaYCounter = 0;
 }
 
 function handleMotionDriveToBall() {
@@ -828,10 +837,40 @@ function handleMotionDriveToBall() {
         const maxErrorRotationSpeed = 9;
 
 
+
         let forwardSpeed = maxErrorForwardSpeed * Math.pow(normalizedErrorY, 2);
         let rotationSpeed = maxErrorRotationSpeed * -errorX / frameWidth;
 
-        //forwardSpeed *= util.mapFromRangeToRange(driveability, 0.6, 1, 0.1, 1);
+
+
+
+
+        if (lastBallErrorY === -1) {
+            lastBallErrorY = errorY;
+        }
+        const ballErrorYDiff = lastBallErrorY - errorY;
+        lastBallErrorY = errorY;
+
+        const averageBallErrorYDiff = util.average(ballErrorYDiffSamples);
+
+        if (errorY < 350) {
+            // Increase speed when ball is moving/robot is not reaching it fast enough
+            ballErrorYDiffSamples.push(ballErrorYDiff);
+            ballErrorYDiffSamples = ballErrorYDiffSamples.slice(-maxBallErrorYDiffSamples);
+
+            if (averageBallErrorYDiff <= 10 && averageBallErrorYDiff >= 0) {
+                smallDeltaYCounter ++;
+            } else {
+                if(smallDeltaYCounter > 0)
+                    smallDeltaYCounter --;
+            }
+            //increase speed by 3% every frame
+            forwardSpeed *= 1 + smallDeltaYCounter / 33;
+        }
+
+
+
+
 
         if (forwardSpeed > maxForwardSpeed) {
             forwardSpeed = maxForwardSpeed;
