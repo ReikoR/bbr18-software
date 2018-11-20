@@ -833,7 +833,6 @@ function handleMotionDriveToBall() {
             forwardSpeed = driveToBallMinSpeed;
         }
 
-        rotationSpeed *= util.clamped(0.8 - normalizedErrorY, 0.5, 1);
         const averageBallErrorYDiff = util.average(ballErrorYDiffSamples);
 
         if (errorY < 400) {
@@ -846,6 +845,8 @@ function handleMotionDriveToBall() {
             }
         }
 
+        // Reduce rotation speed when ball is far away
+        rotationSpeed *= util.clamped(1.4 - normalizedErrorY, 0.5, 1);
 
         if (rotationSpeed > maxRotationSpeed) {
             rotationSpeed = maxRotationSpeed;
