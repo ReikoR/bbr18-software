@@ -1185,7 +1185,11 @@ function handleMotionFindBasket() {
 
     xSpeed += rotationSpeed * 0.2;
 
-    xSpeed = util.clamped(xSpeed, -maxForwardSpeed, maxForwardSpeed);
+    if (throwerState === throwerStates.THROW_BALL) {
+        xSpeed = 0;
+    }
+
+    xSpeed = util.clamped(xSpeed, -maxSideSpeed, maxSideSpeed);
     forwardSpeed = util.clamped(forwardSpeed, -maxForwardSpeed, maxForwardSpeed);
 
     setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(xSpeed, forwardSpeed, rotationSpeed, true));
