@@ -767,9 +767,7 @@ const driveToBallMaxRotationSpeed = 8;
 let driveToBallCurrentRotationSpeedLimit = 2;
 
 let lastBallErrorY = 0;
-const maxBallErrorYDiffSamples = 100;
-let ballErrorYDiffSamples = [];
-ballErrorYDiffSamples.fill(20, 0, maxBallErrorYDiffSamples);
+let forwardSpeedMultiplier = 1;
 
 function getDriveToBallMaxSpeed(startTime, startSpeed, speedLimit) {
     const currentTime = Date.now();
@@ -838,17 +836,22 @@ function handleMotionDriveToBall() {
             forwardSpeed = driveToBallMinSpeed;
         }
 
-        const averageBallErrorYDiff = util.average(ballErrorYDiffSamples);
-
         if (errorY < 400) {
-            // Increase speed when ball is moving/robot is not reaching it fast enough
-            ballErrorYDiffSamples.push(ballErrorYDiff);
-            ballErrorYDiffSamples = ballErrorYDiffSamples.slice(-maxBallErrorYDiffSamples);
+            forwardSpeedMultiplier += (10 - ballErrorYDiff) / 200;
 
-            if (averageBallErrorYDiff <= 10 && averageBallErrorYDiff >= 0) {
-                forwardSpeed *= (14 - Math.abs(averageBallErrorYDiff)) / 4;
+            if (forwardSpeedMultiplier < 1) {
+                forwardSpeedMultiplier = 1;
             }
         }
+
+        //TODO: throw ball state should probably continue to use the same multiplier
+        forwardSpeed *= forwardSpeedMultiplier;
+
+        /*console.log(
+            'forwardSpeedMultiplier', forwardSpeedMultiplier,
+            'ballErrorYDiff', ballErrorYDiff,
+            'forwardSpeed', forwardSpeed
+        );*/
 
         // Reduce rotation speed when ball is far away
         rotationSpeed *= util.clamped(1.4 - normalizedErrorY, 0.5, 1);
@@ -925,7 +928,8 @@ function resetMotionDriveToBall() {
     driveToBallStartTime = null;
 
     lastBallErrorY = -1;
-    ballErrorYDiffSamples.fill(20, 0, maxBallErrorYDiffSamples);
+
+    forwardSpeedMultiplier = 1;
 }
 
 let driveGrabBallTimeout = null;
