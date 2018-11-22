@@ -88,6 +88,7 @@ const motionStates = {
     FIND_BALL: 'FIND_BALL',
     DRIVE_TO_BALL: 'DRIVE_TO_BALL',
     GRAB_BALL: 'GRAB_BALL',
+    DRIVE_TO_GOAL_TIMEOUT: 'DRIVE_TO_GOAL_TIMEOUT',
     FIND_BASKET: 'FIND_BASKET',
     FIND_BASKET_TIMEOUT: 'FIND_BASKET_TIMEOUT',
     THROW_BALL_MOVING: 'THROW_BALL_MOVING'
@@ -110,6 +111,7 @@ const motionStateHandlers = {
     FIND_BALL: handleMotionFindBall,
     DRIVE_TO_BALL: handleMotionDriveToBall,
     GRAB_BALL: handleMotionGrabBall,
+    DRIVE_TO_GOAL_TIMEOUT: handleMotionDriveToGoalTimeout,
     FIND_BASKET: handleMotionFindBasket,
     FIND_BASKET_TIMEOUT: handleMotionFindBasketTimeout,
     THROW_BALL_MOVING: handleMotionThrowBallMoving
@@ -713,7 +715,8 @@ function handleMotionFindBall() {
         const patternStep = findObjectRotatePattern[findObjectRotatePatternIndex];
 
         if (findObjectRotateLoopCount === findObjectRotateLoopLimit) {
-            setMotionState(motionStates.IDLE);
+            //TODO: disabled timeout that shuts robot down
+            setMotionState(motionStates.DRIVE_TO_GOAL_TIMEOUT);
         } else if (findObjectRotateTimeout == null) {
             findObjectRotateTimeout = setTimeout(() => {
                 findObjectRotateTimeout = null;
@@ -1050,6 +1053,71 @@ function handleMotionGrabBall() {
         setMotionState(motionStates.FIND_BALL);
     }
 
+}
+
+function handleMotionDriveToGoalTimeout() {
+
+    let basket;
+    if (driveToBasketColour === aiState.basketColour)
+        basket = processedVisionState.basket;
+    else
+        basket = processedVisionState.otherBasket;
+
+    const minRotationSpeed = 0.05;
+    const maxRotationSpeed = 4;
+    const maxForwardSpeed = 1.5;
+    const minForwardSpeed = 0.2;
+
+    let rotationSpeed = 0;
+    let forwardSpeed = 0;
+    let sideSpeed = 0;
+
+    if(basket) {
+        const basketCenterX = basket.cx;
+        const basketCenterY = basket.cy;
+        const basketErrorX = basketCenterX - thrower.getAimOffset(basketState.distance) - frameCenterX;
+        const basketErrorY = basketCenterY - frameCenterY;
+        const normalizedErrorY = basketErrorY / frameHeight;
+        const minBasketDistance = 400;
+
+        const maxErrorRotationSpeed = 9;
+
+        rotationSpeed = maxErrorRotationSpeed * -basketErrorX / frameWidth;
+
+        let isBasketTooClose = basket && basket.y2 > minBasketDistance;
+
+        forwardSpeed = maxForwardSpeed * Math.max(Math.min((100 - basket.y2) / 10, 1), 0.2);
+
+        if(Math.abs(forwardSpeed) < minForwardSpeed) {
+            forwardSpeed = Math.sign(forwardSpeed) * minForwardSpeed;
+        }
+
+        rotationSpeed *= util.clamped(1.5 - normalizedErrorY, 0.5, 1);
+
+        if (Math.abs(rotationSpeed) < minRotationSpeed) {
+            rotationSpeed = Math.sign(rotationSpeed) * minRotationSpeed;
+        }
+
+        if (Math.abs(rotationSpeed) > maxRotationSpeed) {
+            rotationSpeed = Math.sign(rotationSpeed) * maxRotationSpeed;
+        }
+
+        if (isBasketTooClose) {
+            driveToBasketColour = driveToBasketColour == basketColours.magenta ? basketColours.blue : basketColours.magenta;
+            setMotionState(motionStates.FIND_BALL);
+            setThrowerState(throwerStates.IDLE);
+        }
+    }
+
+    if (processedVisionState.closestBall) {
+        sideSpeed = 0;
+        forwardSpeed = 0;
+        rotationSpeed = 0;
+        setMotionState(motionStates.FIND_BALL);
+        setThrowerState(throwerStates.IDLE);
+    }
+
+    setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
 }
 
 
