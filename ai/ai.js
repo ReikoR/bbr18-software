@@ -848,6 +848,8 @@ function handleMotionDriveToBall() {
 
             if (forwardSpeedMultiplier < 1) {
                 forwardSpeedMultiplier = 1;
+            } else if (forwardSpeedMultiplier > 10) {
+                forwardSpeedMultiplier = 10;
             }
         }
 
