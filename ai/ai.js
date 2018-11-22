@@ -89,7 +89,8 @@ const motionStates = {
     DRIVE_GRAB_BALL: 'DRIVE_GRAB_BALL',
     DRIVE_WITH_BALL: 'DRIVE_WITH_BALL',
     FIND_BASKET: 'FIND_BASKET',
-    GET_RID_OF_BALL: 'GET_RID_OF_BALL'
+    GET_RID_OF_BALL: 'GET_RID_OF_BALL',
+    NUDGE_BALL: 'NUDGE_BALL'
 };
 
 /**
@@ -111,7 +112,8 @@ const motionStateHandlers = {
     DRIVE_GRAB_BALL: handleMotionDriveGrabBall,
     DRIVE_WITH_BALL: handleMotionDriveWithBall,
     FIND_BASKET: handleMotionFindBasket,
-    GET_RID_OF_BALL: handleMotionGetRidOfBall
+    GET_RID_OF_BALL: handleMotionGetRidOfBall,
+    NUDGE_BALL: handleMotionNudgeBall
 };
 
 const throwerStateHandlers = {
@@ -948,7 +950,7 @@ function handleMotionDriveGrabBall() {
     if (driveGrabBallTimeout === null) {
         driveGrabBallTimeout = setTimeout(() => {
             if (!mainboardState.balls[0] && !mainboardState.balls[1]) {
-                setMotionState(motionStates.FIND_BALL);
+                setMotionState(motionStates.NUDGE_BALL);
                 setThrowerState(throwerStates.IDLE);
             }
 
@@ -1239,6 +1241,14 @@ function handleMotionGetRidOfBall() {
     }
 
     setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
+}
+
+function handleMotionNudgeBall() {
+    setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, 0, 8, true));
+
+    setTimeout(() => {
+        setMotionState(motionStates.FIND_BALL);
+    }, 500);
 }
 
 function handleThrowerIdle() {
