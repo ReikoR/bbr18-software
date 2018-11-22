@@ -748,12 +748,12 @@ function resetMotionFindBall() {
 
 const driveToBallMinSpeed = 0.2;
 const driveToBallMaxSpeed = 4.5;
-const driveToBallStartSpeed = 0.5;
+const driveToBallStartSpeed = 0.2;
 let driveToBallStartTime = null;
 
 const driveToBallRotationSpeedRampUpLimit = 0.05;
 const driveToBallMaxRotationSpeed = 5;
-let driveToBallCurrentRotationSpeedLimit = 0.5;
+let driveToBallCurrentRotationSpeedLimit = 1;
 
 let ballBasketAligned = false;
 let ballBasketAlignedCounter = 0;
@@ -858,7 +858,7 @@ function handleMotionDriveToBall() {
             ballErrorYDiffSamples.push(ballErrorYDiff);
             ballErrorYDiffSamples = ballErrorYDiffSamples.slice(-maxBallErrorYDiffSamples);
 
-            if (averageBallErrorYDiff <= 10 && averageBallErrorYDiff >= 0) {
+            if (averageBallErrorYDiff <= 20 && averageBallErrorYDiff >= 0) {
                 smallDeltaYCounter ++;
             } else {
                 if(smallDeltaYCounter > 0)
@@ -878,7 +878,7 @@ function handleMotionDriveToBall() {
             forwardSpeed = driveToBallMinSpeed;
         }
 
-        rotationSpeed *= util.clamped(1.3 - normalizedErrorY, 0.5, 1);
+        rotationSpeed *= util.clamped(1.5 - normalizedErrorY, 0.5, 1);
 
         if (rotationSpeed > maxRotationSpeed) {
             rotationSpeed = maxRotationSpeed;
@@ -1054,7 +1054,7 @@ function handleMotionGrabBall() {
 
 
 let findBasketFallbackTimeout = null;
-const findBasketFallbackTimeoutDelay = 150;
+const findBasketFallbackTimeoutDelay = 900;
 let findBasketDriveTimeout = null;
 const findBasketDriveTimeoutDelay = 1000;
 let enableSpin = true;
@@ -1076,12 +1076,13 @@ function resetHandleMotionFindBasketTimeout() {
 function handleMotionFindBasketTimeout() {
     const basket = processedVisionState.basket;
     const maxRotationSpeed = 4;
+    const maxForwardSpeed = 2;
 
     let rotationSpeed = 0;
     let forwardSpeed = 0;
     let sideSpeed = 0;
 
-    const basketMinFrameCount = 20;
+    const basketMinFrameCount = 10;
 
     if (findBasketFallbackTimeout == null && enableSpin) {
         spinTimeout = true;
@@ -1128,12 +1129,12 @@ function handleMotionFindBasketTimeout() {
             enableSpin = true;
             clearTimeout(findBasketDriveTimeout);
         } else if (reach < 150) {
-            forwardSpeed = 1;
+            forwardSpeed = util.clamped(maxForwardSpeed * 100 / reach, 0.1, maxForwardSpeed);
         } else if (reach > 150) {
             forwardSpeed = 0;
             droveForward = true;
         } else {
-            rotationSpeed = 3;
+            rotationSpeed = 2;
         }
     }
 
@@ -1177,7 +1178,8 @@ function handleMotionFindBasket() {
     const minThrowError = 5;
     const maxThrowDistance = 600;
     const maxForwardSpeed = 1.5;
-    const defaultAimFrames = 5;
+    const minForwardSpeed = 0.2;
+    const defaultAimFrames = 6;
     let minValidAimFrames = defaultAimFrames;
 
     let sideSpeed = 0;
@@ -1251,6 +1253,7 @@ function handleMotionFindBasket() {
         const basketCenterY = basket.cy;
         const basketErrorX = basketCenterX - thrower.getAimOffset(basketState.distance) - frameCenterX;
         const basketErrorY = basketCenterY - frameCenterY;
+        const normalizedErrorY = basketErrorY / frameHeight;
         const minBasketDistance = 450;
         const maxBasketDistance = 105;
 
@@ -1270,6 +1273,12 @@ function handleMotionFindBasket() {
             movedForThrowFlag = +1;
             forwardSpeed = maxForwardSpeed * Math.max(Math.min((maxBasketDistance - basket.y2) / 10, 1), 0.2);
         }
+
+        if(Math.abs(forwardSpeed) < minForwardSpeed) {
+            forwardSpeed = Math.sign(forwardSpeed) * minForwardSpeed;
+        }
+
+        rotationSpeed *= util.clamped(1.5 - normalizedErrorY, 0.5, 1);
 
         if (Math.abs(rotationSpeed) < minRotationSpeed) {
             rotationSpeed = Math.sign(rotationSpeed) * minRotationSpeed;
@@ -1336,8 +1345,6 @@ function handleThrowerThrowBall() {
         if (stabilizedFrames > minStableFrames) {
             aiState.speeds[5] = 200;
         }
-    } else {
-        stabilizedFrames = 0;
     }
 
     if (!mainboardState.balls[1]) {
