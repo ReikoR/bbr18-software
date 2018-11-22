@@ -1101,7 +1101,7 @@ function handleMotionFindBasket() {
 
             console.log('handleMotionFindBasket: basket not found', basketNotFoundCount);
 
-            aiState.basketBottomFilterThreshold -= 0.3;
+            aiState.basketBottomFilterThreshold -= 0.5;
 
             if (basketNotFoundCount > basketNotFoundLimit) {
                 const visionMetrics = visionState.metrics;
