@@ -769,6 +769,8 @@ let driveToBallCurrentRotationSpeedLimit = 2;
 let lastBallErrorY = 0;
 let forwardSpeedMultiplier = 1;
 
+const maxDriveToBallTime = 5000;
+
 function getDriveToBallMaxSpeed(startTime, startSpeed, speedLimit) {
     const currentTime = Date.now();
     const timeDiff = currentTime - startTime;
@@ -789,6 +791,11 @@ function handleMotionDriveToBall() {
 
     if (!driveToBallStartTime) {
         driveToBallStartTime = Date.now();
+    }
+
+    if (Date.now() - driveToBallStartTime > maxDriveToBallTime) {
+        setMotionState(motionStates.FIND_BALL);
+        return;
     }
 
     if (closestBall) {
