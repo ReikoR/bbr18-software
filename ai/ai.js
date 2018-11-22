@@ -1110,7 +1110,7 @@ function handleMotionFindBasket() {
                 if (reach > 200 || basketNotFoundCount > basketNotFoundLimit + 1) {
                     setThrowerState(throwerStates.THROW_BALL_AWAY);
                     setMotionState(motionStates.GET_RID_OF_BALL);
-                } else if (throwerState !== throwerStates.IDLE) {
+                } else if (throwerState === throwerStates.IDLE) {
                     setThrowerState(throwerStates.GRAB_BALL);
                     setMotionState(motionStates.DRIVE_GRAB_BALL);
                 }
