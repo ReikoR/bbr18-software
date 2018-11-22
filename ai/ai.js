@@ -1276,6 +1276,7 @@ function handleThrowerThrowBall() {
 
     if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;
+        console.log('mainboardState.ballThrown', mainboardState.ballThrown);
         setMotionState(motionStates.FIND_BALL);
         setThrowerState(throwerStates.IDLE);
     }
@@ -1286,6 +1287,7 @@ function handleThrowerThrowBallAway() {
 
     if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;
+        console.log('mainboardState.ballThrown', mainboardState.ballThrown);
         setMotionState(motionStates.FIND_BALL);
         setThrowerState(throwerStates.IDLE);
     }
@@ -1368,6 +1370,12 @@ function setMotionState(newState) {
 function setThrowerState(newState) {
     if (throwerState !== newState) {
         console.log('Thrower state:', throwerState, '->', newState);
+
+        if (mainboardState.ballThrown) {
+            mainboardState.ballThrown = false;
+            console.log('mainboardState.ballThrown', mainboardState.ballThrown);
+        }
+
         throwerState = newState;
 
         clearTimeout(throwBallTimeout);
