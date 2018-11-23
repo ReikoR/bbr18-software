@@ -1141,7 +1141,7 @@ function handleMotionFindBasket() {
             const ballCenterX = closestBall.cx;
             const ballCenterY = closestBall.cy;
             const ballErrorX = ballCenterX - frameCenterX;
-            const ballErrorY = 0.8 * frameHeight - ballCenterY;
+            const ballErrorY = 0.85 * frameHeight - ballCenterY;
 
             xSpeed = Math.sign(ballErrorX) * Math.pow(Math.abs(ballErrorX) / 400, 1.5);
             forwardSpeed = ballErrorY / 400;
@@ -1184,7 +1184,9 @@ function handleMotionFindBasket() {
                 }
             }
 
-            forwardSpeed = isThrowerSpeedStable ? 0.2 : 0;
+            if (isThrowerSpeedStable) {
+                forwardSpeed = 0.2;
+            }
         }
 
     } else {
