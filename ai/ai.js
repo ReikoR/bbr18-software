@@ -90,7 +90,8 @@ const motionStates = {
     DRIVE_WITH_BALL: 'DRIVE_WITH_BALL',
     FIND_BASKET: 'FIND_BASKET',
     GET_RID_OF_BALL: 'GET_RID_OF_BALL',
-    NUDGE_BALL: 'NUDGE_BALL'
+    NUDGE_BALL: 'NUDGE_BALL',
+    MOVE_BALL_AWAY_FROM_OBSTACLE: 'MOVE_BALL_AWAY_FROM_OBSTACLE'
 };
 
 /**
@@ -102,7 +103,8 @@ const throwerStates = {
     GRAB_BALL: 'GRAB_BALL',
     HOLD_BALL: 'HOLD_BALL',
     EJECT_BALL: 'EJECT_BALL',
-    THROW_BALL_AWAY: 'THROW_BALL_AWAY'
+    THROW_BALL_AWAY: 'THROW_BALL_AWAY',
+    PUSH_BALL: 'PUSH_BALL'
 };
 
 const motionStateHandlers = {
@@ -113,7 +115,8 @@ const motionStateHandlers = {
     DRIVE_WITH_BALL: handleMotionDriveWithBall,
     FIND_BASKET: handleMotionFindBasket,
     GET_RID_OF_BALL: handleMotionGetRidOfBall,
-    NUDGE_BALL: handleMotionNudgeBall
+    NUDGE_BALL: handleMotionNudgeBall,
+    MOVE_BALL_AWAY_FROM_OBSTACLE: handleMotionMoveBallAwayFromObstacle
 };
 
 const throwerStateHandlers = {
@@ -122,7 +125,8 @@ const throwerStateHandlers = {
     THROW_BALL_AWAY: handleThrowerThrowBallAway,
     GRAB_BALL: handleThrowerGrabBall,
     HOLD_BALL: handleThrowerHoldBall,
-    EJECT_BALL: handleThrowerEjectBall
+    EJECT_BALL: handleThrowerEjectBall,
+    PUSH_BALL: handleThrowerPushBall
 };
 
 const basketColours = {
@@ -924,8 +928,14 @@ function handleMotionDriveToBall() {
             Math.abs(errorX) <= 100 &&
             centerY <= 950 //avoid too close ball
         ) {
-            setMotionState(motionStates.FIND_BASKET);
-            //setMotionState(motionStates.IDLE);
+            const visionMetrics = visionState.metrics;
+            const globalDriveability = visionMetrics.straightAhead.driveability;
+
+            if (globalDriveability < 0.6) {
+                setMotionState(motionStates.MOVE_BALL_AWAY_FROM_OBSTACLE);
+            } else {
+                setMotionState(motionStates.FIND_BASKET);
+            }
         }
 
 
@@ -1251,6 +1261,78 @@ function handleMotionNudgeBall() {
     }, 500);
 }
 
+let moveBallAwayDirection = 0;
+let moveBallAwayTimeout = null;
+let moveBallAwayTimeoutDelay = 5000;
+
+function handleMotionMoveBallAwayFromObstacle() {
+    const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
+
+    let forwardSpeed = 0;
+    let sideSpeed = 0;
+    let rotationSpeed = 0;
+
+    if (moveBallAwayTimeout === null) {
+        moveBallAwayTimeout = setTimeout(() => {
+            setMotionState(motionStates.NUDGE_BALL);
+            setThrowerState(throwerStates.IDLE);
+        }, moveBallAwayTimeoutDelay);
+    }
+
+    if (closestBall) {
+        const ballCenterX = closestBall.cx;
+        const ballCenterY = closestBall.cy;
+        const ballErrorX = ballCenterX - frameCenterX;
+        const ballErrorY = 0.9 * frameHeight - ballCenterY;
+
+        const visionMetrics = visionState.metrics;
+        const leftSideMetric = visionMetrics.straightAhead.leftSideMetric;
+        const rightSideMetric = visionMetrics.straightAhead.rightSideMetric;
+        let sideMetric = -leftSideMetric + rightSideMetric;
+        const reach = visionMetrics.straightAhead.reach;
+        const globalDriveability = visionMetrics.straightAhead.driveability;
+
+        forwardSpeed = util.clamped(4 * ballErrorY / frameHeight, -1, 1);
+
+        if (moveBallAwayDirection === 0) {
+            const basket = processedVisionState.basket;
+
+            if (basket) {
+                moveBallAwayDirection = basket.cx < frameCenterX ? -1 : 1;
+            } else {
+                moveBallAwayDirection = processedVisionState.lastVisibleBasketDirection;
+            }
+        }
+
+        sideSpeed = util.clamped(
+            (ballErrorX + 50 * moveBallAwayDirection) / 400,
+            -1, 1
+        );
+
+        rotationSpeed = moveBallAwayDirection;
+
+        setThrowerState(throwerStates.PUSH_BALL);
+
+        if (globalDriveability > 0.7) {
+            setMotionState(motionStates.FIND_BALL);
+            setThrowerState(throwerStates.IDLE);
+        }
+
+    } else {
+        setMotionState(motionStates.FIND_BALL);
+        setThrowerState(throwerStates.IDLE);
+    }
+
+    setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
+}
+
+function resetMotionMoveBallAwayFromObstacle() {
+    moveBallAwayDirection = 0;
+
+    clearTimeout(moveBallAwayTimeout);
+    moveBallAwayTimeout = null;
+}
+
 function handleThrowerIdle() {
     aiState.speeds[4] = 0;
 }
@@ -1334,6 +1416,10 @@ function handleThrowerEjectBall() {
     }
 }
 
+function handleThrowerPushBall() {
+    aiState.speeds[4] = -500;
+}
+
 /**
  *
  * @param {motionStates} newState
@@ -1350,6 +1436,8 @@ function setMotionState(newState) {
             resetMotionFindBasket();
         } else if (motionState === motionStates.DRIVE_WITH_BALL) {
             resetMotionDriveWithBall();
+        } else if (motionState === motionStates.MOVE_BALL_AWAY_FROM_OBSTACLE) {
+            resetMotionMoveBallAwayFromObstacle();
         }
 
         motionState = newState;
