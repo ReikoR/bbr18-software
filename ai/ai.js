@@ -1256,7 +1256,9 @@ function handleMotionGetRidOfBall() {
 }
 
 function handleMotionNudgeBall() {
-    setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, 0, 8, true));
+    const rotationSpeed = 8 * -processedVisionState.lastVisibleBasketDirection;
+
+    setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, 0, rotationSpeed, true));
 
     setTimeout(() => {
         setMotionState(motionStates.FIND_BALL);
