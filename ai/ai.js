@@ -1019,7 +1019,7 @@ function handleMotionDriveWithBall() {
         rotationSpeed = Math.sign(-errorX) * Math.max(Math.abs(maxRotationSpeed * errorX / frameWidth), 0.1);
 
         if (throwerState === throwerStates.EJECT_BALL) {
-            forwardSpeed = 0;
+            forwardSpeed = -0.1;
         }
 
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, forwardSpeed, rotationSpeed, true));
