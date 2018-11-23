@@ -167,6 +167,8 @@ private:
 	Object* mergeGoals(Object* goal1, Object* goal2);
 	bool isValidBall(Object* ball, Dir dir, ObjectList& goals);
     bool isBallWithinBorders(Object* ball);
+    int getBorderDirectionBetweenPoints(int startX, int startY, int endX, int endY,
+                                        std::vector<Blobber::BlobColor> requiredColors);
     bool isValidbasket(Object *basket, Side side);
 	bool isColorCombinationBetweenPoints(int startX, int startY, int endX, int endY, std::vector<Blobber::BlobColor> requiredColors);
 	bool isNotOpponentMarker(Object* goal, Side side, ObjectList& goals);
