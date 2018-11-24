@@ -607,68 +607,72 @@ bool Vision::isNotOpponentMarker(Object* goal, Side side, ObjectList& goals)
 	return true;
 }
 
-bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& balls) {
-	int senseRadius = ball->y / 5 - std::max(std::abs(ball->x - Config::cameraWidth / 2), 0) / 20 + 2;
-	int ballMinArea = senseRadius * senseRadius / 25;
+bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& baskets) {
+    if (ball->y < 50) {
+        return false;
+    }
 
-	//std::cout << "area: " << ball->area << " min: " << ballMinArea << std::endl;
+    int senseRadius = ball->y / 5 - std::max(std::abs(ball->x - Config::cameraWidth / 2), 0) / 20 + 2;
+    int ballMinArea = senseRadius * senseRadius / 25;
 
-	if (ball->area < ballMinArea) {
-		return false;
-	}
+    //std::cout << "area: " << ball->area << " min: " << ballMinArea << std::endl;
+
+    if (ball->area < ballMinArea) {
+        return false;
+    }
 
     float sizeRatio = (float)ball->width / (float)ball->height;
 
-	if (sizeRatio > Config::maxBallSizeRatio || sizeRatio < 1.0f / Config::maxBallSizeRatio) {
-		return false;
-	}
+    if (sizeRatio > Config::maxBallSizeRatio || sizeRatio < 1.0f / Config::maxBallSizeRatio) {
+        return false;
+    }
 
     int ballRadius = getBallRadius(ball->width, ball->height);
-	//int senseRadius = getBallSenseRadius(ballRadius, ball->distance);
+    //int senseRadius = getBallSenseRadius(ballRadius, ball->distance);
 
-	//int surroundSenseY = (int)((float)ball->y + (float)ballRadius * Math::map(ball->distance, 0.0f, 2.0f, 0.75f, 0.2f));
-	int surroundSenseY = ball->y;
-	//int pathMetricSenseY = surroundSenseY + senseRadius;
+    //int surroundSenseY = (int)((float)ball->y + (float)ballRadius * Math::map(ball->distance, 0.0f, 2.0f, 0.75f, 0.2f));
+    int surroundSenseY = ball->y;
+    //int pathMetricSenseY = surroundSenseY + senseRadius;
 
-	std::vector<Blobber::BlobColor> validColors = {
-			Blobber::BlobColor::orange,
-			Blobber::BlobColor::white,
-			Blobber::BlobColor::green
-	};
+    std::vector<Blobber::BlobColor> validColors = {
+            Blobber::BlobColor::orange,
+            Blobber::BlobColor::white,
+            Blobber::BlobColor::green
+    };
 
-	if (ball->y + ballRadius < Config::surroundSenseThresholdY) {
-		float bottomSurroundMetric = getSurroundMetric(
-			ball->x,
-			surroundSenseY,
-			senseRadius,
-			validColors,
-			1
-		);
+    if (ball->y + ballRadius < Config::surroundSenseThresholdY) {
+        float bottomSurroundMetric = getSurroundMetric(
+                ball->x,
+                surroundSenseY,
+                senseRadius,
+                validColors,
+                1
+        );
 
-		float topSurroundMetric = getSurroundMetric(
-				ball->x,
-				surroundSenseY,
-				senseRadius,
-				validColors,
-				-1
-		);
+        float topSurroundMetric = getSurroundMetric(
+                ball->x,
+                surroundSenseY,
+                senseRadius,
+                validColors,
+                -1
+        );
 
-		ball->surroundMetrics[0] = bottomSurroundMetric;
-		ball->surroundMetrics[1] = topSurroundMetric;
+        ball->surroundMetrics[0] = bottomSurroundMetric;
+        ball->surroundMetrics[1] = topSurroundMetric;
 
-		if (bottomSurroundMetric == -1.0f || bottomSurroundMetric < Config::minValidBallSurroundThreshold) {
-			//std::cout << "@ BALL SURROUND FAIL: " << surroundMetric << " VS " << Config::minValidBallSurroundThreshold << std::endl;
+        if (bottomSurroundMetric == -1.0f || bottomSurroundMetric < Config::minValidBallSurroundThreshold) {
+            //std::cout << "@ BALL SURROUND FAIL: " << surroundMetric << " VS " << Config::minValidBallSurroundThreshold << std::endl;
 
-			return false;
-		}
-	} else {
-		ball->surroundMetrics[0] = 1.0;
-		ball->surroundMetrics[1] = 1.0;
-	}
+            return false;
+        }
+    } else {
+        ball->surroundMetrics[0] = 1.0;
+        ball->surroundMetrics[1] = 1.0;
+    }
 
-	if (!isBallWithinBorders(ball, baskets)) {
-	    return false;
-	}
+    if (!isBallWithinBorders(ball, baskets)) {
+        return false;
+    }
 
     return true;
 }
