@@ -710,36 +710,63 @@ bool Vision::isBallWithinBorders(Object* ball, ObjectList& baskets) {
 	}
 	 */
 
-    return getBorderDirectionBetweenPoints(ball->x, ball->y + ball->width / 2, ball->x, Config::surroundSenseThresholdY,
-										   colorsFromInside) != -1
-    	&& getBorderDirectionBetweenPoints(
-			ball->x + ball->width / 2, ball->y,
-			Config::cameraWidth, ball->y,
-			colorsFromInside
-	) != -1
-		&& getBorderDirectionBetweenPoints(
-			ball->x - ball->width / 2, ball->y,
-			0, ball->y,
-			colorsFromInside
-	) != -1 &&
-			getBorderDirectionBetweenPoints(ball->x, ball->y - ball->width / 2, ball->x, 0, colorsFromInside) != -1;
+	bool isBallValid = true;
+
+	if (ball->y < Config::surroundSenseThresholdY) {
+		// From ball to bottom
+		isBallValid = isBallValid && getBorderDirectionBetweenPoints(ball->x, ball->y + ball->width / 2, ball->x, Config::surroundSenseThresholdY,
+													  colorsFromInside) != -1;
+
+		// From ball to right
+		isBallValid = isBallValid && getBorderDirectionBetweenPoints(
+				ball->x + ball->width / 2, ball->y,
+				Config::cameraWidth, ball->y,
+				colorsFromInside
+		) != -1;
+
+		// From ball to left
+		isBallValid = isBallValid && getBorderDirectionBetweenPoints(
+				ball->x - ball->width / 2, ball->y,
+				0, ball->y,
+				colorsFromInside
+		) != -1;
+	}
+
+	// From ball to top
+	if (isBallValid) {
+		bool checkToTop = true;
+
+		for (auto basket : baskets) {
+			if (ball->x > basket->x - basket->width * 2 && ball->x < basket->x + basket->width * 2) {
+				checkToTop = false;
+				break;
+			}
+		}
+
+		if (checkToTop) {
+			isBallValid = getBorderDirectionBetweenPoints(ball->x, ball->y - ball->width / 2, ball->x, 50,
+																		 colorsFromInside) != -1;
+		}
+	}
+
+	return isBallValid;
 }
 
 int Vision::getBorderDirectionBetweenPoints(int startX, int startY, int endX, int endY,
-											std::vector<Blobber::BlobColor> colorSequence) {
+											std::vector<Blobber::BlobColor> colorSequence, int *borderX, int *borderY) {
 	if (colorSequence.empty() || (startX == endX && startY == endY)) {
 		return false;
 	}
 
 	bool debug = canvas.data != nullptr;
-	const int tolerance = 10;
-	const int minStripeHeight = 12;
+	int tolerance = 10;
+	int minStripeHeight = 8;
 
 	Blobber::BlobColor currentColor = Blobber::BlobColor::unknown;
 	int currentPixels = 0;
 	int otherPixels = 0;
 
-	auto colorIterator = colorSequence.begin();
+	//auto colorIterator = colorSequence.begin();
 	std::vector<int> stripeLengths;
 	std::vector<Blobber::BlobColor> validColorStripes;
 
@@ -757,14 +784,24 @@ int Vision::getBorderDirectionBetweenPoints(int startX, int startY, int endX, in
 		int y = isMainAxisY ? main : secondary;
 
 		Blobber::BlobColor color = blobber->getColorAt(x, y);
+		bool isSequenceColor = std::find(colorSequence.begin(), colorSequence.end(), color) != colorSequence.end();
 
-		if (!currentPixels && std::find(colorSequence.begin(), colorSequence.end(), color) != colorSequence.end()) {
+		if (!currentPixels && isSequenceColor) {
 			currentColor = color;
 			++currentPixels;
 			otherPixels = 0;
 
+			//
+			//tolerance = y / 20 - std::max(std::abs(x - Config::cameraWidth / 2), 0) / 100 + 2;
+			//minStripeHeight = y / 20 - std::max(std::abs(x - Config::cameraWidth / 2), 0) / 100 + 2;
+			//tolerance = (int) (2.3 + 0.012 * y);
+			minStripeHeight = std::max((int) (0.0003 * y*y + 0.05 * y - 10.51) / 5, 3);
+			tolerance = minStripeHeight * 2;
+
 			if (debug) {
 				canvas.drawMarker(x, y, 0, 200, 0, true);
+				//canvas.drawText(x + 50, y, Util::toString(y), 0, 0, 0, true);
+				//canvas.drawText(x, y + 50, Util::toString(minStripeHeight), 0, 0, 0, true);
 			}
 		} else if (currentPixels) {
 			if (color == currentColor) {
@@ -773,12 +810,29 @@ int Vision::getBorderDirectionBetweenPoints(int startX, int startY, int endX, in
 				if (debug) {
 					canvas.drawMarker(x, y, 0, 200, 0, true);
 				}
+			} else if (isSequenceColor) {
+				currentColor = color;
+
+				//
+				//tolerance = (int) (2.3 + 0.012 * y);
+				minStripeHeight = std::max((int) (0.0003 * y*y + 0.05 * y - 10.51) / 5, 3);
+				tolerance = minStripeHeight * 2;
+
+				if (debug) {
+					canvas.drawMarker(x, y, 0, 200, 0, true);
+					//canvas.drawText(x + 50, y, Util::toString(y), 0, 255, 0, true);
+					//canvas.drawText(x + 100, y + 50, Util::toString(otherPixels), 0, 0, 0, true);
+					//canvas.drawText(x, y + 50, Util::toString(minStripeHeight), 0, 0, 0, true);
+				}
+
+				currentPixels = 1;
+				otherPixels = 0;
 			} else if (++otherPixels > tolerance) {
 				currentPixels = otherPixels = 0;
 
-				if (std::find(colorSequence.begin(), colorSequence.end(), color) == colorSequence.end()) {
+				//if (!isSequenceColor) {
 					validColorStripes.clear();
-				}
+				//}
 
 				if (debug) {
 					canvas.drawMarker(x, y, 200, 0, 0, true);
@@ -787,6 +841,10 @@ int Vision::getBorderDirectionBetweenPoints(int startX, int startY, int endX, in
 		}
 
 		if (currentPixels > minStripeHeight) {
+			if (!validColorStripes.empty() && validColorStripes.back() == currentColor) {
+				continue;
+			}
+
 			validColorStripes.push_back(currentColor);
 
 			otherPixels = 0;

@@ -166,8 +166,8 @@ private:
 	ColorDistance getColorDistance(std::string colorName);
 	ColorList getViewColorOrder();
 	Object* mergeGoals(Object* goal1, Object* goal2);
-	bool isValidBall(Object* ball, Dir dir, ObjectList& goals);
-    bool isBallWithinBorders(Object* ball);
+	bool isValidBall(Object* ball, Dir dir, ObjectList& baskets);
+    bool isBallWithinBorders(Object* ball, ObjectList& baskets);
     int getBorderDirectionBetweenPoints(int startX, int startY, int endX, int endY,
                                         std::vector<Blobber::BlobColor> requiredColors, int *borderX = nullptr, int *borderY = nullptr);
     bool isValidbasket(Object *basket, Side side);
