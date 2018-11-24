@@ -15,7 +15,7 @@ function getSpeed (distance) {
     return trainingUtils.getThrowerSpeed(distance);
 }
 
-const aimOffset = 18;
+const aimOffset = 20;
 
 const distanceToSpeedMapClose = [
     /*[0.26, 7700],
@@ -26,12 +26,12 @@ const distanceToSpeedMapClose = [
     [1.92, 14100],
     [2.45, 16500]*/
     [26, 7200],
-    [49, 8550],
-    [80, 9800],
+    [49, 8400],
+    [80, 9700],
     [105, 10830],
-    [124, 11330],
-    [145, 12600],
-    [192, 14200],
+    [124, 11400],
+    [145, 12800],
+    [192, 14300],
     [245, 17200]
 ];
 
@@ -39,17 +39,17 @@ const distanceToSpeedMapFar = [
     [124, 8650],
     [144, 9400],
     [176, 10150],
-    [215, 11200],
-    [265, 12150],
-    [355, 11400],
+    [215, 11300],
+    [265, 12330],
+    [355, 14500],
     [440, 15700],
     [520, 18200]
 ];
 
 function getAimOffset(distance) {
-    if(distance < 200)
+    if(distance < 100)
         return 0;
-    return Math.round(distance / 300 * aimOffset);
+    return Math.round(distance / 250 * aimOffset);
 }
 
 
