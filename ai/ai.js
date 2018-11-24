@@ -109,8 +109,6 @@ const throwerStates = {
 };
 
 const motionStateEnterHandlers = {
-    DRIVE_TO_BALL: enterMotionDriveToBall,
-    FIND_BALL: enterMotionFindBall,
     CHECK_BALLS: enterMotionCheckBalls
 };
 
