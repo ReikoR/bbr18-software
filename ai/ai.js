@@ -1420,7 +1420,9 @@ function handleMotionFindBasket() {
 
         isBasketErrorXSmallEnough = Math.abs(basketErrorX) < throwError;
 
-        if (isBasketErrorXSmallEnough && !isBasketTooClose && !isBasketTooFar) {
+        let isRobotStopped = robotWheelSpeedsLessThan(mainboardState.speeds, 30);
+
+        if (isBasketErrorXSmallEnough && !isBasketTooClose && !isBasketTooFar && isRobotStopped) {
             validAimFrames++;
             rotationSpeed = 0;
             forwardSpeed = 0;
@@ -1434,6 +1436,15 @@ function handleMotionFindBasket() {
     }
 
     setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
+}
+
+function robotWheelSpeedsLessThan(wheelSpeeds, limit) {
+    let i = 0;
+    for(i; i < 4; i++) {
+        if ((Math.abs(wheelSpeeds[i])) > limit)
+            return false;
+    }
+    return true;
 }
 
 function handleThrowerIdle() {
@@ -1468,22 +1479,23 @@ function handleThrowerThrowBall() {
 
     if (isCorrectSpeed) {
         stabilizedFrames++;
-        if (stabilizedFrames > minStableFrames) {
-            aiState.speeds[5] = 200;
-        }
+    }
+
+    if (stabilizedFrames > minStableFrames) {
+        aiState.speeds[5] = 200;
     }
 
     if (!mainboardState.balls[1]) {
         mainboardState.ballThrown = true;
-        lingeringThrowCounter++;
     }
 
-    const hasLingered = lingeringThrowCounter > lingeringFrames;
-
-    if (mainboardState.ballThrown && hasLingered) {
+    if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;
         setMotionState(motionStates.FIND_BALL);
         setThrowerState(throwerStates.IDLE);
+
+        //setMotionState(motionStates.IDLE);
+        //setThrowerState(throwerStates.IDLE);
     }
 }
 
@@ -1563,6 +1575,7 @@ function setMotionState(newState) {
             resetMotionFindBall();
             aiState.ballTopArcFilterThreshold = defaultBallTopArcFilterThreshold;
         }
+
     }
 }
 
@@ -1595,7 +1608,6 @@ function update() {
     motionStateHandlers[motionState]();
     throwerStateHandlers[throwerState]();
 
-    //if (motionState !== motionStates.IDLE || throwerState !== throwerStates.IDLE) {
     if (!aiState.isManualOverride) {
         const mainboardCommand = {
             speeds: aiState.speeds,
