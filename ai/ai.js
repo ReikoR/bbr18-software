@@ -1495,18 +1495,29 @@ function getAllowedThrowerTechnique() {
     return technique;
 }
 
+let afterBallThrownCount = 0;
+let maxAfterBallThrownCount = 3;
+
 function handleThrowerThrowBall() {
     const technique = getAllowedThrowerTechnique();
     aiState.speeds[4] = calibration.getThrowerSpeed(technique, mainboardState.lidarDistance);
 
-    console.log('Thrower speed: expected', aiState.speeds[4], 'actual', mainboardState.speeds[4]);
-    console.log('lidarDistance', mainboardState.lidarDistance, 'filtered', mainboardState.lidarDistanceFiltered);
+    //console.log('Thrower speed: expected', aiState.speeds[4], 'actual', mainboardState.speeds[4]);
+    //console.log('lidarDistance', mainboardState.lidarDistance, 'filtered', mainboardState.lidarDistanceFiltered);
 
     if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;
         console.log('mainboardState.ballThrown', mainboardState.ballThrown);
-        setMotionState(motionStates.FIND_BALL);
-        setThrowerState(throwerStates.IDLE);
+
+        afterBallThrownCount++;
+    }
+
+    if (afterBallThrownCount > 0) {
+        if (afterBallThrownCount++ >= maxAfterBallThrownCount) {
+            afterBallThrownCount = 0;
+            setMotionState(motionStates.FIND_BALL);
+            setThrowerState(throwerStates.IDLE);
+        }
     }
 }
 
