@@ -1220,10 +1220,13 @@ function handleMotionFindBasket() {
 
     if (closestBall || throwerState === throwerStates.THROW_BALL && mainboardState.balls[0]) {
         if (closestBall) {
+            const reach = visionState.metrics.straightAhead.reach;
+            const ballTargetY = frameHeight * (basket ? util.mapFromRangeToRange(reach, 100, 200, 0.84, 0.8) : 0.8);
+            //console.log(reach, ballTargetY / frameHeight);
             const ballCenterX = closestBall.cx;
             const ballCenterY = closestBall.cy;
             const ballErrorX = ballCenterX - frameCenterX;
-            const ballErrorY = 0.85 * frameHeight - ballCenterY;
+            const ballErrorY = ballTargetY - ballCenterY;
 
             xSpeed = Math.sign(ballErrorX) * Math.pow(Math.abs(ballErrorX) / 400, 1.5);
             forwardSpeed = ballErrorY / 400;
