@@ -91,7 +91,8 @@ const motionStates = {
     FIND_BASKET: 'FIND_BASKET',
     GET_RID_OF_BALL: 'GET_RID_OF_BALL',
     NUDGE_BALL: 'NUDGE_BALL',
-    MOVE_BALL_AWAY_FROM_OBSTACLE: 'MOVE_BALL_AWAY_FROM_OBSTACLE'
+    MOVE_BALL_AWAY_FROM_OBSTACLE: 'MOVE_BALL_AWAY_FROM_OBSTACLE',
+    CHECK_BALLS: 'CHECK_BALLS'
 };
 
 /**
@@ -107,6 +108,12 @@ const throwerStates = {
     PUSH_BALL: 'PUSH_BALL'
 };
 
+const motionStateEnterHandlers = {
+    DRIVE_TO_BALL: enterMotionDriveToBall,
+    FIND_BALL: enterMotionFindBall,
+    CHECK_BALLS: enterMotionCheckBalls
+};
+
 const motionStateHandlers = {
     IDLE: handleMotionIdle,
     FIND_BALL: handleMotionFindBall,
@@ -116,7 +123,8 @@ const motionStateHandlers = {
     FIND_BASKET: handleMotionFindBasket,
     GET_RID_OF_BALL: handleMotionGetRidOfBall,
     NUDGE_BALL: handleMotionNudgeBall,
-    MOVE_BALL_AWAY_FROM_OBSTACLE: handleMotionMoveBallAwayFromObstacle
+    MOVE_BALL_AWAY_FROM_OBSTACLE: handleMotionMoveBallAwayFromObstacle,
+    CHECK_BALLS: handleMotionCheckBalls
 };
 
 const throwerStateHandlers = {
@@ -139,6 +147,7 @@ const frameWidth = 1280;
 const frameCenterX = frameWidth / 2;
 
 let motionState = motionStates.IDLE;
+let prevMotionState = motionStates.IDLE;
 let throwerState = throwerStates.IDLE;
 
 const findBallRotatePattern = [[-1, 100], [-8, 200], [-1, 100], [-8, 200], [-1, 50]];
@@ -154,6 +163,9 @@ const lastClosestBallLimit = 10;
 let lastClosestBallCount = 0;
 
 let visionState = {};
+let potentialNextClosestBall;
+let checkBallsTimeout;
+let checkBallsIterations;
 
 /**
  * @typedef {Object} ProcessedVisionStateInfo
@@ -448,7 +460,7 @@ function computeBallConfidence(ball, basket, otherBasket) {
  */
 function processVisionInfo(info) {
     visionState = info;
-    const balls = visionState.balls || [];
+    let balls = visionState.balls || [];
     const baskets = visionState.baskets || [];
 
     let ball = null;
@@ -519,6 +531,40 @@ function processVisionInfo(info) {
     processedVisionState.basket = basket;
     processedVisionState.otherBasket = otherBasket;
 
+    // Ignore bad balls by top arc metric
+    balls = balls.filter(ball => {
+        if (ball.metrics[1] < aiState.ballTopArcFilterThreshold) {
+            return false;
+        }
+
+        if (ball.cy > 950 && Math.abs(ball.cx - frameCenterX) < 100) {
+            return false;
+        }
+
+        return true;
+    });
+
+    for (let ball of balls) {
+        ball.size = ball.w * ball.h;
+    }
+
+    balls.sort((ballA, ballB) =>
+        ballB.size - ballA.size
+    );
+
+    if (balls.length) {
+        ball = balls[0];
+
+        if (balls.length > 1 && (motionState === motionStates.DRIVE_TO_BALL || motionState === motionStates.FIND_BASKET)
+                && throwerState === throwerStates.IDLE && balls[1].size > 40) {
+            if (!potentialNextClosestBall || balls[1].size > potentialNextClosestBall.size) {
+                potentialNextClosestBall = balls[1];
+                console.log('NEW', balls[1].size, motionState);
+            }
+        }
+    }
+
+    /*
     for (let i = 0; i < balls.length; i++) {
         // Ignore bad balls by top arc metric
         if (balls[i].metrics[1] < aiState.ballTopArcFilterThreshold) {
@@ -533,11 +579,12 @@ function processVisionInfo(info) {
             ball = balls[i];
         }*/
 
+    /*
         // Find largest ball
         if (!ball || ball.w * ball.h < balls[i].w * balls[i].h) {
             ball = balls[i];
         }
-    }
+    }*/
 
     processedVisionState.closestBall = ball;
 
@@ -577,11 +624,13 @@ function sendState() {
     const state = {
         motionState,
         throwerState,
+        filteredBorderY: borderYSampler(),
         ballSensors: mainboardState.balls,
         ballThrown: mainboardState.ballThrown,
         lidarDistance: mainboardState.lidarDistance,
         visionMetrics: visionState.metrics,
         closestBall: processedVisionState.closestBall,
+        potentialNextClosestBall,
         basket: processedVisionState.basket,
         otherBasket: processedVisionState.otherBasket,
         refereeCommand: mainboardState.refereeCommand,
@@ -667,14 +716,32 @@ function handleMotionIdle() {
     setThrowerState(throwerStates.IDLE);
 }
 
+function checkPotentialNextClosestBall() {
+    const closestBall = processedVisionState.closestBall;
+
+    if (potentialNextClosestBall && (!closestBall || closestBall.size < 0.8 * potentialNextClosestBall.size)) {
+        setMotionState(motionStates.CHECK_BALLS);
+        return true;
+    }
+
+    potentialNextClosestBall = null;
+
+    return false;
+}
+
 let isFindBallDriveToBasket = false;
 let driveToBasketColour = basketColours.blue;
 
 function handleMotionFindBall() {
     setThrowerState(throwerStates.IDLE);
 
+    if (checkPotentialNextClosestBall()) {
+        return;
+    }
+
     if (processedVisionState.closestBall) {
         resetMotionFindBall();
+        console.log('back to drive');
         setMotionState(motionStates.DRIVE_TO_BALL);
         return;
     }
@@ -802,11 +869,16 @@ function handleMotionDriveToBall() {
     const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
     const basket = processedVisionState.basket;
 
+    if (checkPotentialNextClosestBall()) {
+        return;
+    }
+
     if (!driveToBallStartTime) {
         driveToBallStartTime = Date.now();
     }
 
     if (Date.now() - driveToBallStartTime > maxDriveToBallTime) {
+        console.log('drive to ball timeout');
         setMotionState(motionStates.FIND_BALL);
         return;
     }
@@ -887,8 +959,6 @@ function handleMotionDriveToBall() {
         if (driveToBallCurrentRotationSpeedLimit >= driveToBallMaxRotationSpeed) {
             driveToBallCurrentRotationSpeedLimit = driveToBallMaxRotationSpeed;
         }
-
-
 
         let sideSpeed = 0;
         let closestBasket = getClosestBasket();
@@ -1351,6 +1421,63 @@ function resetMotionMoveBallAwayFromObstacle() {
     moveBallAwayTimeout = null;
 }
 
+function enterMotionCheckBalls() {
+    checkBallsTimeout = null;
+    checkBallsIterations = 0;
+}
+
+function handleMotionCheckBalls() {
+    if (!potentialNextClosestBall) {
+        setMotionState(motionStates.FIND_BALL);
+        return;
+    }
+
+    if (checkBallsTimeout) {
+        const closestBall = processedVisionState.closestBall;
+
+        if (closestBall && closestBall.size > 0.8*potentialNextClosestBall.size) {
+            clearTimeout(checkBallsTimeout);
+            potentialNextClosestBall = null;
+            setMotionState(motionStates.FIND_BALL);
+        }
+
+        return;
+    }
+
+    const ballDirection = Math.sign(potentialNextClosestBall.cx - frameCenterX);
+    const rotationSpeed = 8 * ballDirection;
+    console.log(rotationSpeed, potentialNextClosestBall.cx);
+
+    if (checkBallsIterations > 0) {
+        setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, 0, rotationSpeed, true));
+    }
+
+    console.log('SET checkBallsTimeout 1', checkBallsIterations);
+
+    checkBallsTimeout = setTimeout(() => {
+        setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, 0, ballDirection, true));
+
+        console.log('SET checkBallsTimeout 2', checkBallsIterations);
+        checkBallsTimeout = setTimeout( () => {
+            console.log('ITERATION', checkBallsIterations + 1);
+
+            if (++checkBallsIterations >= 3) {
+                potentialNextClosestBall = null;
+                setMotionState(motionStates.FIND_BALL);
+            } else {
+                checkBallsTimeout = null;
+            }
+        }, 100);
+
+    }, checkBallsIterations === 0 ? 0 : 200);
+}
+
+function resetMotionCheckBalls() {
+    clearTimeout(checkBallsTimeout);
+}
+
+
+/** THROWER STATES **/
 function handleThrowerIdle() {
     aiState.speeds[4] = 0;
 }
@@ -1446,16 +1573,25 @@ function setMotionState(newState) {
     if (motionState !== newState) {
         console.log('Motion state:', motionState, '->', newState);
 
-        if (motionState === motionStates.DRIVE_TO_BALL) {
-            resetMotionDriveToBall();
-        } else if (motionState === motionStates.DRIVE_GRAB_BALL) {
-            resetMotionDriveGrabBall();
-        } else if (motionState === motionStates.FIND_BASKET) {
-            resetMotionFindBasket();
-        } else if (motionState === motionStates.DRIVE_WITH_BALL) {
-            resetMotionDriveWithBall();
-        } else if (motionState === motionStates.MOVE_BALL_AWAY_FROM_OBSTACLE) {
-            resetMotionMoveBallAwayFromObstacle();
+        switch (motionState) {
+            case motionStates.DRIVE_TO_BALL:
+                resetMotionDriveToBall();
+                break;
+            case motionStates.DRIVE_GRAB_BALL:
+                resetMotionDriveGrabBall();
+                break;
+            case motionStates.FIND_BASKET:
+                resetMotionFindBasket();
+                break;
+            case motionStates.DRIVE_WITH_BALL:
+                resetMotionDriveWithBall();
+                break;
+            case motionStates.MOVE_BALL_AWAY_FROM_OBSTACLE:
+                resetMotionMoveBallAwayFromObstacle();
+                break;
+            case motionStates.CHECK_BALLS:
+                resetMotionCheckBalls();
+                break;
         }
 
         motionState = newState;
@@ -1496,6 +1632,16 @@ function setThrowerState(newState) {
 }
 
 function update() {
+    if (motionState !== prevMotionState) {
+        console.log('Enter state:', prevMotionState, '->', motionState);
+
+        prevMotionState = motionState;
+
+        if (motionState in motionStateEnterHandlers) {
+            motionStateEnterHandlers[motionState]();
+        }
+    }
+
     motionStateHandlers[motionState]();
     throwerStateHandlers[throwerState]();
 
