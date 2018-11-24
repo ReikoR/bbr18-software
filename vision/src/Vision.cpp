@@ -607,7 +607,11 @@ bool Vision::isNotOpponentMarker(Object* goal, Side side, ObjectList& goals)
 	return true;
 }
 
-bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& balls) {
+bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& baskets) {
+	if (ball->y < 50) {
+		return false;
+	}
+
 	int senseRadius = ball->y / 5 - std::max(std::abs(ball->x - Config::cameraWidth / 2), 0) / 20 + 2;
 	int ballMinArea = senseRadius * senseRadius / 25;
 
