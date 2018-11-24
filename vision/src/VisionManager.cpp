@@ -312,11 +312,13 @@ void VisionManager::sendState() {
         j["baskets"].push_back(basketJson);
 	}
 
+	j["metrics"]["borderY"] = visionResult->borderY;
+
     j["metrics"]["straightAhead"] = {
             {"reach", visionResult->straightAheadInfo.reach},
             {"driveability", visionResult->straightAheadInfo.driveability},
             {"leftSideMetric", visionResult->straightAheadInfo.leftSideMetric},
-            {"rightSideMetric", visionResult->straightAheadInfo.rightSideMetric},
+            {"rightSideMetric", visionResult->straightAheadInfo.rightSideMetric}
 	};
 
 	/*for (int colorIndex = 0; colorIndex < blobber->getColorCount(); colorIndex++) {

@@ -163,6 +163,7 @@ let visionState = {};
  * @property {?VisionBasketInfo} otherBasket
  * @property {number} lastVisibleBasketDirection
  * @property {{straightAhead: VisionStraightAheadInfo}} metrics
+ * @property {number} borderY
  */
 
 /**
@@ -179,6 +180,8 @@ let processedVisionState = {
 
 const lidarDistanceSampleCount = 5;
 let lidarDistanceSamples = [];
+
+const borderYSampler = util.getSampler(3, util.arrayMax);
 
 const mainboardButtonEvents = {
     NONE: 0,
@@ -458,6 +461,10 @@ function processVisionInfo(info) {
     let threshold;
     let isTargetColour;
     let targetBasket;
+
+    // Add borderY sample
+    processedVisionState.metrics = {};
+    processedVisionState.metrics.filteredBorderY = borderYSampler(visionState.metrics.borderY);
 
     // Find largest basket
     for (let i = 0; i < baskets.length; i++) {
@@ -916,9 +923,16 @@ function handleMotionDriveToBall() {
 
         sideSpeed += avoidObstacleSideSpeed;
         sideSpeed += turnToBasketSideSpeed * forwardSpeed;
-
         sideSpeed = util.clamped(sideSpeed, -maxSideSpeed, maxSideSpeed);
+
+        forwardSpeed *= Math.pow(util.mapFromRangeToRange(processedVisionState.metrics.filteredBorderY, 50, 820, 1, 0.7), 4);
         forwardSpeed = util.clamped(forwardSpeed, -maxForwardSpeed, maxForwardSpeed);
+
+        /*
+        if (visionState.metrics.straightAhead.borderY > 200) {
+            forwardSpeed = 0;
+        }
+        */
 
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
 

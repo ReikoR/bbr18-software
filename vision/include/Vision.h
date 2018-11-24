@@ -85,6 +85,7 @@ public:
 		ColorDistance whiteDistance;
 		ColorDistance blackDistance;
 		Vision* vision;
+		int borderY;
 	};
 
 	class Results {
@@ -168,7 +169,7 @@ private:
 	bool isValidBall(Object* ball, Dir dir, ObjectList& goals);
     bool isBallWithinBorders(Object* ball);
     int getBorderDirectionBetweenPoints(int startX, int startY, int endX, int endY,
-                                        std::vector<Blobber::BlobColor> requiredColors);
+                                        std::vector<Blobber::BlobColor> requiredColors, int *borderX = nullptr, int *borderY = nullptr);
     bool isValidbasket(Object *basket, Side side);
 	bool isColorCombinationBetweenPoints(int startX, int startY, int endX, int endY, std::vector<Blobber::BlobColor> requiredColors);
 	bool isNotOpponentMarker(Object* goal, Side side, ObjectList& goals);
@@ -180,6 +181,7 @@ private:
 	int getGoalMaxInvalidSpree(int y);*/
 	void updateColorDistances();
 	void updateColorOrder();
+	int getBorderY();
 
 	Dir dir;
 	Canvas canvas;

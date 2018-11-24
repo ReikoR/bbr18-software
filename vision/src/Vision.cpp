@@ -84,6 +84,9 @@ Vision::Result* Vision::process() {
 
 	result->straightAheadInfo = getStraightAheadMetric(validDriveableColors, result->balls);
 
+	//std::cout << getBorderY() << std::endl;
+	result->borderY = getBorderY();
+
 	/*updateColorDistances();
 	updateColorOrder();
 
@@ -663,22 +666,24 @@ bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& balls) {
 		ball->surroundMetrics[1] = 1.0;
 	}
 
-	if (!isBallWithinBorders(ball)) {
+	if (!isBallWithinBorders(ball, baskets)) {
 	    return false;
 	}
 
     return true;
 }
 
-bool Vision::isBallWithinBorders(Object* ball) {
+bool Vision::isBallWithinBorders(Object* ball, ObjectList& baskets) {
 	std::vector<Blobber::BlobColor> colorsFromInside = {
+			//Blobber::BlobColor::orange,
 			Blobber::BlobColor::white,
 			Blobber::BlobColor::black
 	};
 
 	std::vector<Blobber::BlobColor> colorsFromOutside = {
 			Blobber::BlobColor::black,
-			Blobber::BlobColor::white
+			Blobber::BlobColor::white,
+			Blobber::BlobColor::orange
 	};
 
 	//canvas.drawLine(Config::cameraWidth * 3/4, 0, Config::cameraWidth, Config::cameraHeight / 2);
@@ -811,6 +816,16 @@ int Vision::getBorderDirectionBetweenPoints(int startX, int startY, int endX, in
 				i++;
 			}
 
+			if (foundForward || foundBackward) {
+				if (borderX != nullptr) {
+					*borderX = x;
+				}
+
+				if (borderY != nullptr) {
+					*borderY = y;
+				}
+			}
+
 			if (foundForward) {
 				return 1;
 			} else if (foundBackward) {
@@ -822,6 +837,31 @@ int Vision::getBorderDirectionBetweenPoints(int startX, int startY, int endX, in
 	return 0;
 }
 
+int Vision::getBorderY() {
+	int borderY = 0;
+	std::vector<Blobber::BlobColor> colors = { Blobber::BlobColor::white, Blobber::BlobColor::black };
+
+	if (getBorderDirectionBetweenPoints(
+			Config::cameraWidth / 2, Config::surroundSenseThresholdY,
+			Config::cameraWidth / 2, 50,
+			colors, nullptr, &borderY
+	) == -1) {
+        return 0;
+    }
+
+    return borderY;
+
+	/*
+        borderYStack.push_back(borderY);
+
+        if (borderYStack.size() > 10) {
+            borderYStack.erase(borderYStack.begin());
+        }
+    }
+
+	return *std::max_element(borderYStack.begin(), borderYStack.end());
+	 */
+}
 
 /*
 bool Vision::isBorderBetweenPointsOld(int startX, int startY, int endX, int endY, std::vector<Blobber::BlobColor> colorSequence) {
