@@ -40,6 +40,7 @@ class HubCom extends EventEmitter {
         this.socket.on('listening', () => {
             const address = this.socket.address();
             console.log(`socket listening ${address.address}:${address.port}`);
+            this.emit('open');
         });
 
         this.socket.bind(this.port, () => {

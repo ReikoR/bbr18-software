@@ -8,8 +8,8 @@ let throwerSpeed = 0;
 let selectedTechniques;
 
 const COLORS = {
-    'hoop': '#1f77b4',//rgb(255, 0, 0)',
-    'dunk': '#ff7f0e'//rgb(0, 255, 0)'
+    'bounce': '#1f77b4',//rgb(255, 0, 0)',
+    'straight': '#ff7f0e'//rgb(0, 255, 0)'
 };
 
 function selectTechniques(techniques) {
@@ -93,7 +93,13 @@ function initializePlot(id, title, y, fbIndex, info) {
 
     Plotly.newPlot(id, data, {
         title,
-        hovermode: 'closest'
+        hovermode: 'closest',
+        xaxis: {
+            range: [0, 500]
+        },
+        yaxis: {
+            range: (y === 'throwerSpeed') ? [0, 20000] : [-30, 30]
+        }
     });
 
     document.getElementById(id).on('plotly_click', data => {
@@ -166,6 +172,36 @@ function plotDecisionBoundaries(plotId, info, y, bounds, scale) {
     */
 }
 
+// Plot decision boundary
+function plotTrainingData(plotId, info, y) {
+    for (let technique of selectedTechniques) {
+        if (!info[technique] || !info[technique][y]) {
+            continue;
+        }
+
+        const traceIndex = selectedTechniques.indexOf(technique) * 4 + 3;
+
+        Plotly.deleteTraces(plotId, traceIndex);
+
+        /*
+        const net = new convnetjs.Net();
+        net.fromJSON(info[technique][y]);
+        */
+
+        const boundary = {
+            x: Array(500).fill().map((x, i) => i),
+            y: info[technique][y],
+            name: 'Decision boundary',
+            mode: 'line',
+            line: {
+                color: COLORS[technique]
+            }
+        };
+        
+        Plotly.addTraces(plotId, [boundary], traceIndex);
+    }
+}
+
 function onSocketMessage(message) {
     try {
         const info = JSON.parse(message);
@@ -183,6 +219,11 @@ function onSocketMessage(message) {
             plotDecisionBoundaries('thrower-speed-plot', info, 'throwerSpeed', [0, 1], [500, 20000]);
             plotDecisionBoundaries('center-offset-plot', info, 'centerOffset', [-1, 1], [500, 30]);
         }
+
+        if (info.type === 'training_data') {
+            plotTrainingData('thrower-speed-plot', info.data, 'throwerSpeed');
+            plotTrainingData('center-offset-plot', info.data, 'centerOffset');
+        }
     } catch (error) {
         console.info(error.message, error.stack);
     }
@@ -191,7 +232,7 @@ function onSocketMessage(message) {
 function onSocketOpened() {
     socketReconnectDelay.reset();
     
-    selectTechniques(['hoop', 'dunk']);
+    selectTechniques(['bounce', 'straight']);
 }
 
 function onSocketClosed() {
@@ -261,6 +302,12 @@ function renderState(state) {
     document.getElementById('info-distance').innerHTML = state.lidarDistance;
     document.getElementById('info-thrower-speed').innerHTML = state.ballThrowSpeed;
     document.getElementById('info-center-offset').innerHTML = state.ballThrowBasketOffset;
+    
+    if (state.basket) {
+        document.getElementById('info-angle').innerHTML = state.basket.metrics[0] - state.basket.metrics[1];
+    } else {
+        document.getElementById('info-angle').innerHTML = 'basket not found';
+    }
 
     if (state.ballThrown) {
         document.getElementById('feedback').style.display = 'block';
@@ -272,6 +319,7 @@ function sendFeedback(feedback) {
         type: 'training_feedback',
         technique: lastAiState.ballThrownTechnique,
         distance: lastAiState.lidarDistance,
+        angle: lastAiState.basket ? (lastAiState.basket.metrics[0] - lastAiState.basket.metrics[1]) : 0,
         centerOffset: lastAiState.ballThrowBasketOffset,
         throwerSpeed: lastAiState.ballThrowSpeed,
         feedback
@@ -323,8 +371,8 @@ function demo() {
         const centerOffset = Math.round(Math.random() * 40 - 20);
 
         let fb = [0, 0];
-        const a = (selectTechniques[0] === 'dunk') ? 40 : 60;
-        const b = (selectTechniques[0] === 'dunk') ? 0 : 1000;
+        const a = (selectTechniques[0] === 'straight') ? 40 : 60;
+        const b = (selectTechniques[0] === 'straight') ? 0 : 1000;
 
         if (throwerSpeed > (distance * a + b + 30)) {
             fb[0] = -1;
@@ -342,9 +390,9 @@ function demo() {
             ballThrownTechnique: selectedTechniques[0],
             lidarDistance: distance,
             ballThrowSpeed: throwerSpeed,
-            ballThrownBasketOffset: centerOffset
+            ballThrowBasketOffset: centerOffset
         };
 
         sendFeedback(fb);
-    }, 2000);
+    }, 1000);
 }

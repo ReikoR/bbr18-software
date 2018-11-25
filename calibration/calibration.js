@@ -1,9 +1,14 @@
 const fs = require('fs');
 const config = require('./public-conf.json');
-const regression = require('simple-linear-regression');
-const convnet = require('./convnet');
+const Trainer = require('./trainer');
+const COMPETITION_DATA = {
+    bounce: require('./data/competition/bounce.json'),
+    straight: require('./data/competition/straight.json')
+};
 
 const MAX_DISTANCE = 500;
+
+/*
 const MIN_THROWER_SPEED = 6000;
 const MAX_THROWER_SPEED = 20000;
 const MAX_CENTER_OFFSET = 30;
@@ -19,335 +24,72 @@ function generateRandomSpeeds () {
     RANDOM_CENTER_OFFSET = -20 + Math.random() * 40;
     RANDOM_SPEEDS_GENERATED = new Date();
 }
+*/
 
-// Initialize empty measurements and net
-function initializeTechnique (technique) {
-    // Write empty measurements
-    MEASUREMENTS[technique] = [];
-
-    fs.writeFileSync(`${__dirname}/${config[technique]}.measurements.json`, '[]');
-
-    // Write empty thrower speed neural net
-    THROWER_SPEED_NETS[technique] = new convnet.Net();
-    THROWER_SPEED_NETS[technique].makeLayers([
-        { type: 'input', out_sx: 1, out_sy: 1, out_depth: 2 },
-        { type: 'fc', num_neurons: 4, activation: 'relu' },
-        { type: 'fc', num_neurons: 4, activation: 'relu' },
-        { type: 'svm', num_classes: 2 }
-    ]);
-
-    fs.writeFileSync(
-        `${__dirname}/${config[technique]}.thrower_speed.json`,
-        JSON.stringify(THROWER_SPEED_NETS[technique].toJSON(), null, 2)
-    );
-
-    // Write empty center offset neural net
-    CENTER_OFFSET_NETS[technique] = new convnet.Net();
-    CENTER_OFFSET_NETS[technique].makeLayers([
-        { type: 'input', out_sx: 1, out_sy: 1, out_depth: 2 },
-        { type: 'fc', num_neurons: 4, activation: 'tanh' },
-        { type: 'fc', num_neurons: 4, activation: 'relu' },
-        { type: 'svm', num_classes: 2 }
-    ]);
-
-    fs.writeFileSync(
-        `${__dirname}/${config[technique]}.center_offset.json`,
-        JSON.stringify(CENTER_OFFSET_NETS[technique].toJSON(), null, 2)
-    );
-
-    /*
-    // Initialize random speeds
-    COMPETITION[technique] = {
-        throwerSpeed: [],
-        centerOffset: []
-    };
-
-    for (let i = 0; i < 500; ++i) {
-        COMPETITION[technique]
-    }
-    */
-}
-
-function resetNets (technique) {
-    // Write empty thrower speed neural net
-    THROWER_SPEED_NETS[technique] = new convnet.Net();
-    THROWER_SPEED_NETS[technique].makeLayers([
-        { type: 'input', out_sx: 1, out_sy: 1, out_depth: 2 },
-        { type: 'fc', num_neurons: 4, activation: 'relu' },
-        { type: 'fc', num_neurons: 4, activation: 'relu' },
-        { type: 'svm', num_classes: 2 }
-    ]);
-
-    fs.writeFileSync(
-        `${__dirname}/${config[technique]}.thrower_speed.json`,
-        JSON.stringify(THROWER_SPEED_NETS[technique].toJSON(), null, 2)
-    );
-
-    // Write empty center offset neural net
-    CENTER_OFFSET_NETS[technique] = new convnet.Net();
-    CENTER_OFFSET_NETS[technique].makeLayers([
-        { type: 'input', out_sx: 1, out_sy: 1, out_depth: 2 },
-        { type: 'fc', num_neurons: 4, activation: 'tanh' },
-        { type: 'fc', num_neurons: 4, activation: 'relu' },
-        { type: 'svm', num_classes: 2 }
-    ]);
-
-    fs.writeFileSync(
-        `${__dirname}/${config[technique]}.center_offset.json`,
-        JSON.stringify(CENTER_OFFSET_NETS[technique].toJSON(), null, 2)
-    );
-}
-
-// Measurement and net singletons
-exports.getMeasurements = function (technique) {
-    if (!(technique in MEASUREMENTS)) {
-        try {
-            MEASUREMENTS[technique] = require(`./${config[technique]}.measurements.json`);
-        } catch (err) {
-            initializeTechnique(technique);
-            return exports.getMeasurements(technique);
-        }
-    }
-
-    return MEASUREMENTS[technique];
+const TRAINERS = {
+    bounce: new Trainer(config.bounce),
+    straight: new Trainer(config.straight)
 };
-
-function getNet (NETS, technique) {
-    if (!(technique in NETS)) {
-        try {
-            let weights;
-
-            if (NETS === THROWER_SPEED_NETS) {
-                weights = require(`./${config[technique]}.thrower_speed.json`);
-            } else {
-                weights = require(`./${config[technique]}.center_offset.json`);
-            }
-            
-            NETS[technique] = new convnet.Net();
-            NETS[technique].fromJSON(weights);
-        } catch (err) {
-            initializeTechnique(technique);
-            return getNet(NETS, technique);
-        }
-    }
-
-    return NETS[technique];
-}
-
-function getThrowerSpeedNet (technique) {
-    return getNet(THROWER_SPEED_NETS, technique);
-}
-
-function getCenterOffsetNet (technique) {
-    return getNet(CENTER_OFFSET_NETS, technique);
-}
 
 exports.getThrowerTechnique = function (distance, angle = 0) {
     if (distance > 200) {
-        return 'hoop';
+        return 'bounce';
     } else {
-        return 'dunk';
+        return 'straight';
     }
 };
 
-exports.reloadMeasurements = function () {
-    for (let technique of ['hoop', 'dunk']) {
-        delete MEASUREMENTS[technique];
-        delete THROWER_SPEED_NETS[technique];
-        delete CENTER_OFFSET_NETS[technique];
+// Thrower speed and center offset while training data is unpredictable
+const PRE_TRAINING_DATA = [
+    { throwerSpeed: 9000, centerOffset: -25 },
+    { throwerSpeed: 15000, centerOffset: 0 },
+    { throwerSpeed: 19000, centerOffset: 25 },
+    { throwerSpeed: 9000, centerOffset: 25 },
+    { throwerSpeed: 15000, centerOffset: -25 },
+    { throwerSpeed: 19000, centerOffset: 0 },
+];
 
-        delete require.cache[require.resolve(`./${config[technique]}.measurements.json`)];
-        delete require.cache[require.resolve(`./${config[technique]}.thrower_speed.json`)];
-        delete require.cache[require.resolve(`./${config[technique]}.center_offset.json`)];
-        delete require.cache[require.resolve(`./${config[technique]}.competition.json`)];
-    }
+const LAST_TRAINING_DATA = { straight: 0, bounce: 0 };
 
-    console.log('RELOADED MEASUREMENTS');
-};
-
-// Estimate decision boundary
-function getDecisionBoundary (net, x, initialBounds) {
-    const bounds = initialBounds.slice();
-    const input = new convnet.Vol(1, 1, 2);
-    input.w[0] = x;
-  
-    for (let i = 0; i < 100; ++i) {
-        input.w[1] = (bounds[0] + bounds[1]) / 2;
-        const output = net.forward(input);
-
-        if (Math.abs(output.w[1] - output.w[0]) < 0.0001) {
-            break;
+// Overwrite competition data during training
+exports.setCompetitionData = function (data, isPredictable) {
+    for (let technique of ['bounce', 'straight']) {
+        if (isPredictable[technique].throwerSpeed) {
+            COMPETITION_DATA[technique] = data[technique];
+            continue;
         }
 
-        bounds[(output.w[0] > output.w[1]) ? 1 : 0] = input.w[1];
-    }
+        // Loop pre-defined values if unpredictable
+        COMPETITION_DATA[technique].throwerSpeed = Array(MAX_DISTANCE).fill(
+            PRE_TRAINING_DATA[LAST_TRAINING_DATA[technique]].throwerSpeed
+        );
 
-    return input.w[1];
-}
+        COMPETITION_DATA[technique].centerOffset = Array(MAX_DISTANCE).fill(
+            PRE_TRAINING_DATA[LAST_TRAINING_DATA[technique]].centerOffset
+        );
+        
+        if (++LAST_TRAINING_DATA[technique] >= PRE_TRAINING_DATA.length) {
+            LAST_TRAINING_DATA[technique] = 0;
+        }
+    }
+};
 
 exports.getThrowerSpeed = function (technique, distance) {
-    const COMPETITION = require(`./${config[technique]}.competition.json`);
-    return COMPETITION.throwerSpeed[Math.max(0, Math.min(499, Math.round(distance)))];
-};
-
-exports.getThrowerSpeedFromNet = function (technique, distance) {
-    const measurements = exports.getMeasurements(technique);
-
-    if (!measurements.filter(m => m.fb[0] === 1).length || !measurements.filter(m => m.fb[0] === -1).length) {
-        if ((new Date() - RANDOM_SPEEDS_GENERATED) > 5000) {
-            generateRandomSpeeds();
-        }
-
-        return RANDOM_THROWER_SPEED; //distance / MAX_DISTANCE * MAX_THROWER_SPEED;
-    }
-
-    const net = getThrowerSpeedNet(technique);
-    const speed = getDecisionBoundary(net, distance / MAX_DISTANCE, [0, 1]) * MAX_THROWER_SPEED;
-
-    return Math.max(MIN_THROWER_SPEED, Math.min(MAX_THROWER_SPEED, speed));
+    const data = COMPETITION_DATA[technique];
+    return data.throwerSpeed[Math.max(0, Math.min(499, Math.round(distance)))];
 };
 
 exports.getCenterOffset = function (technique, distance) {
-    const COMPETITION = require(`./${config[technique]}.competition.json`);
-    return COMPETITION.centerOffset[Math.max(0, Math.min(499, Math.round(distance)))];
-};
-
-exports.getCenterOffsetFromNet = function (technique, distance) {
-    //const technique = exports.getThrowerTechnique(distance);
-    const measurements = exports.getMeasurements(technique);
-
-    if (!measurements.filter(m => m.fb[1] === 1).length || !measurements.filter(m => m.fb[1] === -1).length) {
-        if ((new Date() - RANDOM_SPEEDS_GENERATED) > 5000) {
-            generateRandomSpeeds();
-        }
-
-        return RANDOM_CENTER_OFFSET; //distance / MAX_DISTANCE * MAX_THROWER_SPEED;
-    }
-
-    const net = getCenterOffsetNet(technique);
-    const speed = getDecisionBoundary(net, distance / MAX_DISTANCE, [-1, 1]) * MAX_CENTER_OFFSET;
-
-    return Math.max(-MAX_CENTER_OFFSET, Math.min(MAX_CENTER_OFFSET, speed));
-};
-
-function train (net, measurements, fbIndex, inputWeights, N=50) {
-    if (!measurements.filter(m => m.fb[fbIndex] === 1).length || !measurements.filter(m => m.fb[fbIndex] === -1).length) {
-        return false;
-    }
-
-    // TODO: might want a singleton trainer
-    const trainer = new convnet.SGDTrainer(net, {
-        learning_rate: 0.01,
-        momentum: 0.1,
-        batch_size: 10,
-        l2_decay: 0.001
-    });
-
-    const input = new convnet.Vol(1, 1, 2);
-    //let totalLoss = 0;
-
-    for (let i = 0; i < N; ++i) {
-        let loss = 0;
-
-        measurements.forEach(m => {
-            if (!m.fb[fbIndex]) {
-                return;
-            }
-
-            input.w = inputWeights(m);
-
-            loss += trainer.train(input, (m.fb[fbIndex] === -1) ? 0 : 1).loss;
-        });
-
-        //const meanLoss = loss / Math.pow(measurements.length, 2);
-        //totalLoss += meanLoss;
-    }
-
-    //console.log(totalLoss/200);
-
-    return true;
-}
-
-// Run training iterations
-exports.updateNets = function (techniques = ['hoop', 'dunk']) {
-    const updated = {};
-
-    for (let technique of techniques) {
-        const measurements = exports.getMeasurements(technique);
-        const throwerSpeedNet = getThrowerSpeedNet(technique);
-        const centerOffsetNet = getCenterOffsetNet(technique);
-
-        updated[technique] = {};
-
-        if (train(throwerSpeedNet, measurements, 0, m => [m.distance/MAX_DISTANCE, m.throwerSpeed/MAX_THROWER_SPEED])) {
-            updated[technique]['throwerSpeed'] = throwerSpeedNet.toJSON();
-            
-            fs.writeFileSync(
-                `${__dirname}/${config[technique]}.thrower_speed.json`,
-                JSON.stringify(updated[technique]['throwerSpeed'], null, 2)
-            );
-        }
-
-        if (train(centerOffsetNet, measurements, 1, m => [m.distance/MAX_DISTANCE, m.centerOffset/MAX_CENTER_OFFSET])) {
-            updated[technique]['centerOffset'] = centerOffsetNet.toJSON();
-            
-            fs.writeFileSync(
-                `${__dirname}/${config[technique]}.center_offset.json`,
-                JSON.stringify(updated[technique]['centerOffset'], null, 2)
-            );
-        }
-    }
-
-    const COMPETITION = {};
-
-    for (let technique of ['hoop', 'dunk']) {
-        COMPETITION[technique] = {
-            throwerSpeed: [],
-            centerOffset: []
-        };
-
-        for (let d = 0; d < 500; ++d) {
-            COMPETITION[technique].throwerSpeed.push(
-                exports.getThrowerSpeedFromNet(technique, d)
-            );
-
-            COMPETITION[technique].centerOffset.push(
-                exports.getCenterOffsetFromNet(technique, d)
-            );
-        }
-
-        fs.writeFileSync(
-            `${__dirname}/${config[technique]}.competition.json`,
-            JSON.stringify(COMPETITION[technique], null, 2)
-        );
-    }
-
-    return updated;
+    const data = COMPETITION_DATA[technique];
+    return data.centerOffset[Math.max(0, Math.min(499, Math.round(distance)))];
 };
 
 exports.recordFeedback = function (measurement, fb) {
-    const technique = measurement.technique;
-    const measurements = exports.getMeasurements(technique);
-
-    // Record measurement
-    measurements.push({
-        ...measurement,
-        fb
-    });
-    
-    fs.writeFileSync(`${__dirname}/${config[technique]}.measurements.json`, JSON.stringify(measurements, null, 2));
+    TRAINERS[measurement.technique].addMeasurement(measurement, fb);
 };
 
 exports.deleteMeasurement = function (measurement) {
-    const technique = measurement.technique;
-    const measurements = exports.getMeasurements(technique);
-
-    //const index = measurements.findIndex(m => m.x === measurement.x && m.y === measurement.y);
-    measurements.splice(measurement.index, 1);
-
-    fs.writeFileSync(`${__dirname}/${config[technique]}.measurements.json`, JSON.stringify(measurements, null, 2));
-
-    resetNets(technique);
+    TRAINERS[measurement.technique].deleteMeasurement(measurement);
 };
 
 /*
@@ -381,3 +123,54 @@ function interpolate (measurements, z, x, y = 0) {
     return line.a * x + line.b;
 }
 */
+
+exports.getNets = function () {
+    TRAINERS.bounce.trainAllMeasurements(20);
+    TRAINERS.straight.trainAllMeasurements(20);
+
+    TRAINERS.bounce.save();
+    TRAINERS.straight.save();
+
+    return {
+        bounce: { throwerSpeed: TRAINERS.bounce.throwerSpeedNet.toJSON() },
+        straight: { throwerSpeed: TRAINERS.straight.throwerSpeedNet.toJSON() }
+    };
+};
+
+exports.getTrainingData = function () {
+    const data = {
+        bounce: TRAINERS.bounce.getTrainingData(),
+        straight: TRAINERS.straight.getTrainingData()
+    };
+
+    return data;
+};
+
+exports.getMeasurements = function () {
+    return {
+        bounce: TRAINERS.bounce.measurements,
+        straight: TRAINERS.straight.measurements
+    };
+};
+
+exports.saveTrainingData = function () {
+    TRAINERS.bounce.save();
+    TRAINERS.straight.save();
+};
+
+exports.saveCompetitionData = function () {
+    const data = {
+        bounce: TRAINERS.bounce.getTrainingData(),
+        straight: TRAINERS.straight.getTrainingData()
+    };
+
+    fs.writeFileSync(`${__dirname}/data/competition/bounce.json`, JSON.stringify(data.bounce));
+    fs.writeFileSync(`${__dirname}/data/competition/straight.json`, JSON.stringify(data.straight));
+};
+
+exports.isPredictable = function () {
+    return {
+        bounce: TRAINERS.bounce.isPredictable(),
+        straight: TRAINERS.straight.isPredictable()
+    };
+};
