@@ -1,5 +1,716 @@
 {
-  "measurements": [],
+  "measurements": [
+    {
+      "technique": "bounce",
+      "distance": 345,
+      "throwerSpeed": 13627.25830078125,
+      "centerOffset": 28,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 257,
+      "throwerSpeed": 13459.1064453125,
+      "centerOffset": -29,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 321,
+      "throwerSpeed": 14400.177001953125,
+      "centerOffset": -17,
+      "fb": [
+        0,
+        1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 249,
+      "throwerSpeed": 11500.137329101562,
+      "centerOffset": 31,
+      "fb": [
+        1,
+        -1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 356,
+      "throwerSpeed": 15837.005615234375,
+      "centerOffset": 13,
+      "fb": [
+        -1,
+        -1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 332,
+      "throwerSpeed": 14480.049133300781,
+      "centerOffset": 4,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 288,
+      "throwerSpeed": 13110.843658447266,
+      "centerOffset": -2,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 246,
+      "throwerSpeed": 13243.553161621094,
+      "centerOffset": 8,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 295,
+      "throwerSpeed": 13589.895248413086,
+      "centerOffset": 7,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 271,
+      "throwerSpeed": 13448.959350585938,
+      "centerOffset": 6,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 276,
+      "throwerSpeed": 13179.608345031738,
+      "centerOffset": 2,
+      "fb": [
+        -1,
+        1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 280,
+      "throwerSpeed": 13324.440002441406,
+      "centerOffset": 10,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 322,
+      "throwerSpeed": 14112.905502319336,
+      "centerOffset": 7,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 313,
+      "throwerSpeed": 13929.206848144531,
+      "centerOffset": 4,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 340,
+      "throwerSpeed": 14625.370025634766,
+      "centerOffset": 7,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 405,
+      "throwerSpeed": 15390.750885009766,
+      "centerOffset": 9,
+      "fb": [
+        1,
+        -1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 456,
+      "throwerSpeed": 16738.828659057617,
+      "centerOffset": 2,
+      "fb": [
+        0,
+        -1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 375,
+      "throwerSpeed": 15117.32292175293,
+      "centerOffset": 6,
+      "fb": [
+        0,
+        -1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 441,
+      "throwerSpeed": 16464.567184448242,
+      "centerOffset": -2,
+      "fb": [
+        0,
+        -1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 330,
+      "throwerSpeed": 14193.39370727539,
+      "centerOffset": 2,
+      "fb": [
+        0,
+        1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 424,
+      "throwerSpeed": 16137.703895568848,
+      "centerOffset": -4,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 400,
+      "throwerSpeed": 16015.703201293945,
+      "centerOffset": -7,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 401,
+      "throwerSpeed": 16036.30542755127,
+      "centerOffset": -1,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 369,
+      "throwerSpeed": 15109.785079956055,
+      "centerOffset": 5,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 354,
+      "throwerSpeed": 14795.424461364746,
+      "centerOffset": 2,
+      "fb": [
+        0,
+        1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 376,
+      "throwerSpeed": 15490.62728881836,
+      "centerOffset": 4,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 394,
+      "throwerSpeed": 16025.66909790039,
+      "centerOffset": 9,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 354,
+      "throwerSpeed": 14700.531005859375,
+      "centerOffset": 8,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 336,
+      "throwerSpeed": 14178.354263305664,
+      "centerOffset": 10,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 350,
+      "throwerSpeed": 14659.761428833008,
+      "centerOffset": 4,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 321,
+      "throwerSpeed": 14015.565872192383,
+      "centerOffset": 6,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 312,
+      "throwerSpeed": 13841.343879699707,
+      "centerOffset": 12,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 253,
+      "throwerSpeed": 12501.293182373047,
+      "centerOffset": 13,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 230,
+      "throwerSpeed": 12256.494522094727,
+      "centerOffset": 9,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 292,
+      "throwerSpeed": 13401.847839355469,
+      "centerOffset": 20,
+      "fb": [
+        0,
+        -1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 237,
+      "throwerSpeed": 12207.752227783203,
+      "centerOffset": 17,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 339,
+      "throwerSpeed": 14630.226135253906,
+      "centerOffset": 14,
+      "fb": [
+        -1,
+        -1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 311,
+      "throwerSpeed": 13799.650192260742,
+      "centerOffset": 12,
+      "fb": [
+        0,
+        -1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 353,
+      "throwerSpeed": 14732.349395751953,
+      "centerOffset": -8,
+      "fb": [
+        0,
+        1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 354,
+      "throwerSpeed": 14858.952522277832,
+      "centerOffset": 8,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 411,
+      "throwerSpeed": 16104.073524475098,
+      "centerOffset": -3,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 294,
+      "throwerSpeed": 13624.685287475586,
+      "centerOffset": 13,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 291,
+      "throwerSpeed": 13486.213684082031,
+      "centerOffset": 9,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 274,
+      "throwerSpeed": 13127.33268737793,
+      "centerOffset": 13,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 241,
+      "throwerSpeed": 12382.9345703125,
+      "centerOffset": 13,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 296,
+      "throwerSpeed": 13532.854080200195,
+      "centerOffset": 11,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 282,
+      "throwerSpeed": 13173.574447631836,
+      "centerOffset": 12,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 224,
+      "throwerSpeed": 12035.577774047852,
+      "centerOffset": 9,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 210,
+      "throwerSpeed": 11751.277923583984,
+      "centerOffset": 18,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 177,
+      "throwerSpeed": 10996.370315551758,
+      "centerOffset": 15,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 219,
+      "throwerSpeed": 11922.800064086914,
+      "centerOffset": 17,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 224,
+      "throwerSpeed": 12026.409149169922,
+      "centerOffset": 7,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 198,
+      "throwerSpeed": 11488.359451293945,
+      "centerOffset": 13,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 256,
+      "throwerSpeed": 12703.184127807617,
+      "centerOffset": 18,
+      "fb": [
+        0,
+        -1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 461,
+      "throwerSpeed": 16904.69741821289,
+      "centerOffset": -11,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 398,
+      "throwerSpeed": 15689.510345458984,
+      "centerOffset": 2,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 450,
+      "throwerSpeed": 16610.105514526367,
+      "centerOffset": -13,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 311,
+      "throwerSpeed": 13893.220901489258,
+      "centerOffset": 6,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 429,
+      "throwerSpeed": 15587.604522705078,
+      "centerOffset": -4,
+      "fb": [
+        1,
+        -1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 348,
+      "throwerSpeed": 14305.845260620117,
+      "centerOffset": 13,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 365,
+      "throwerSpeed": 14873.9013671875,
+      "centerOffset": 5,
+      "fb": [
+        1,
+        -1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 450,
+      "throwerSpeed": 16804.168701171875,
+      "centerOffset": -11,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 460,
+      "throwerSpeed": 17085.750579833984,
+      "centerOffset": -33,
+      "fb": [
+        0,
+        1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 462,
+      "throwerSpeed": 17226.052284240723,
+      "centerOffset": -24,
+      "fb": [
+        0,
+        1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 446,
+      "throwerSpeed": 16869.99797821045,
+      "centerOffset": -13,
+      "fb": [
+        -1,
+        1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 462,
+      "throwerSpeed": 17173.994064331055,
+      "centerOffset": -12,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 395,
+      "throwerSpeed": 15780.942916870117,
+      "centerOffset": -7,
+      "fb": [
+        0,
+        -1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 373,
+      "throwerSpeed": 15175.596237182617,
+      "centerOffset": 8,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 257,
+      "throwerSpeed": 12603.778839111328,
+      "centerOffset": 21,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 423,
+      "throwerSpeed": 16341.026306152344,
+      "centerOffset": -10,
+      "fb": [
+        0,
+        1
+      ]
+    },
+    {
+      "technique": "bounce",
+      "distance": 400,
+      "throwerSpeed": 15834.21516418457,
+      "centerOffset": -7,
+      "fb": [
+        0,
+        -1
+      ]
+    }
+  ],
   "throwerSpeedNet": {
     "layers": [
       {
@@ -22,8 +733,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": 0.5875198307039746,
-              "1": -1.0131399278332014
+              "0": 0.11889443800037564,
+              "1": -8.28456199509955
             }
           },
           {
@@ -31,8 +742,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": -1.363405923356373,
-              "1": 0.6750486553939672
+              "0": -0.001916961645377428,
+              "1": -0.0019207643270287918
             }
           },
           {
@@ -40,8 +751,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": 0.5158481502428819,
-              "1": 0.5467621631626306
+              "0": 19.890669506091104,
+              "1": -28.505177273175775
             }
           },
           {
@@ -49,8 +760,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": -1.5311376965930843,
-              "1": 0.44650637567220797
+              "0": -9.669468548800793,
+              "1": 18.67990382472325
             }
           }
         ],
@@ -59,82 +770,10 @@
           "sy": 1,
           "depth": 4,
           "w": {
-            "0": 0.1,
-            "1": 0.1,
-            "2": 0.1,
-            "3": 0.1
-          }
-        }
-      },
-      {
-        "out_depth": 4,
-        "out_sx": 1,
-        "out_sy": 1,
-        "layer_type": "relu"
-      },
-      {
-        "out_depth": 4,
-        "out_sx": 1,
-        "out_sy": 1,
-        "layer_type": "fc",
-        "num_inputs": 4,
-        "l1_decay_mul": 0,
-        "l2_decay_mul": 1,
-        "filters": [
-          {
-            "sx": 1,
-            "sy": 1,
-            "depth": 4,
-            "w": {
-              "0": -0.3175057861968673,
-              "1": 0.18329526562211468,
-              "2": -0.6035626282431683,
-              "3": -0.575110171102484
-            }
-          },
-          {
-            "sx": 1,
-            "sy": 1,
-            "depth": 4,
-            "w": {
-              "0": -0.29430821882442415,
-              "1": 0.17705369775215996,
-              "2": -0.2643467787561389,
-              "3": -0.14225650348615826
-            }
-          },
-          {
-            "sx": 1,
-            "sy": 1,
-            "depth": 4,
-            "w": {
-              "0": -0.25914245543760533,
-              "1": 1.2094821402767606,
-              "2": 0.027013381641776586,
-              "3": 0.23561539896661432
-            }
-          },
-          {
-            "sx": 1,
-            "sy": 1,
-            "depth": 4,
-            "w": {
-              "0": -1.1854540457243974,
-              "1": 0.13167828081943156,
-              "2": -0.6929283858349936,
-              "3": 1.000177214328391
-            }
-          }
-        ],
-        "biases": {
-          "sx": 1,
-          "sy": 1,
-          "depth": 4,
-          "w": {
-            "0": 0.1,
-            "1": 0.1,
-            "2": 0.1,
-            "3": 0.1
+            "0": 7.09026730547784,
+            "1": 0.0022346152355339406,
+            "2": 8.194257552284178,
+            "3": -7.087675125140881
           }
         }
       },
@@ -158,10 +797,10 @@
             "sy": 1,
             "depth": 4,
             "w": {
-              "0": -0.1565944550510236,
-              "1": -0.5029569267340811,
-              "2": 0.7149228292320015,
-              "3": -0.14579113184212728
+              "0": -1.3002656163235824,
+              "1": 0.00038806872748792085,
+              "2": -4.216722361530807,
+              "3": 1.8927523314112968
             }
           },
           {
@@ -169,10 +808,10 @@
             "sy": 1,
             "depth": 4,
             "w": {
-              "0": 0.01788465165151947,
-              "1": 0.21830930399337442,
-              "2": 0.6480154838264922,
-              "3": 0.6934854412484284
+              "0": 1.300276203241368,
+              "1": 0.0002275609615563028,
+              "2": 4.216551006783551,
+              "3": -1.8927068161895129
             }
           }
         ],
@@ -181,8 +820,8 @@
           "sy": 1,
           "depth": 2,
           "w": {
-            "0": 0,
-            "1": 0
+            "0": 1.3289178090893243,
+            "1": -1.3289178090893243
           }
         }
       },
@@ -217,8 +856,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": -0.34128000220760835,
-              "1": 0.8190908035504483
+              "0": 0.018207372080441892,
+              "1": 0.12158019644474957
             }
           },
           {
@@ -226,8 +865,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": -0.4508763948020496,
-              "1": 1.4793806931004498
+              "0": 1.8855579843443764,
+              "1": -3.8290880818403443
             }
           },
           {
@@ -235,8 +874,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": -0.23072120316868627,
-              "1": -0.1317863557939356
+              "0": -5.283623152191764,
+              "1": 0.0017378535292000283
             }
           },
           {
@@ -244,8 +883,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": 0.558533292038727,
-              "1": -0.15361210154970897
+              "0": 0.7572082797554033,
+              "1": 3.58408746034685
             }
           }
         ],
@@ -254,82 +893,10 @@
           "sy": 1,
           "depth": 4,
           "w": {
-            "0": 0,
-            "1": 0,
-            "2": 0,
-            "3": 0
-          }
-        }
-      },
-      {
-        "out_depth": 4,
-        "out_sx": 1,
-        "out_sy": 1,
-        "layer_type": "tanh"
-      },
-      {
-        "out_depth": 4,
-        "out_sx": 1,
-        "out_sy": 1,
-        "layer_type": "fc",
-        "num_inputs": 4,
-        "l1_decay_mul": 0,
-        "l2_decay_mul": 1,
-        "filters": [
-          {
-            "sx": 1,
-            "sy": 1,
-            "depth": 4,
-            "w": {
-              "0": 0.8111987115834056,
-              "1": 0.2804459243300342,
-              "2": -0.44812324348616595,
-              "3": 0.8177530759174988
-            }
-          },
-          {
-            "sx": 1,
-            "sy": 1,
-            "depth": 4,
-            "w": {
-              "0": -0.33371106411606566,
-              "1": 0.19783515265351673,
-              "2": 0.11189244297218093,
-              "3": -1.0981232995803314
-            }
-          },
-          {
-            "sx": 1,
-            "sy": 1,
-            "depth": 4,
-            "w": {
-              "0": 0.28274518071634824,
-              "1": 0.25777703105191335,
-              "2": -0.10795869150882273,
-              "3": -0.6747826308316521
-            }
-          },
-          {
-            "sx": 1,
-            "sy": 1,
-            "depth": 4,
-            "w": {
-              "0": 0.3378480657862844,
-              "1": 0.08323708996727511,
-              "2": 0.3623620505455271,
-              "3": -0.0907358812908253
-            }
-          }
-        ],
-        "biases": {
-          "sx": 1,
-          "sy": 1,
-          "depth": 4,
-          "w": {
-            "0": 0.1,
-            "1": 0.1,
-            "2": 0.1,
-            "3": 0.1
+            "0": -0.021827030039062473,
+            "1": -2.4712850069161263,
+            "2": 4.150819763538855,
+            "3": -0.7999061270840726
           }
         }
       },
@@ -353,10 +920,10 @@
             "sy": 1,
             "depth": 4,
             "w": {
-              "0": 0.06822905433256818,
-              "1": 0.5778216695519536,
-              "2": -0.3539548028070361,
-              "3": 0.13148536473450134
+              "0": 0.07820063125095293,
+              "1": -2.5762515888140385,
+              "2": -2.7159660314368397,
+              "3": 2.316990427972429
             }
           },
           {
@@ -364,10 +931,10 @@
             "sy": 1,
             "depth": 4,
             "w": {
-              "0": 0.11342310656447824,
-              "1": -0.37773232649991745,
-              "2": 0.9972018049280782,
-              "3": 0.459796140834206
+              "0": -0.07771243635231169,
+              "1": 2.5767822954167294,
+              "2": 2.7155680975614978,
+              "3": -2.3173435319395783
             }
           }
         ],
@@ -376,8 +943,8 @@
           "sy": 1,
           "depth": 2,
           "w": {
-            "0": 0,
-            "1": 0
+            "0": 0.5111111111110053,
+            "1": -0.5111111111110053
           }
         }
       },

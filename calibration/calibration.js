@@ -40,36 +40,27 @@ exports.getThrowerTechnique = function (distance, angle = 0) {
 };
 
 // Thrower speed and center offset while training data is unpredictable
-const PRE_TRAINING_DATA = [
-    { throwerSpeed: 9000, centerOffset: -25 },
-    { throwerSpeed: 15000, centerOffset: 0 },
-    { throwerSpeed: 19000, centerOffset: 25 },
-    { throwerSpeed: 9000, centerOffset: 25 },
-    { throwerSpeed: 15000, centerOffset: -25 },
-    { throwerSpeed: 19000, centerOffset: 0 },
-];
+const PRE_TRAINING_DATA = {
+    throwerSpeed: [6000, 17000],
+    centerOffset: [-25, 25]
+};
 
-const LAST_TRAINING_DATA = { straight: 0, bounce: 0 };
+const LAST_TRAINING_DATA = {
+    straight: { throwerSpeed: 0, centerOffset: 0 },
+    bounce: { throwerSpeed: 0, centerOffset: 0 }
+};
 
 // Overwrite competition data during training
 exports.setCompetitionData = function (data, isPredictable) {
     for (let technique of ['bounce', 'straight']) {
-        if (isPredictable[technique].throwerSpeed) {
-            COMPETITION_DATA[technique] = data[technique];
-            continue;
-        }
-
-        // Loop pre-defined values if unpredictable
-        COMPETITION_DATA[technique].throwerSpeed = Array(MAX_DISTANCE).fill(
-            PRE_TRAINING_DATA[LAST_TRAINING_DATA[technique]].throwerSpeed
-        );
-
-        COMPETITION_DATA[technique].centerOffset = Array(MAX_DISTANCE).fill(
-            PRE_TRAINING_DATA[LAST_TRAINING_DATA[technique]].centerOffset
-        );
-        
-        if (++LAST_TRAINING_DATA[technique] >= PRE_TRAINING_DATA.length) {
-            LAST_TRAINING_DATA[technique] = 0;
+        for (let y of ['throwerSpeed', 'centerOffset']) {
+            if (isPredictable[technique][y]) {
+                COMPETITION_DATA[technique][y] = data[technique][y];
+            } else {
+                COMPETITION_DATA[technique][y] = Array(MAX_DISTANCE).fill(
+                    PRE_TRAINING_DATA[y][++LAST_TRAINING_DATA[technique][y] % PRE_TRAINING_DATA[y].length]
+                );
+            }
         }
     }
 };
@@ -90,6 +81,12 @@ exports.recordFeedback = function (measurement, fb) {
 
 exports.deleteMeasurement = function (measurement) {
     TRAINERS[measurement.technique].deleteMeasurement(measurement);
+    TRAINERS[measurement.technique].trainAllMeasurements(200);
+};
+
+exports.trainAllTechniques = function (N = 200) {
+    TRAINERS.bounce.trainAllMeasurements(N);
+    TRAINERS.straight.trainAllMeasurements(N);
 };
 
 /*

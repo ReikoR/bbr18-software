@@ -2,6 +2,7 @@
 let socket = createWebsocket(onSocketMessage, onSocketOpened, onSocketClosed);
 
 const socketReconnectDelay = new BackOffDelay();
+const MAX_THROWER_SPEED = 19000;
 
 let sendInterval;
 let throwerSpeed = 0;
@@ -49,6 +50,19 @@ function initializePlot(id, title, y, fbIndex, info) {
         const high =  measurements.filter(m => m.fb[fbIndex] === -1);
         const ok = measurements.filter(m => m.fb[0] === 0 && m.fb[1] === 0);
         const low = measurements.filter(m => m.fb[fbIndex] === 1);
+
+        const lastMeasurement = measurements.length ? measurements[measurements.length - 1] : null;
+
+        data.push({
+            x: lastMeasurement ? [lastMeasurement.distance] : [],
+            y: lastMeasurement ? [lastMeasurement[y]] : [],
+            mode: 'markers',
+            marker: {
+                symbol: 'circle-open',
+                color: 'red',
+                size: 20
+            }
+        });
 
         data.push({
             x: high.map(obj => obj.distance),
@@ -98,7 +112,7 @@ function initializePlot(id, title, y, fbIndex, info) {
             range: [0, 500]
         },
         yaxis: {
-            range: (y === 'throwerSpeed') ? [0, 20000] : [-30, 30]
+            range: (y === 'throwerSpeed') ? [0, MAX_THROWER_SPEED] : [-40, 40]
         }
     });
 
@@ -179,7 +193,7 @@ function plotTrainingData(plotId, info, y) {
             continue;
         }
 
-        const traceIndex = selectedTechniques.indexOf(technique) * 4 + 3;
+        const traceIndex = selectedTechniques.indexOf(technique) * 5 + 4;
 
         Plotly.deleteTraces(plotId, traceIndex);
 
@@ -216,7 +230,7 @@ function onSocketMessage(message) {
         }
 
         if (info.type === 'nets') {
-            plotDecisionBoundaries('thrower-speed-plot', info, 'throwerSpeed', [0, 1], [500, 20000]);
+            plotDecisionBoundaries('thrower-speed-plot', info, 'throwerSpeed', [0, 1], [500, MAX_THROWER_SPEED]);
             plotDecisionBoundaries('center-offset-plot', info, 'centerOffset', [-1, 1], [500, 30]);
         }
 
@@ -299,15 +313,10 @@ function renderState(state) {
     lastAiState = state;
 
     document.getElementById('info-technique').innerHTML = state.ballThrownTechnique;
-    document.getElementById('info-distance').innerHTML = state.lidarDistance;
+    document.getElementById('info-distance').innerHTML = state.ballThrowLidarDistance;
+    document.getElementById('info-angle').innerHTML = state.ballThrowAngle;
     document.getElementById('info-thrower-speed').innerHTML = state.ballThrowSpeed;
     document.getElementById('info-center-offset').innerHTML = state.ballThrowBasketOffset;
-    
-    if (state.basket) {
-        document.getElementById('info-angle').innerHTML = state.basket.metrics[0] - state.basket.metrics[1];
-    } else {
-        document.getElementById('info-angle').innerHTML = 'basket not found';
-    }
 
     if (state.ballThrown) {
         document.getElementById('feedback').style.display = 'block';
@@ -318,8 +327,8 @@ function sendFeedback(feedback) {
     wsSend({
         type: 'training_feedback',
         technique: lastAiState.ballThrownTechnique,
-        distance: lastAiState.lidarDistance,
-        angle: lastAiState.basket ? (lastAiState.basket.metrics[0] - lastAiState.basket.metrics[1]) : 0,
+        distance: lastAiState.ballThrowLidarDistance,
+        angle: lastAiState.ballThrowAngle,
         centerOffset: lastAiState.ballThrowBasketOffset,
         throwerSpeed: lastAiState.ballThrowSpeed,
         feedback
@@ -367,7 +376,7 @@ function stopSendInterval() {
 function demo() {
     setInterval(() => {
         const distance = Math.round(Math.random() * 500);
-        const throwerSpeed = Math.round(Math.random() * 20000);
+        const throwerSpeed = Math.round(Math.random() * MAX_THROWER_SPEED);
         const centerOffset = Math.round(Math.random() * 40 - 20);
 
         let fb = [0, 0];

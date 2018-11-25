@@ -3,7 +3,7 @@ const convnet = require('./convnet');
 
 const MAX_DISTANCE = 500;
 const MIN_THROWER_SPEED = 6000;
-const MAX_THROWER_SPEED = 20000;
+const MAX_THROWER_SPEED = 19000;
 const MAX_CENTER_OFFSET = 30;
 
 class Trainer {
@@ -31,14 +31,15 @@ class Trainer {
         // Layers
         this.throwerSpeedNet.makeLayers([
             { type: 'input', out_sx: 1, out_sy: 1, out_depth: 2 },
+            //{ type: 'fc', num_neurons: 4 },
             { type: 'fc', num_neurons: 4, activation: 'relu' },
-            { type: 'fc', num_neurons: 4, activation: 'relu' },
+            //{ type: 'fc', num_neurons: 4, activation: 'relu' },
             { type: 'svm', num_classes: 2 }
         ]);
 
         this.centerOffsetNet.makeLayers([
             { type: 'input', out_sx: 1, out_sy: 1, out_depth: 2 },
-            { type: 'fc', num_neurons: 4, activation: 'tanh' },
+            //{ type: 'fc', num_neurons: 4, activation: 'tanh' },
             { type: 'fc', num_neurons: 4, activation: 'relu' },
             { type: 'svm', num_classes: 2 }
         ]);

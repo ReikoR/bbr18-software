@@ -80,6 +80,7 @@ function close() {
 
     // Save training neural net weights and measurements on close
     calibration.saveTrainingData();
+    calibration.saveCompetitionData();
 
     // Allow usage of any throwing technique when shutting down training
     sendToHub({
@@ -122,23 +123,8 @@ function handleWsMessage(message) {
         //bounce: selectedTechniques.includes('bounce') ? calibration.getMeasurements('bounce') : undefined,
         //straight: selectedTechniques.includes('straight') ? calibration.getMeasurements('straight') : undefined
     }));
-    
-    // Re-calculate competition data
-    const data = calibration.getTrainingData();
-    //calibration.saveCompetitionData();
-    
-    wss.broadcast(JSON.stringify({
-        type: 'training_data',
-        data
-    }));
-    
-    sendToHub({
-        type: 'message',
-        topic: 'training',
-        event: 'training_data',
-        data,
-        isPredictable: calibration.isPredictable()
-    });
+
+
 }
 
 function sendToHub(info, onSent) {
@@ -157,8 +143,29 @@ function sendToHub(info, onSent) {
     });
 }
 
+let lastAiMotionState = 'IDLE';
+
+function resendTrainingData() {
+    const data = calibration.getTrainingData();
+
+    wss.broadcast(JSON.stringify({
+        type: 'training_data',
+        data
+    }));
+
+    sendToHub({
+        type: 'message',
+        topic: 'training',
+        event: 'training_data',
+        data,
+        isPredictable: calibration.isPredictable()
+    });
+}
+
 function handleInfo(info) {
     if (info.topic === 'ai_state') {
+        lastAiMotionState = info.state.motionState;
+
         wss.broadcast(JSON.stringify({
             type: 'ai_state',
             state: info.state /* {
@@ -170,17 +177,28 @@ function handleInfo(info) {
         }));
     }
 
-    if (info.topic === 'training' && info.event === 'ai_started') {
+    if (info.topic === 'ai_event' && info.event === 'ai_started') {
         sendToHub({
             type: 'message',
             topic: 'training',
             event: 'training_data',
             data: calibration.getTrainingData(),
             isPredictable: calibration.isPredictable()
-        })
+        });
+    }
+
+    if (info.topic === 'ai_event' && info.event === 'ai_closed') {
+        lastAiMotionState = 'IDLE';
     }
 
     //console.log(info);
 }
 
-sendToHub({type: 'subscribe', topics: ['ai_state', 'training']});
+setInterval(() => {
+    if (lastAiMotionState === 'IDLE') {
+        calibration.trainAllTechniques();
+        resendTrainingData();
+    }
+}, 1000);
+
+sendToHub({type: 'subscribe', topics: ['ai_state', 'training', 'ai_event']});

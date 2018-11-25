@@ -2,10 +2,17 @@ const dgram = require('dgram');
 const socket = dgram.createSocket('udp4');
 const publicConf = require('./public-conf.json');
 const HubCom = require('../common/HubCom');
-const hubCom = new HubCom(publicConf.port, publicConf.hubIpAddress, publicConf.hubPort);
 const omniMotion = require('./omni-motion');
 const util = require('./util');
 const calibration = require('../calibration/calibration');
+
+const hubCom = new HubCom(publicConf.port, publicConf.hubIpAddress, publicConf.hubPort, () => {
+    hubCom.send({ type: 'message', topic: 'ai_event', event: 'ai_closed' });
+});
+
+hubCom.on('open', () => {
+    hubCom.send({ type: 'message', topic: 'ai_event', event: 'ai_started' });
+});
 
 /**
  * @name MainboardFeedback
@@ -290,9 +297,8 @@ function handleInfo(info) {
                 && mainboardState.balls[1] === false
             ) {
                 mainboardState.ballThrown = true;
-                mainboardState.ballThrownSpeed = mainboardState.speeds[4];
-                mainboardState.ballThrownBasketOffset = processedVisionState.basket ?
-                    processedVisionState.basket.cx - frameCenterX : 0;
+                //aiState.ballThrownBasketOffset = processedVisionState.basket ?
+                //    processedVisionState.basket.cx - frameCenterX : 0;
                 console.log('mainboardState.ballThrown', mainboardState.ballThrown);
 
                 if (visionState.basket) {
@@ -306,14 +312,16 @@ function handleInfo(info) {
                 lastClosestBallCount = 0;
             }
 
+            /*
             if (throwerState === throwerStates.THROW_BALL
                 && mainboardState.prevBalls[0] === false
                 && mainboardState.balls[0] === true
             ) {
-                mainboardState.ballThrowSpeed = mainboardState.speeds[4];
+                aiState.ballThrowSpeed = mainboardState.speeds[4];
                 mainboardState.ballThrowBasketOffset = processedVisionState.basket ?
                     frameCenterX - processedVisionState.basket.cx : 0;
             }
+            */
 
             if (
                 mainboardState.prevBalls[0] !==  mainboardState.balls[0] ||
@@ -646,9 +654,11 @@ function sendState() {
         isManualOverride: aiState.isManualOverride,
         isCompetition: aiState.isCompetition,
         basketColour: aiState.basketColour,
-        ballThrowSpeed: mainboardState.ballThrowSpeed,
-        ballThrownSpeed: mainboardState.ballThrownSpeed,
-        ballThrownBasketOffset: mainboardState.ballThrownBasketOffset,
+        ballThrowLidarDistance: aiState.ballThrowLidarDistance,
+        ballThrowSpeed: aiState.ballThrowSpeed,
+        ballThrowBasketOffset: aiState.ballThrowBasketOffset,
+        ballThrowAngle: aiState.ballThrowAngle,
+        ballThrownTechnique: aiState.ballThrownTechnique
     };
 
     hubCom.send({type: 'message', topic: 'ai_state', state: state});
@@ -1551,7 +1561,7 @@ function getAllowedThrowerTechnique() {
         technique = aiState.allowedTechniques[0];
     }
 
-    mainboardState.ballThrownTechnique = technique;
+    aiState.ballThrownTechnique = technique;
 
     return technique;
 }
@@ -1563,12 +1573,36 @@ function handleThrowerThrowBall() {
     const technique = getAllowedThrowerTechnique();
     aiState.speeds[4] = calibration.getThrowerSpeed(technique, mainboardState.lidarDistance);
 
+    aiState.ballThrowSpeed = aiState.speeds[4];
+    aiState.ballThrowLidarDistance = mainboardState.lidarDistance;
+
+    if (processedVisionState.basket) {
+        const basket = processedVisionState.basket;
+        const metrics = basket.metrics;
+        const metricsLength = Math.sqrt(metrics[0]*metrics[0] + metrics[1]*metrics[1]);
+
+        if (metricsLength) {
+            const normalizedMetrics = [
+                metrics[0] / metricsLength, metrics[1] / metricsLength
+            ];
+
+            aiState.ballThrowAngle = normalizedMetrics[0] - normalizedMetrics[1];
+        } else {
+            aiState.ballThrowAngle = 0;
+        }
+
+        aiState.ballThrowBasketOffset = frameCenterX - basket.cx;
+    } else {
+        aiState.ballThrowAngle = 0;
+        aiState.ballThrowBasketOffset = 0;
+    }
+
     //console.log('Thrower speed: expected', aiState.speeds[4], 'actual', mainboardState.speeds[4]);
     //console.log('lidarDistance', mainboardState.lidarDistance, 'filtered', mainboardState.lidarDistanceFiltered);
 
     if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;
-        console.log('mainboardState.ballThrown', mainboardState.ballThrown);
+        console.log('handleThrowerThrowBall mainboardState.ballThrown', mainboardState.ballThrown);
 
         afterBallThrownCount++;
     }
@@ -1587,7 +1621,7 @@ function handleThrowerThrowBallAway() {
 
     if (mainboardState.ballThrown) {
         mainboardState.ballThrown = false;
-        console.log('mainboardState.ballThrown', mainboardState.ballThrown);
+        console.log('handleThrowerThrowBallAway mainboardState.ballThrown', mainboardState.ballThrown);
         setMotionState(motionStates.FIND_BALL);
         setThrowerState(throwerStates.IDLE);
     }
@@ -1646,6 +1680,11 @@ function setMotionState(newState) {
     if (motionState !== newState) {
         console.log('Motion state:', motionState, '->', newState);
 
+        if (mainboardState.ballThrown) {
+            mainboardState.ballThrown = false;
+            console.log('setMotionState mainboardState.ballThrown', mainboardState.ballThrown);
+        }
+
         switch (motionState) {
             case motionStates.DRIVE_TO_BALL:
                 resetMotionDriveToBall();
@@ -1688,7 +1727,7 @@ function setThrowerState(newState) {
 
         if (mainboardState.ballThrown) {
             mainboardState.ballThrown = false;
-            console.log('mainboardState.ballThrown', mainboardState.ballThrown);
+            console.log('setThrowerState mainboardState.ballThrown', mainboardState.ballThrown);
         }
 
         throwerState = newState;
@@ -1742,10 +1781,6 @@ function update() {
         hubCom.send({type: 'message', topic: 'mainboard_command', command: mainboardCommand});
     }
 }
-
-hubCom.on('open', () => {
-    hubCom.send({ type: 'message', topic: 'training', event: 'ai_started' });
-});
 
 hubCom.send({
     type: 'subscribe',
