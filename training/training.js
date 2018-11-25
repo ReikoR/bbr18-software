@@ -76,6 +76,14 @@ process.on('message', (message) => {
 function close() {
     console.log('closing');
 
+    // Allow usage of any throwing technique when shutting down training
+    sendToHub({
+        type: 'message',
+        topic: 'training',
+        event: 'change_technique',
+        techniques: ['hoop', 'dunk']
+    });
+
     sendToHub({type: 'unsubscribe'}, () => {
         socket.close();
         process.exit();
@@ -90,28 +98,24 @@ function handleWsMessage(message) {
             throwerSpeed: message.throwerSpeed,
             centerOffset: message.centerOffset
         }, message.feedback);
-
-        /*
-        wss.broadcast(JSON.stringify({
-            type: 'calibration',
-            calibration: calibration.getMeasurementsAndNets()
-        }));
-        
-        sendToHub({
-            type: 'message',
-            topic: 'training',
-            event: 'measurements_changed'
-        });
-        */
+    } else if (message.type === 'delete_measurement') {
+        calibration.deleteMeasurement(message);
     } else if (message.type === 'change_technique') {
         selectedTechniques = message.techniques;
 
-        wss.broadcast(JSON.stringify({
-            type: 'measurements',
-            hoop: message.techniques.includes('hoop') ? calibration.getMeasurements('hoop') : undefined,
-            dunk: message.techniques.includes('dunk') ? calibration.getMeasurements('dunk') : undefined
-        }));
+        sendToHub({
+            type: 'message',
+            topic: 'training',
+            event: 'change_technique',
+            techniques: message.techniques
+        });
     }
+
+    wss.broadcast(JSON.stringify({
+        type: 'measurements',
+        hoop: selectedTechniques.includes('hoop') ? calibration.getMeasurements('hoop') : undefined,
+        dunk: selectedTechniques.includes('dunk') ? calibration.getMeasurements('dunk') : undefined
+    }));
 }
 
 function sendToHub(info, onSent) {
@@ -132,6 +136,10 @@ function sendToHub(info, onSent) {
 
 function handleInfo(info) {
     if (info.topic === 'ai_state') {
+        console.log(Date.now(), info.state.ballSensors);
+        if (info.state.ballThrown) {
+            console.log('THROW!');
+        }
         wss.broadcast(JSON.stringify({
             type: 'ai_state',
             state: info.state /* {
@@ -157,7 +165,13 @@ setInterval(() => {
             type: 'nets',
             ...update
         }));
+
+        sendToHub({
+            type: 'message',
+            topic: 'training',
+            event: 'nets_changed'
+        });
     }
-}, 100);
+}, 1000);
 
 sendToHub({type: 'subscribe', topics: ['ai_state']});

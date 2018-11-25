@@ -1,0 +1,732 @@
+[
+  {
+    "technique": "dunk",
+    "distance": 83,
+    "throwerSpeed": 13803,
+    "centerOffset": -3,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 136,
+    "throwerSpeed": 8023,
+    "centerOffset": 1,
+    "fb": [
+      1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 172,
+    "throwerSpeed": 13093,
+    "centerOffset": -3,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 181,
+    "throwerSpeed": 11290,
+    "centerOffset": -2,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 235,
+    "throwerSpeed": 10786,
+    "centerOffset": -2,
+    "fb": [
+      1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 290,
+    "throwerSpeed": 14149,
+    "centerOffset": 0,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 354,
+    "throwerSpeed": 15437,
+    "centerOffset": -4,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 156,
+    "throwerSpeed": 10614,
+    "centerOffset": -19,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 183,
+    "throwerSpeed": 10906,
+    "centerOffset": -12,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 186,
+    "throwerSpeed": 10816,
+    "centerOffset": -16,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 191,
+    "throwerSpeed": 11271,
+    "centerOffset": -20,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 301,
+    "throwerSpeed": 13896,
+    "centerOffset": -23,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 376,
+    "throwerSpeed": 15222,
+    "centerOffset": -16,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 313,
+    "throwerSpeed": 13982,
+    "centerOffset": -18,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 97,
+    "throwerSpeed": 8710,
+    "centerOffset": -18,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 154,
+    "throwerSpeed": 9993,
+    "centerOffset": -23,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 93,
+    "throwerSpeed": 8476,
+    "centerOffset": -20,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 105,
+    "throwerSpeed": 8683,
+    "centerOffset": -28,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 69,
+    "throwerSpeed": 7685,
+    "centerOffset": -22,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 163,
+    "throwerSpeed": 10189,
+    "centerOffset": -20,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 247,
+    "throwerSpeed": 12309,
+    "centerOffset": 2,
+    "fb": [
+      1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 158,
+    "throwerSpeed": 10028,
+    "centerOffset": -20,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 100,
+    "throwerSpeed": 8292,
+    "centerOffset": -25,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 102,
+    "throwerSpeed": 6887,
+    "centerOffset": -24,
+    "fb": [
+      1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 118,
+    "throwerSpeed": 8000,
+    "centerOffset": -17,
+    "fb": [
+      1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 142,
+    "throwerSpeed": 9354,
+    "centerOffset": -22,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 201,
+    "throwerSpeed": 12151,
+    "centerOffset": -19,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 119,
+    "throwerSpeed": 8576,
+    "centerOffset": -19,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 85,
+    "throwerSpeed": 12704,
+    "centerOffset": -11,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 125,
+    "throwerSpeed": 8775,
+    "centerOffset": -21,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 145,
+    "throwerSpeed": 9302,
+    "centerOffset": -26,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 126,
+    "throwerSpeed": 8702,
+    "centerOffset": -29,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 136,
+    "throwerSpeed": 8868,
+    "centerOffset": -23,
+    "fb": [
+      1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 203,
+    "throwerSpeed": 11972,
+    "centerOffset": -22,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 162,
+    "throwerSpeed": 9745,
+    "centerOffset": -20,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 185,
+    "throwerSpeed": 10276,
+    "centerOffset": -21,
+    "fb": [
+      1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 150,
+    "throwerSpeed": 9198,
+    "centerOffset": -17,
+    "fb": [
+      1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 47,
+    "throwerSpeed": 6474,
+    "centerOffset": -31,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 457,
+    "throwerSpeed": 14714,
+    "centerOffset": -11,
+    "fb": [
+      1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 357,
+    "throwerSpeed": 14230,
+    "centerOffset": -9,
+    "fb": [
+      1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 330,
+    "throwerSpeed": 14106,
+    "centerOffset": -7,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 270,
+    "throwerSpeed": 12920,
+    "centerOffset": 2,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 394,
+    "throwerSpeed": 15290,
+    "centerOffset": -1,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 177,
+    "throwerSpeed": 10220,
+    "centerOffset": -2,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 129,
+    "throwerSpeed": 8791,
+    "centerOffset": -1,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 131,
+    "throwerSpeed": 9071,
+    "centerOffset": 1,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 47,
+    "throwerSpeed": 5894,
+    "centerOffset": -7,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 325,
+    "throwerSpeed": 14098,
+    "centerOffset": -7,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 182,
+    "throwerSpeed": 10464,
+    "centerOffset": 2,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 138,
+    "throwerSpeed": 9090,
+    "centerOffset": 2,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 94,
+    "throwerSpeed": 7544,
+    "centerOffset": -1,
+    "fb": [
+      1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 179,
+    "throwerSpeed": 10270,
+    "centerOffset": 2,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 327,
+    "throwerSpeed": 14053,
+    "centerOffset": -3,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 192,
+    "throwerSpeed": 10683,
+    "centerOffset": -7,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 145,
+    "throwerSpeed": 9129,
+    "centerOffset": 0,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 411,
+    "throwerSpeed": 15615,
+    "centerOffset": 2,
+    "fb": [
+      1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 353,
+    "throwerSpeed": 14704,
+    "centerOffset": -6,
+    "fb": [
+      1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 418,
+    "throwerSpeed": 16027,
+    "centerOffset": -3,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 276,
+    "throwerSpeed": 13088,
+    "centerOffset": -15,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 133,
+    "throwerSpeed": 9016,
+    "centerOffset": -12,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 229,
+    "throwerSpeed": 11856,
+    "centerOffset": -7,
+    "fb": [
+      1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 155,
+    "throwerSpeed": 9575,
+    "centerOffset": -25,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 119,
+    "throwerSpeed": 8639,
+    "centerOffset": -11,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 89,
+    "throwerSpeed": 7620,
+    "centerOffset": 10,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 133,
+    "throwerSpeed": 8921,
+    "centerOffset": 9,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 242,
+    "throwerSpeed": 12435,
+    "centerOffset": 9,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 154,
+    "throwerSpeed": 9488,
+    "centerOffset": -21,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 375,
+    "throwerSpeed": 15045,
+    "centerOffset": 20,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 317,
+    "throwerSpeed": 13863,
+    "centerOffset": 22,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 271,
+    "throwerSpeed": 12832,
+    "centerOffset": 26,
+    "fb": [
+      -1,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 348,
+    "throwerSpeed": 14304,
+    "centerOffset": 23,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 157,
+    "throwerSpeed": 9450,
+    "centerOffset": 19,
+    "fb": [
+      0,
+      0
+    ]
+  },
+  {
+    "technique": "dunk",
+    "distance": 73,
+    "throwerSpeed": 7370,
+    "centerOffset": -15,
+    "fb": [
+      -1,
+      0
+    ]
+  }
+]

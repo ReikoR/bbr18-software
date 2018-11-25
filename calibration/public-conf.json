@@ -1,5 +1,5 @@
 {
-    "dunk": "simulation",
-    "dunk2": "measurements_16_11_dunk",
-    "hoop": "measurements_16_11_hoop"
+    "dunk0": "test",
+    "dunk": "measurements_20_11_dunk",
+    "hoop": "measurements_20_11_hoop"
 }

@@ -205,7 +205,9 @@ let mainboardState = {
     ballThrown: false,
     ballThrowSpeed: 0,
     ballThrownSpeed: 0,
+    ballThrowBasketOffset: 0,
     ballThrownBasketOffset: 0,
+    ballThrownTechnique: null,
     ballGrabbed: false,
     ballEjected: false,
     lidarDistance: 0,
@@ -232,6 +234,7 @@ let aiState = {
     shouldSendAck: false,
     isManualOverride: false,
     isCompetition: true,
+    allowedTechniques: ['hoop', 'dunk'],
     basketColour: basketColours.blue,
     ballTopArcFilterThreshold: defaultBallTopArcFilterThreshold,
     basketBottomFilterThreshold: defaultBasketBottomFilterThreshold,
@@ -309,6 +312,8 @@ function handleInfo(info) {
                 && mainboardState.balls[0] === true
             ) {
                 mainboardState.ballThrowSpeed = mainboardState.speeds[4];
+                mainboardState.ballThrowBasketOffset = processedVisionState.basket ?
+                    frameCenterX - processedVisionState.basket.cx : 0;
             }
 
             if (
@@ -377,7 +382,11 @@ function handleInfo(info) {
             }
             break;
         case 'training':
-            calibration.reloadMeasurements();
+            if (info.event === 'nets_changed') {
+                calibration.reloadMeasurements();
+            } else if (info.event === 'change_technique') {
+                aiState.allowedTechniques = info.techniques;
+            }
             break;
     }
 
@@ -656,6 +665,8 @@ function setAiStateSpeeds(wheelRPMs) {
 }
 
 function handleBallValueChanged() {
+    //console.log('BALL VALUE CHANGED!', mainboardState.balls[0], new Date);
+
     if (throwerState === throwerStates.EJECT_BALL) {
         if (mainboardState.prevBalls[0] === true && mainboardState.balls[0] === false) {
             mainboardState.ballEjected = true;
@@ -1250,7 +1261,7 @@ function handleMotionFindBasket() {
             const actualThrowerSpeed = mainboardState.speeds[4];
             const throwerSpeedDiff =  actualThrowerSpeed - expectedThrowerSpeed;
 
-            console.log('throwerSpeedDiff', throwerSpeedDiff);
+            //console.log('throwerSpeedDiff', throwerSpeedDiff);
 
             if (!isThrowerSpeedStable) {
                 if (Math.abs(throwerSpeedDiff) < (expectedThrowerSpeed > 16000 ? unstableThrowerSpeedAllowedError : 50)) {
@@ -1275,11 +1286,13 @@ function handleMotionFindBasket() {
         }
 
     } else {
+        console.log('1219 FIND-BALl');
         setMotionState(motionStates.FIND_BALL);
     }
 
     if (basket && (closestBall || throwerState === throwerStates.THROW_BALL)) {
-        const basketCenterX = basket.cx + calibration.getCenterOffset(mainboardState.lidarDistance);
+        const technique = getAllowedThrowerTechnique();
+        const basketCenterX = basket.cx + calibration.getCenterOffset(technique, mainboardState.lidarDistance);
         const basketErrorX = basketCenterX - frameCenterX;
         isBasketErrorXSmallEnough = Math.abs(basketErrorX) < 40;
         rotationSpeed = maxRotationSpeed * -basketErrorX / (frameWidth / 2);
@@ -1287,8 +1300,6 @@ function handleMotionFindBasket() {
         if (isBasketErrorXSmallEnough && isBallCloseEnough) {
             setThrowerState(throwerStates.THROW_BALL);
         }
-
-        console.log('basketErrorX', Math.abs(basketErrorX));
     }
 
     if (Math.abs(rotationSpeed) < minRotationSpeed) {

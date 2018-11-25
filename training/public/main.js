@@ -8,8 +8,8 @@ let throwerSpeed = 0;
 let selectedTechniques;
 
 const COLORS = {
-    'hoop': 'rgb(255, 0, 0)',
-    'dunk': 'rgb(0, 255, 0)'
+    'hoop': '#1f77b4',//rgb(255, 0, 0)',
+    'dunk': '#ff7f0e'//rgb(0, 255, 0)'
 };
 
 function selectTechniques(techniques) {
@@ -47,7 +47,7 @@ function initializePlot(id, title, y, fbIndex, info) {
     for (let technique of selectedTechniques) {
         const measurements = info[technique];
         const high =  measurements.filter(m => m.fb[fbIndex] === -1);
-        const ok = measurements.filter(m => m.fb[fbIndex] === 0);
+        const ok = measurements.filter(m => m.fb[0] === 0 && m.fb[1] === 0);
         const low = measurements.filter(m => m.fb[fbIndex] === 1);
 
         data.push({
@@ -92,7 +92,23 @@ function initializePlot(id, title, y, fbIndex, info) {
     }
 
     Plotly.newPlot(id, data, {
-        title
+        title,
+        hovermode: 'closest'
+    });
+
+    document.getElementById(id).on('plotly_click', data => {
+        let point = data.points[0];
+
+        if (point.curvenumber !== 3 || point.curvenumber !== 7) {
+            const technique = selectedTechniques[(point.curveNumber < 4) ? 0 : 1];
+            wsSend({
+                type: 'delete_measurement',
+                technique,
+                index: info[technique].findIndex(m => m.distance === point.x && m[y] === point.y)
+            });
+
+            console.log('Point', point.x, point.y, point.pointNumber, point.curveNumber, technique);
+        }
     });
 }
 
@@ -120,7 +136,7 @@ function plotDecisionBoundaries(plotId, info, y, bounds, scale) {
             }
         };
 
-        for (let x = 0; x <= scale[0]; x += Math.floor(scale[0]/50)) {
+        for (let x = 0; x <= scale[0]; x += Math.floor(scale[0]/200)) {
             boundary.x.push(x);
             boundary.y.push(getDecisionBoundary(net, x / scale[0], bounds) * scale[1]);
         }
@@ -165,7 +181,7 @@ function onSocketMessage(message) {
 
         if (info.type === 'nets') {
             plotDecisionBoundaries('thrower-speed-plot', info, 'throwerSpeed', [0, 1], [500, 20000]);
-            plotDecisionBoundaries('center-offset-plot', info, 'centerOffset', [-1, 1], [500, 20]);
+            plotDecisionBoundaries('center-offset-plot', info, 'centerOffset', [-1, 1], [500, 30]);
         }
     } catch (error) {
         console.info(error.message, error.stack);
@@ -241,10 +257,10 @@ function renderState(state) {
 
     lastAiState = state;
 
-    document.getElementById('info-technique').innerHTML = state.technique;
+    document.getElementById('info-technique').innerHTML = state.ballThrownTechnique;
     document.getElementById('info-distance').innerHTML = state.lidarDistance;
     document.getElementById('info-thrower-speed').innerHTML = state.ballThrowSpeed;
-    document.getElementById('info-center-offset').innerHTML = state.ballThrownBasketOffset;
+    document.getElementById('info-center-offset').innerHTML = state.ballThrowBasketOffset;
 
     if (state.ballThrown) {
         document.getElementById('feedback').style.display = 'block';
@@ -256,13 +272,14 @@ function sendFeedback(feedback) {
         type: 'training_feedback',
         technique: lastAiState.ballThrownTechnique,
         distance: lastAiState.lidarDistance,
-        centerOffset: lastAiState.ballThrownBasketOffset,
+        centerOffset: lastAiState.ballThrowBasketOffset,
         throwerSpeed: lastAiState.ballThrowSpeed,
         feedback
     });
 
     document.getElementById('feedback').style.display = 'none';
 
+    /*
     // Add feedback to plots
     Plotly.extendTraces('thrower-speed-plot', {
         x: [[lastAiState.lidarDistance]],
@@ -273,6 +290,7 @@ function sendFeedback(feedback) {
         x: [[lastAiState.lidarDistance]],
         y: [[lastAiState.ballThrownBasketOffset]]
     }, [feedback[1] + 1]);
+    */
 }
 
 function skipFeedback() {
