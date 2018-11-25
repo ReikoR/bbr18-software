@@ -57,6 +57,8 @@ socket.on('message', (message, rinfo) => {
 socket.on('listening', () => {
     const address = socket.address();
     console.log(`socket listening ${address.address}:${address.port}`);
+
+    
 });
 
 socket.bind(publicConf.port, () => {
@@ -76,12 +78,15 @@ process.on('message', (message) => {
 function close() {
     console.log('closing');
 
+    // Save training neural net weights and measurements on close
+    calibration.saveTrainingData();
+
     // Allow usage of any throwing technique when shutting down training
     sendToHub({
         type: 'message',
         topic: 'training',
         event: 'change_technique',
-        techniques: ['hoop', 'dunk']
+        techniques: ['bounce', 'straight']
     });
 
     sendToHub({type: 'unsubscribe'}, () => {
@@ -107,15 +112,33 @@ function handleWsMessage(message) {
             type: 'message',
             topic: 'training',
             event: 'change_technique',
-            techniques: message.techniques
+            techniques: message.techniques,
         });
     }
 
     wss.broadcast(JSON.stringify({
         type: 'measurements',
-        hoop: selectedTechniques.includes('hoop') ? calibration.getMeasurements('hoop') : undefined,
-        dunk: selectedTechniques.includes('dunk') ? calibration.getMeasurements('dunk') : undefined
+        ...calibration.getMeasurements()
+        //bounce: selectedTechniques.includes('bounce') ? calibration.getMeasurements('bounce') : undefined,
+        //straight: selectedTechniques.includes('straight') ? calibration.getMeasurements('straight') : undefined
     }));
+    
+    // Re-calculate competition data
+    const data = calibration.getTrainingData();
+    //calibration.saveCompetitionData();
+    
+    wss.broadcast(JSON.stringify({
+        type: 'training_data',
+        data
+    }));
+    
+    sendToHub({
+        type: 'message',
+        topic: 'training',
+        event: 'training_data',
+        data,
+        isPredictable: calibration.isPredictable()
+    });
 }
 
 function sendToHub(info, onSent) {
@@ -136,10 +159,6 @@ function sendToHub(info, onSent) {
 
 function handleInfo(info) {
     if (info.topic === 'ai_state') {
-        console.log(Date.now(), info.state.ballSensors);
-        if (info.state.ballThrown) {
-            console.log('THROW!');
-        }
         wss.broadcast(JSON.stringify({
             type: 'ai_state',
             state: info.state /* {
@@ -151,27 +170,17 @@ function handleInfo(info) {
         }));
     }
 
-    //console.log(info);
-}
-
-// Training interval
-let trainingN = 0;
-
-setInterval(() => {
-    const update = calibration.updateNets(selectedTechniques);
-
-    if (++trainingN % 10 === 0) {
-        wss.broadcast(JSON.stringify({
-            type: 'nets',
-            ...update
-        }));
-
+    if (info.topic === 'training' && info.event === 'ai_started') {
         sendToHub({
             type: 'message',
             topic: 'training',
-            event: 'nets_changed'
-        });
+            event: 'training_data',
+            data: calibration.getTrainingData(),
+            isPredictable: calibration.isPredictable()
+        })
     }
-}, 1000);
 
-sendToHub({type: 'subscribe', topics: ['ai_state']});
+    //console.log(info);
+}
+
+sendToHub({type: 'subscribe', topics: ['ai_state', 'training']});

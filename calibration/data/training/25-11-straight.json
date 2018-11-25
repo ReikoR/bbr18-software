@@ -1,0 +1,764 @@
+{
+  "measurements": [
+    {
+      "technique": "straight",
+      "distance": 480,
+      "throwerSpeed": 13279,
+      "centerOffset": -10,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 161,
+      "throwerSpeed": 4099,
+      "centerOffset": -8,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 233,
+      "throwerSpeed": 10781,
+      "centerOffset": -3,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 406,
+      "throwerSpeed": 12570,
+      "centerOffset": 7,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 125,
+      "throwerSpeed": 6374,
+      "centerOffset": -10,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 268,
+      "throwerSpeed": 9919,
+      "centerOffset": 14,
+      "fb": [
+        1,
+        -1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 43,
+      "throwerSpeed": 17981,
+      "centerOffset": -18,
+      "fb": [
+        -1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 105,
+      "throwerSpeed": 4193,
+      "centerOffset": 1,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 341,
+      "throwerSpeed": 18880,
+      "centerOffset": -8,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 129,
+      "throwerSpeed": 18182,
+      "centerOffset": 3,
+      "fb": [
+        -1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 426,
+      "throwerSpeed": 4364,
+      "centerOffset": -1,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 131,
+      "throwerSpeed": 18894,
+      "centerOffset": -1,
+      "fb": [
+        -1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 422,
+      "throwerSpeed": 3048,
+      "centerOffset": -12,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 109,
+      "throwerSpeed": 8169,
+      "centerOffset": 3,
+      "fb": [
+        -1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 343,
+      "throwerSpeed": 1760,
+      "centerOffset": 11,
+      "fb": [
+        1,
+        -1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 409,
+      "throwerSpeed": 19147,
+      "centerOffset": 2,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 270,
+      "throwerSpeed": 15536,
+      "centerOffset": -17,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 396,
+      "throwerSpeed": 13651,
+      "centerOffset": 11,
+      "fb": [
+        1,
+        -1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 487,
+      "throwerSpeed": 2762,
+      "centerOffset": 1,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 26,
+      "throwerSpeed": 1368,
+      "centerOffset": -7,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 82,
+      "throwerSpeed": 11655,
+      "centerOffset": 15,
+      "fb": [
+        -1,
+        -1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 11,
+      "throwerSpeed": 4692,
+      "centerOffset": -10,
+      "fb": [
+        -1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 44,
+      "throwerSpeed": 740,
+      "centerOffset": 4,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 421,
+      "throwerSpeed": 6533,
+      "centerOffset": -18,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 147,
+      "throwerSpeed": 18304,
+      "centerOffset": -19,
+      "fb": [
+        -1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 357,
+      "throwerSpeed": 17209,
+      "centerOffset": 9,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 87,
+      "throwerSpeed": 16738,
+      "centerOffset": -6,
+      "fb": [
+        -1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 420,
+      "throwerSpeed": 11592,
+      "centerOffset": -5,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 495,
+      "throwerSpeed": 2487,
+      "centerOffset": 8,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 433,
+      "throwerSpeed": 16883,
+      "centerOffset": -11,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 20,
+      "throwerSpeed": 13100,
+      "centerOffset": -2,
+      "fb": [
+        -1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 181,
+      "throwerSpeed": 19561,
+      "centerOffset": 8,
+      "fb": [
+        -1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 364,
+      "throwerSpeed": 10193,
+      "centerOffset": 3,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 433,
+      "throwerSpeed": 9285,
+      "centerOffset": 13,
+      "fb": [
+        1,
+        -1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 383,
+      "throwerSpeed": 17332,
+      "centerOffset": -14,
+      "fb": [
+        1,
+        1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 325,
+      "throwerSpeed": 2221,
+      "centerOffset": 18,
+      "fb": [
+        1,
+        -1
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 416,
+      "throwerSpeed": 8847,
+      "centerOffset": 17,
+      "fb": [
+        1,
+        -1
+      ]
+    }
+  ],
+  "throwerSpeedNet": {
+    "layers": [
+      {
+        "out_depth": 2,
+        "out_sx": 1,
+        "out_sy": 1,
+        "layer_type": "input"
+      },
+      {
+        "out_depth": 4,
+        "out_sx": 1,
+        "out_sy": 1,
+        "layer_type": "fc",
+        "num_inputs": 2,
+        "l1_decay_mul": 0,
+        "l2_decay_mul": 1,
+        "filters": [
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 2,
+            "w": {
+              "0": -1.0326834487269907,
+              "1": 0.12324166685888897
+            }
+          },
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 2,
+            "w": {
+              "0": 3.570326274610421,
+              "1": -2.505081116457746
+            }
+          },
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 2,
+            "w": {
+              "0": -2.8353770891981087,
+              "1": 1.8811722081774478
+            }
+          },
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 2,
+            "w": {
+              "0": -0.2849437510426036,
+              "1": 0.040790187406339766
+            }
+          }
+        ],
+        "biases": {
+          "sx": 1,
+          "sy": 1,
+          "depth": 4,
+          "w": {
+            "0": -0.031802173567428156,
+            "1": 0.2461420195877817,
+            "2": -0.19294925789534487,
+            "3": -0.02172804657216447
+          }
+        }
+      },
+      {
+        "out_depth": 4,
+        "out_sx": 1,
+        "out_sy": 1,
+        "layer_type": "relu"
+      },
+      {
+        "out_depth": 4,
+        "out_sx": 1,
+        "out_sy": 1,
+        "layer_type": "fc",
+        "num_inputs": 4,
+        "l1_decay_mul": 0,
+        "l2_decay_mul": 1,
+        "filters": [
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 4,
+            "w": {
+              "0": -0.6866764850091556,
+              "1": 1.9569526939234898,
+              "2": -1.9301718394343204,
+              "3": 0.26788227184418356
+            }
+          },
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 4,
+            "w": {
+              "0": 0.5711932775646749,
+              "1": 1.2776009064520526,
+              "2": -0.5901266174872988,
+              "3": 0.5217225297608769
+            }
+          },
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 4,
+            "w": {
+              "0": 0.16671309753665517,
+              "1": -0.6484257322405034,
+              "2": -0.21195157132803083,
+              "3": -0.2861235565220776
+            }
+          },
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 4,
+            "w": {
+              "0": -0.13459732764173815,
+              "1": -0.8950261910506964,
+              "2": 1.751172837915269,
+              "3": -0.20236748947633915
+            }
+          }
+        ],
+        "biases": {
+          "sx": 1,
+          "sy": 1,
+          "depth": 4,
+          "w": {
+            "0": 0.029425856126189025,
+            "1": -0.007754029922705572,
+            "2": -0.005228561909624983,
+            "3": 0.43687110238233
+          }
+        }
+      },
+      {
+        "out_depth": 4,
+        "out_sx": 1,
+        "out_sy": 1,
+        "layer_type": "relu"
+      },
+      {
+        "out_depth": 2,
+        "out_sx": 1,
+        "out_sy": 1,
+        "layer_type": "fc",
+        "num_inputs": 4,
+        "l1_decay_mul": 0,
+        "l2_decay_mul": 1,
+        "filters": [
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 4,
+            "w": {
+              "0": -1.861375480945266,
+              "1": -0.9039565508536539,
+              "2": -0.731716334620136,
+              "3": 1.1776215481177807
+            }
+          },
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 4,
+            "w": {
+              "0": 1.3271175035316212,
+              "1": 0.8110093486651855,
+              "2": -0.083794300376809,
+              "3": -0.9798563298966492
+            }
+          }
+        ],
+        "biases": {
+          "sx": 1,
+          "sy": 1,
+          "depth": 2,
+          "w": {
+            "0": 0.17777777777777795,
+            "1": -0.17777777777777795
+          }
+        }
+      },
+      {
+        "out_depth": 2,
+        "out_sx": 1,
+        "out_sy": 1,
+        "layer_type": "svm",
+        "num_inputs": 2
+      }
+    ]
+  },
+  "centerOffsetNet": {
+    "layers": [
+      {
+        "out_depth": 2,
+        "out_sx": 1,
+        "out_sy": 1,
+        "layer_type": "input"
+      },
+      {
+        "out_depth": 4,
+        "out_sx": 1,
+        "out_sy": 1,
+        "layer_type": "fc",
+        "num_inputs": 2,
+        "l1_decay_mul": 0,
+        "l2_decay_mul": 1,
+        "filters": [
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 2,
+            "w": {
+              "0": 0.2869483434909801,
+              "1": -1.8874030001888253
+            }
+          },
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 2,
+            "w": {
+              "0": 0.12412690005020646,
+              "1": -1.2187450852259887
+            }
+          },
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 2,
+            "w": {
+              "0": 0.6603526479884988,
+              "1": 1.5325654048417008
+            }
+          },
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 2,
+            "w": {
+              "0": -0.30718305470726887,
+              "1": 3.3730349370197534
+            }
+          }
+        ],
+        "biases": {
+          "sx": 1,
+          "sy": 1,
+          "depth": 4,
+          "w": {
+            "0": 0.32858924614097595,
+            "1": 0.21810113217871316,
+            "2": -0.8263719279667812,
+            "3": -0.781149412628181
+          }
+        }
+      },
+      {
+        "out_depth": 4,
+        "out_sx": 1,
+        "out_sy": 1,
+        "layer_type": "tanh"
+      },
+      {
+        "out_depth": 4,
+        "out_sx": 1,
+        "out_sy": 1,
+        "layer_type": "fc",
+        "num_inputs": 4,
+        "l1_decay_mul": 0,
+        "l2_decay_mul": 1,
+        "filters": [
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 4,
+            "w": {
+              "0": 0.3497613359085965,
+              "1": 0.3346745761956853,
+              "2": -0.7601077551170248,
+              "3": -1.558144739941835
+            }
+          },
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 4,
+            "w": {
+              "0": -0.9318191877755717,
+              "1": -0.7249023477630964,
+              "2": 0.9384348887899728,
+              "3": 1.3216034322023014
+            }
+          },
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 4,
+            "w": {
+              "0": -0.4064698628244339,
+              "1": 0.2337436793892219,
+              "2": 0.27834310718081234,
+              "3": -0.23808918713541713
+            }
+          },
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 4,
+            "w": {
+              "0": 0.9080021152533694,
+              "1": -0.004164087029651976,
+              "2": -0.06168207417007583,
+              "3": -0.8363968415008026
+            }
+          }
+        ],
+        "biases": {
+          "sx": 1,
+          "sy": 1,
+          "depth": 4,
+          "w": {
+            "0": 0.5713309285703985,
+            "1": -0.04284764014339834,
+            "2": 0.14576336484887933,
+            "3": 0.21734358635755718
+          }
+        }
+      },
+      {
+        "out_depth": 4,
+        "out_sx": 1,
+        "out_sy": 1,
+        "layer_type": "relu"
+      },
+      {
+        "out_depth": 2,
+        "out_sx": 1,
+        "out_sy": 1,
+        "layer_type": "fc",
+        "num_inputs": 4,
+        "l1_decay_mul": 0,
+        "l2_decay_mul": 1,
+        "filters": [
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 4,
+            "w": {
+              "0": -0.831359305184312,
+              "1": 1.129071184466817,
+              "2": 0.04405416849409552,
+              "3": -0.8384130915302843
+            }
+          },
+          {
+            "sx": 1,
+            "sy": 1,
+            "depth": 4,
+            "w": {
+              "0": 1.2254233888029036,
+              "1": -1.3036303965827725,
+              "2": 0.08409169357967923,
+              "3": 0.515192825131704
+            }
+          }
+        ],
+        "biases": {
+          "sx": 1,
+          "sy": 1,
+          "depth": 2,
+          "w": {
+            "0": -0.31111111111111234,
+            "1": 0.31111111111111234
+          }
+        }
+      },
+      {
+        "out_depth": 2,
+        "out_sx": 1,
+        "out_sy": 1,
+        "layer_type": "svm",
+        "num_inputs": 2
+      }
+    ]
+  }
+}

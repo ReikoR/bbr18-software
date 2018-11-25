@@ -4,7 +4,6 @@ const publicConf = require('./public-conf.json');
 const HubCom = require('../common/HubCom');
 const hubCom = new HubCom(publicConf.port, publicConf.hubIpAddress, publicConf.hubPort);
 const omniMotion = require('./omni-motion');
-const thrower = require('./thrower');
 const util = require('./util');
 const calibration = require('../calibration/calibration');
 
@@ -382,8 +381,8 @@ function handleInfo(info) {
             }
             break;
         case 'training':
-            if (info.event === 'nets_changed') {
-                calibration.reloadMeasurements();
+            if (info.event === 'training_data') {
+                calibration.setCompetitionData(info.data, info.isPredictable);
             } else if (info.event === 'change_technique') {
                 aiState.allowedTechniques = info.techniques;
             }
@@ -1693,7 +1692,24 @@ function update() {
     }
 }
 
+hubCom.on('open', () => {
+    hubCom.send({ type: 'message', topic: 'training', event: 'ai_started' });
+});
+
 hubCom.send({
     type: 'subscribe',
     topics: ['vision', 'mainboard_feedback', 'ai_command', 'ai_configuration', 'training']
 });
+
+/*
+setInterval(() => {
+    const technique = 'bounce';// getAllowedThrowerTechnique(250);
+
+    console.log(technique);
+
+    console.log(
+        calibration.getThrowerSpeed(technique, 250),
+        calibration.getCenterOffset(technique, 250)
+    );
+}, 1500);
+*/
