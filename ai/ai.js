@@ -240,7 +240,7 @@ let aiState = {
     shouldSendAck: false,
     isManualOverride: false,
     isCompetition: true,
-    allowedTechniques: ['hoop', 'dunk'],
+    allowedTechniques: ['bounce', 'straight'],
     basketColour: basketColours.blue,
     ballTopArcFilterThreshold: defaultBallTopArcFilterThreshold,
     basketBottomFilterThreshold: defaultBasketBottomFilterThreshold,

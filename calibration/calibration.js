@@ -6,6 +6,8 @@ const COMPETITION_DATA = {
     straight: require('./data/competition/straight.json')
 };
 
+//console.log(COMPETITION_DATA);
+
 const MAX_DISTANCE = 500;
 
 /*
@@ -66,11 +68,13 @@ exports.setCompetitionData = function (data, isPredictable) {
 };
 
 exports.getThrowerSpeed = function (technique, distance) {
+    console.log(technique);
     const data = COMPETITION_DATA[technique];
     return data.throwerSpeed[Math.max(0, Math.min(499, Math.round(distance)))];
 };
 
 exports.getCenterOffset = function (technique, distance) {
+    console.log(technique);
     const data = COMPETITION_DATA[technique];
     return data.centerOffset[Math.max(0, Math.min(499, Math.round(distance)))];
 };
