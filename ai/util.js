@@ -30,5 +30,29 @@ module.exports = {
 
             return reducer(values);
         };
+    },
+    getRampUpper: (startValue, maxValue, rampUpTime = 1000, isLinear = true) => {
+        let startTime = Date.now();
+
+        return function(newStartTime) {
+            if (newStartTime) {
+                startTime = newStartTime;
+            }
+
+            const currentTime = Date.now();
+            const timeDiff = currentTime - startTime;
+            const startEndDiff = maxValue - startValue;
+            const timePassedPercent = timeDiff / rampUpTime;
+
+            if (timeDiff >= rampUpTime) {
+                return maxValue;
+            }
+
+            if (isLinear) {
+                return startValue + startEndDiff * timePassedPercent;
+            }
+
+            return startValue + startEndDiff * Math.pow(timePassedPercent, 2);
+        };
     }
 };

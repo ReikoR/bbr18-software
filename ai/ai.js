@@ -369,6 +369,7 @@ function handleInfo(info) {
                             setThrowerState(throwerStates.IDLE);
                         } else if (!aiState.isCompetition) {
                             setMotionState(motionStates.FIND_BALL);
+                            //setMotionState(motionStates.MOVE_BALL_AWAY_FROM_OBSTACLE);
                             setThrowerState(throwerStates.IDLE);
                         }
                         break;
@@ -1007,12 +1008,6 @@ function handleMotionDriveToBall() {
         forwardSpeed *= Math.pow(util.mapFromRangeToRange(processedVisionState.metrics.filteredBorderY, 50, 820, 1, 0.7), 4);
         forwardSpeed = util.clamped(forwardSpeed, -maxForwardSpeed, maxForwardSpeed);
 
-        /*
-        if (visionState.metrics.straightAhead.borderY > 200) {
-            forwardSpeed = 0;
-        }
-        */
-
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
 
         if (
@@ -1023,8 +1018,14 @@ function handleMotionDriveToBall() {
         ) {
             const visionMetrics = visionState.metrics;
             const globalDriveability = visionMetrics.straightAhead.driveability;
+            const globalReach = visionMetrics.straightAhead.reach;
+            const borderY = visionMetrics.borderY;
 
-            if (globalDriveability < 0.6) {
+            if (
+                (globalDriveability < 0.7 || Math.abs(sideMetric) > 0.3) &&
+                globalReach < 150 &&
+                borderY < 400
+            ) {
                 setMotionState(motionStates.MOVE_BALL_AWAY_FROM_OBSTACLE);
             } else {
                 setMotionState(motionStates.FIND_BASKET);
@@ -1286,7 +1287,6 @@ function handleMotionFindBasket() {
         }
 
     } else {
-        console.log('1219 FIND-BALl');
         setMotionState(motionStates.FIND_BALL);
     }
 
@@ -1365,12 +1365,20 @@ let moveBallAwayDirection = 0;
 let moveBallAwayTimeout = null;
 let moveBallAwayTimeoutDelay = 5000;
 
+let moveBallAwayStartTime = null;
+const moveBallAwayRotationRampUpper = util.getRampUpper(0, 4, 2000);
+
 function handleMotionMoveBallAwayFromObstacle() {
     const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
 
     let forwardSpeed = 0;
     let sideSpeed = 0;
     let rotationSpeed = 0;
+
+    /*if (moveBallAwayStartTime === null) {
+        moveBallAwayStartTime = Date.now();
+        moveBallAwayRotationRampUpper(moveBallAwayStartTime);
+    }*/
 
     if (moveBallAwayTimeout === null) {
         moveBallAwayTimeout = setTimeout(() => {
@@ -1389,12 +1397,20 @@ function handleMotionMoveBallAwayFromObstacle() {
         const leftSideMetric = visionMetrics.straightAhead.leftSideMetric;
         const rightSideMetric = visionMetrics.straightAhead.rightSideMetric;
         let sideMetric = -leftSideMetric + rightSideMetric;
-        const reach = visionMetrics.straightAhead.reach;
+        const globalReach = visionMetrics.straightAhead.reach;
         const globalDriveability = visionMetrics.straightAhead.driveability;
+        const borderY = visionMetrics.borderY;
 
-        forwardSpeed = util.clamped(4 * ballErrorY / frameHeight, -1, 1);
+        if (Math.abs(sideMetric) < 0.1 && (leftSideMetric > 0.1 || rightSideMetric > 0.1)) {
+            sideMetric = sideMetric > 0 ? rightSideMetric : -leftSideMetric;
+        }
 
-        if (moveBallAwayDirection === 0) {
+        rotationSpeed = -8 * ballErrorX / frameCenterX;
+
+        forwardSpeed = util.clamped(2 * ballErrorY / frameHeight, -0.5, 1);
+        //forwardSpeed = 0.5;
+
+        /*if (moveBallAwayDirection === 0) {
             const basket = processedVisionState.basket;
 
             if (basket) {
@@ -1407,19 +1423,52 @@ function handleMotionMoveBallAwayFromObstacle() {
         sideSpeed = util.clamped(
             (ballErrorX + 50 * moveBallAwayDirection) / 400,
             -1, 1
-        );
+        );*/
 
-        rotationSpeed = moveBallAwayDirection;
+        //sideSpeed = -0.5 * sideMetric;
+
+        if (Math.abs(ballErrorY) < 100 && Math.abs(ballErrorX) < 100) {
+            rotationSpeed += 4 * sideMetric;
+            forwardSpeed += util.mapFromRangeToRange(globalDriveability, 0.6, 1, 0.1, 1);
+
+            const basket = processedVisionState.basket;
+
+            if (sideMetric > 0.1) {
+                if (moveBallAwayStartTime === null) {
+                    moveBallAwayStartTime = Date.now();
+                    moveBallAwayRotationRampUpper(moveBallAwayStartTime);
+                }
+
+                const maxRotationSpeed = moveBallAwayRotationRampUpper();
+                //console.log('maxRotationSpeed', maxRotationSpeed);
+                rotationSpeed += moveBallAwayRotationRampUpper() * sideMetric;
+            } else if (basket) {
+                rotationSpeed += -1 * (basket.cy - frameCenterX) / frameCenterX;
+            } else {
+                rotationSpeed += processedVisionState.lastVisibleBasketDirection;
+            }
+        }
+
+        //rotationSpeed = moveBallAwayDirection;
 
         setThrowerState(throwerStates.PUSH_BALL);
 
-        if (globalDriveability > 0.7) {
+        if (globalDriveability > 0.8 || Math.abs(sideMetric) < 0.1 || globalReach > 200 || borderY > 500) {
+            console.log('DONE',
+                'globalDriveability', globalDriveability,
+                'sideMetric', sideMetric,
+                'globalReach', globalReach,
+                'borderY', borderY
+            );
             setMotionState(motionStates.FIND_BALL);
+            //setMotionState(motionStates.IDLE);
             setThrowerState(throwerStates.IDLE);
         }
 
     } else {
+        console.log('LOST BALL');
         setMotionState(motionStates.FIND_BALL);
+        //setMotionState(motionStates.IDLE);
         setThrowerState(throwerStates.IDLE);
     }
 
@@ -1427,6 +1476,8 @@ function handleMotionMoveBallAwayFromObstacle() {
 }
 
 function resetMotionMoveBallAwayFromObstacle() {
+    moveBallAwayStartTime = null;
+
     moveBallAwayDirection = 0;
 
     clearTimeout(moveBallAwayTimeout);
