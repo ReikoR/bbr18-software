@@ -807,13 +807,13 @@ function resetMotionFindBall() {
 }
 
 const driveToBallMinSpeed = 0.1;
-const driveToBallMaxSpeed = 4;
+const driveToBallMaxSpeed = 4.5;
 const driveToBallStartSpeed = 0.5;
 let driveToBallStartTime = null;
 
-const driveToBallRotationSpeedRampUpLimit = 0.05;
-const driveToBallMaxRotationSpeed = 7;
-let driveToBallCurrentRotationSpeedLimit = 2.5;
+const driveToBallRotationSpeedRampUpLimit = 0.1;
+const driveToBallMaxRotationSpeed = 6;
+let driveToBallCurrentRotationSpeedLimit = 0.75;
 
 let ballBasketAlignedCounter = 0;
 
@@ -887,7 +887,7 @@ function handleMotionDriveToBall() {
         const centerY = closestBall.cy;
         const errorX = centerX - frameCenterX;
 
-        const errorY = 0.815 * frameHeight - centerY;
+        const errorY = 0.85 * frameHeight - centerY;
 
         //In case ball is on the thrower
         if (710 > centerX > 660 && centerY > 950) {
@@ -897,7 +897,7 @@ function handleMotionDriveToBall() {
         }
 
         const maxForwardSpeed = getDriveToBallMaxSpeed(
-            driveToBallStartTime, driveToBallStartSpeed, driveToBallMaxSpeed, 1500
+            driveToBallStartTime, driveToBallStartSpeed, driveToBallMaxSpeed, 1300
         );
 
         const maxRotationSpeed = driveToBallCurrentRotationSpeedLimit;
@@ -929,8 +929,8 @@ function handleMotionDriveToBall() {
                 if(smallDeltaYCounter > 0)
                     smallDeltaYCounter --;
             }
-            //increase speed by 3% every frame
-            forwardSpeed *= 1 + smallDeltaYCounter / 33;
+            //increase speed by 2% every frame
+            forwardSpeed *= 1 + smallDeltaYCounter / 50;
         }
 
 
@@ -942,7 +942,7 @@ function handleMotionDriveToBall() {
             forwardSpeed = driveToBallMinSpeed;
         }
 
-        rotationSpeed *= util.clamped(1.3 - normalizedErrorY, 0.35, 1);
+        rotationSpeed *= util.clamped(1.25 - normalizedErrorY, 0.35, 1);
 
         if (rotationSpeed > maxRotationSpeed) {
             rotationSpeed = maxRotationSpeed;
@@ -966,7 +966,7 @@ function handleMotionDriveToBall() {
             }
         }
 
-        sideSpeed = calculateSideSpeedBallBasketAlign(sideSpeed, basket, centerY, maxForwardSpeed / 2);
+        sideSpeed = calculateSideSpeedBallBasketAlign(sideSpeed, basket, centerY, maxForwardSpeed / 4);
 
         sideSpeed = util.clamped(sideSpeed, -maxForwardSpeed, maxForwardSpeed);
 
@@ -1020,6 +1020,7 @@ function handleMotionGrabBall() {
     const closestBall = processedVisionState.closestBall;
 
     if (throwerState === throwerStates.HOLD_BALL || mainboardState.balls[0]) {
+        setThrowerState(throwerStates.GRAB_BALL);
         setMotionState(motionStates.FIND_BASKET);
         return;
     }
@@ -1048,11 +1049,11 @@ function handleMotionGrabBall() {
         }
 
         const maxForwardSpeed = getDriveToBallMaxSpeed(
-            driveToBallStartTime, grabBallStartSpeed, grabBallMaxSpeed, 1000
+            driveToBallStartTime, grabBallStartSpeed, grabBallMaxSpeed, 500
         );
 
         const maxErrorForwardSpeed = 3;
-        const maxErrorRotationSpeed = 12;
+        const maxErrorRotationSpeed = 8;
         const normalizedErrorY = errorY / frameHeight;
         let forwardSpeed = maxErrorForwardSpeed * normalizedErrorY;
         let rotationSpeed = maxErrorRotationSpeed * -errorX / frameWidth;
@@ -1100,19 +1101,20 @@ function handleMotionGrabBall() {
             }
         }
 
-        const basket = processedVisionState.basket;
-
-        sideSpeed = calculateSideSpeedBallBasketAlign(sideSpeed, basket, centerY, maxForwardSpeed);
-
         const visionMetrics = visionState.metrics;
         const reach = visionMetrics.straightAhead.reach;
-        const maxReach = 1000;
+        const maxReach = 400;
         const slowdownReach = 150;
 
-        const clampedNormalizedReach = 1 - (util.clamped((reach - slowdownReach), 0, maxReach) / maxReach);
+        const isCloseToEdge = reach > slowdownReach;
 
-        forwardSpeed = util.clamped(forwardSpeed * Math.pow(clampedNormalizedReach, 2), -grabBallMaxSpeed, grabBallMaxSpeed);
-        sideSpeed = util.clamped(sideSpeed, -grabBallMaxSpeed, grabBallMaxSpeed);
+        if (isCloseToEdge && !isBasketTooClose) {
+            const clampSpeed = util.clamped(1 - util.clamped(reach - slowdownReach, 0, maxReach) / maxReach, 0.1, 1);
+            forwardSpeed *= Math.pow(clampSpeed, 2);
+        }
+
+        forwardSpeed = util.clamped(forwardSpeed, -maxForwardSpeed, maxForwardSpeed);
+        sideSpeed = util.clamped(sideSpeed, -maxForwardSpeed, maxForwardSpeed);
 
 
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
@@ -1297,8 +1299,8 @@ function handleMotionThrowBallMoving() {
 
 let findBasketTimeout = null;
 const findBasketTimeoutDelay = 5000;
-const driveToBasketStartSpeed = 0.3;
-const driveToBasketMaxSpeed = 2.0;
+const driveToBasketStartSpeed = 0.5;
+const driveToBasketMaxSpeed = 1.5;
 
 let validAimFrames = 0;
 let movedForThrowFlag = 0;
@@ -1319,22 +1321,18 @@ function resetMotionFindBasket() {
 
 function handleMotionFindBasket() {
 
-    if (!driveToBasketStartTime) {
-        driveToBasketStartTime = Date.now();
-    }
-
     if (!aiState.updatedSecondaryLastState) {
-        updateSecondaryBall();
+        updateSecondaryBall(false);
     }
 
 
     const basket = processedVisionState.basket;
     const minRotationSpeed = 0.05;
     const maxRotationSpeed = 4;
-    const minThrowError = 8;
+    const minThrowError = 7;
     const maxThrowDistance = 400;
     const minForwardSpeed = 0.2;
-    const defaultAimFrames = 5;
+    const defaultAimFrames = 4;
     let minValidAimFrames = defaultAimFrames;
 
     let sideSpeed = 0;
@@ -1343,7 +1341,7 @@ function handleMotionFindBasket() {
     let isBasketErrorXSmallEnough = false;
 
     const maxForwardSpeed = getDriveToBallMaxSpeed(
-        driveToBasketStartTime, driveToBasketStartSpeed, driveToBasketMaxSpeed, 1000
+        driveToBasketStartTime, driveToBasketStartSpeed, driveToBasketMaxSpeed, 500
     );
 
     const patternStep = findObjectRotatePattern[findObjectRotatePatternIndex];
@@ -1408,6 +1406,12 @@ function handleMotionFindBasket() {
         rotationSpeed = patternStep[0] / (findObjectRotateLoopCount + 1) * -processedVisionState.lastVisibleBasketDirection;
 
     if (basket) {
+
+        if (!driveToBasketStartTime) {
+            driveToBasketStartTime = Date.now();
+        }
+
+
         const basketCenterX = basket.cx;
         const basketCenterY = basket.cy;
         const basketErrorX = basketCenterX - thrower.getAimOffset(basketState.distance) - frameCenterX;
@@ -1420,7 +1424,7 @@ function handleMotionFindBasket() {
 
         aiState.speeds[4] = throwerIdleSpeed;
 
-        const maxErrorRotationSpeed = 9;
+        const maxErrorRotationSpeed = 10;
 
         rotationSpeed = maxErrorRotationSpeed * -basketErrorX / frameWidth;
 
@@ -1447,7 +1451,7 @@ function handleMotionFindBasket() {
             forwardSpeed = Math.sign(forwardSpeed) * maxForwardSpeed;
         }
 
-        rotationSpeed *= util.clamped(1.2 - normalizedErrorY, 0.5, 1);
+        rotationSpeed *= util.clamped(1.3 - normalizedErrorY, 0.5, 1);
 
         if (Math.abs(rotationSpeed) < minRotationSpeed) {
             rotationSpeed = Math.sign(rotationSpeed) * minRotationSpeed;
@@ -1463,7 +1467,7 @@ function handleMotionFindBasket() {
 
         isBasketErrorXSmallEnough = Math.abs(basketErrorX) < throwError;
 
-        let isRobotStopped = robotWheelSpeedsLessThan(mainboardState.speeds, 30);
+        let isRobotStopped = robotWheelSpeedsLessThan(mainboardState.speeds, 70);
 
         if (isBasketErrorXSmallEnough && !isBasketTooClose && !isBasketTooFar && isRobotStopped) {
             validAimFrames++;
