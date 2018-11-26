@@ -748,6 +748,43 @@ function checkPotentialNextClosestBall() {
     return false;
 }
 
+function shouldMoveAwayWithBall() {
+    return false;
+
+    /*
+    const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
+
+    const visionMetrics = visionState.metrics;
+    const globalDriveability = visionMetrics.straightAhead.driveability;
+    const globalReach = visionMetrics.straightAhead.reach;
+    const borderY = visionMetrics.borderY;
+    let sideMetric = 0;
+
+    if (closestBall) {
+        const leftSideMetric = closestBall.straightAhead.leftSideMetric;
+        const rightSideMetric = closestBall.straightAhead.rightSideMetric;
+
+        sideMetric = -leftSideMetric + rightSideMetric;
+
+        if (sideMetric < 0.1 && (leftSideMetric > 0.1 || rightSideMetric > 0.1)) {
+            sideMetric = sideMetric > 0 ? rightSideMetric : -leftSideMetric;
+        }
+    }
+
+    console.log(
+        'CHECK MOVE AWAY',
+        'globalDriveability', globalDriveability,
+        'sideMetric', sideMetric,
+        'globalReach', globalReach,
+        'borderY', borderY
+    );
+
+    return globalDriveability < 0.7 && Math.abs(sideMetric) > 0.3 &&
+        globalReach < 150 &&
+        borderY < 400;
+        */
+}
+
 let isFindBallDriveToBasket = false;
 let driveToBasketColour = basketColours.blue;
 
@@ -1025,17 +1062,9 @@ function handleMotionDriveToBall() {
             Math.abs(errorX) <= 100 &&
             centerY <= 950 //avoid too close ball
         ) {
-            const visionMetrics = visionState.metrics;
-            const globalDriveability = visionMetrics.straightAhead.driveability;
-            const globalReach = visionMetrics.straightAhead.reach;
-            const borderY = visionMetrics.borderY;
-
-            if (
-                (globalDriveability < 0.7 || Math.abs(sideMetric) > 0.3) &&
-                globalReach < 150 &&
-                borderY < 400
-            ) {
-                setMotionState(motionStates.MOVE_BALL_AWAY_FROM_OBSTACLE);
+            if (shouldMoveAwayWithBall()) {
+                //setMotionState(motionStates.MOVE_BALL_AWAY_FROM_OBSTACLE);
+                setMotionState(motionStates.NUDGE_BALL);
             } else {
                 setMotionState(motionStates.FIND_BASKET);
             }
@@ -1261,6 +1290,10 @@ function handleMotionFindBasket() {
             } else {
                 isBallCloseEnough = true;
             }
+
+            if (isBallCloseEnough && shouldMoveAwayWithBall()) {
+                setMotionState(motionStates.NUDGE_BALL);
+            }
         }
 
         if (throwerState === throwerStates.THROW_BALL) {
@@ -1375,7 +1408,7 @@ let moveBallAwayTimeout = null;
 let moveBallAwayTimeoutDelay = 5000;
 
 let moveBallAwayStartTime = null;
-const moveBallAwayRotationRampUpper = util.getRampUpper(0, 4, 2000);
+const moveBallAwayRotationRampUpper = util.getRampUpper(0.5, 8, 2000);
 
 function handleMotionMoveBallAwayFromObstacle() {
     const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
@@ -1408,7 +1441,7 @@ function handleMotionMoveBallAwayFromObstacle() {
         let sideMetric = -leftSideMetric + rightSideMetric;
         const globalReach = visionMetrics.straightAhead.reach;
         const globalDriveability = visionMetrics.straightAhead.driveability;
-        const borderY = visionMetrics.borderY;
+        const filteredBorderY = processedVisionState.metrics.filteredBorderY;
 
         if (Math.abs(sideMetric) < 0.1 && (leftSideMetric > 0.1 || rightSideMetric > 0.1)) {
             sideMetric = sideMetric > 0 ? rightSideMetric : -leftSideMetric;
@@ -1436,8 +1469,7 @@ function handleMotionMoveBallAwayFromObstacle() {
 
         //sideSpeed = -0.5 * sideMetric;
 
-        if (Math.abs(ballErrorY) < 100 && Math.abs(ballErrorX) < 100) {
-            rotationSpeed += 4 * sideMetric;
+        if (Math.abs(ballErrorY) < 150 && Math.abs(ballErrorX) < 100) {
             forwardSpeed += util.mapFromRangeToRange(globalDriveability, 0.6, 1, 0.1, 1);
 
             const basket = processedVisionState.basket;
@@ -1450,11 +1482,11 @@ function handleMotionMoveBallAwayFromObstacle() {
 
                 const maxRotationSpeed = moveBallAwayRotationRampUpper();
                 //console.log('maxRotationSpeed', maxRotationSpeed);
-                rotationSpeed += moveBallAwayRotationRampUpper() * sideMetric;
+                rotationSpeed += maxRotationSpeed * sideMetric;
             } else if (basket) {
-                rotationSpeed += -1 * (basket.cy - frameCenterX) / frameCenterX;
+                rotationSpeed += -2 * (basket.cy - frameCenterX) / frameCenterX;
             } else {
-                rotationSpeed += processedVisionState.lastVisibleBasketDirection;
+                rotationSpeed += 2 * processedVisionState.lastVisibleBasketDirection;
             }
         }
 
@@ -1462,12 +1494,12 @@ function handleMotionMoveBallAwayFromObstacle() {
 
         setThrowerState(throwerStates.PUSH_BALL);
 
-        if (globalDriveability > 0.8 || Math.abs(sideMetric) < 0.1 || globalReach > 200 || borderY > 500) {
+        if (globalDriveability > 0.8 || Math.abs(sideMetric) < 0.1 || globalReach > 200 || filteredBorderY > 500) {
             console.log('DONE',
                 'globalDriveability', globalDriveability,
                 'sideMetric', sideMetric,
                 'globalReach', globalReach,
-                'borderY', borderY
+                'filteredBorderY', filteredBorderY
             );
             setMotionState(motionStates.FIND_BALL);
             //setMotionState(motionStates.IDLE);

@@ -135,6 +135,10 @@ public:
 		int newWidth;
 	};
 
+	struct LineSegment {
+	    int startX, startY, endX, endY;
+	};
+
     Vision(Blobber* blobber, Dir dir, int width, int height);
     ~Vision();
 
@@ -168,8 +172,7 @@ private:
 	Object* mergeGoals(Object* goal1, Object* goal2);
 	bool isValidBall(Object* ball, Dir dir, ObjectList& baskets);
     bool isBallWithinBorders(Object* ball, ObjectList& baskets);
-    int getBorderDirectionBetweenPoints(int startX, int startY, int endX, int endY,
-                                        std::vector<Blobber::BlobColor> requiredColors, int *borderX = nullptr, int *borderY = nullptr);
+    int getBorderDirectionOnSegment(LineSegment segment, std::vector<Blobber::BlobColor> requiredColors, LineSegment *borderSegment);
     bool isValidbasket(Object *basket, Side side);
 	bool isColorCombinationBetweenPoints(int startX, int startY, int endX, int endY, std::vector<Blobber::BlobColor> requiredColors);
 	bool isNotOpponentMarker(Object* goal, Side side, ObjectList& goals);

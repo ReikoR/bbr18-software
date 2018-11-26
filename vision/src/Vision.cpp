@@ -663,7 +663,10 @@ bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& baskets) {
 		if (bottomSurroundMetric == -1.0f || bottomSurroundMetric < Config::minValidBallSurroundThreshold) {
 			//std::cout << "@ BALL SURROUND FAIL: " << surroundMetric << " VS " << Config::minValidBallSurroundThreshold << std::endl;
 
-			return false;
+			if (topSurroundMetric < 0.7) {
+                return false;
+			}
+
 		}
 	} else {
 		ball->surroundMetrics[0] = 1.0;
@@ -678,59 +681,60 @@ bool Vision::isValidBall(Object* ball, Dir dir, ObjectList& baskets) {
 }
 
 bool Vision::isBallWithinBorders(Object* ball, ObjectList& baskets) {
+	const bool debug = canvas.data != nullptr;
+
 	std::vector<Blobber::BlobColor> colorsFromInside = {
 			//Blobber::BlobColor::orange,
 			Blobber::BlobColor::white,
 			Blobber::BlobColor::black
 	};
 
-	std::vector<Blobber::BlobColor> colorsFromOutside = {
-			Blobber::BlobColor::black,
-			Blobber::BlobColor::white,
-			Blobber::BlobColor::orange
-	};
-
-	//canvas.drawLine(Config::cameraWidth * 3/4, 0, Config::cameraWidth, Config::cameraHeight / 2);
-	//canvas.drawLine(Config::cameraWidth * 1/4, 0, 0, Config::cameraHeight / 2);
-
-	/*
-	if (isBorderBetweenPoints(ball->x, ball->y - ball->width / 2, ball->x, 0, colorsFromInside)
-			|| isBorderBetweenPoints(
-					ball->x + ball->width / 2, ball->y,
-					Config::cameraWidth, ball->y,
-					colorsFromInside
-			)
-			|| isBorderBetweenPoints(
-					ball->x - ball->width / 2, ball->y,
-					0, ball->y,
-					colorsFromInside
-			) || getBorderDirectionBetweenPoints(ball->x, ball->y + ball->width / 2, ball->x, Config::surroundSenseThresholdY, colorsFromInside)
-	) {
-		return true;
-	}
-	 */
-
 	bool isBallValid = true;
 
+	auto checkBorderBetweenPoints = [ &isBallValid, &colorsFromInside, &ball, &debug, this ] (int startX, int startY, int endX, int endY) {
+        if (!isBallValid) {
+            return;
+        }
+
+        LineSegment segment = {
+				.startX = startX,
+				.startY = startY,
+				.endX = endX,
+				.endY = endY
+        };
+
+        LineSegment borderSegment = {};
+
+        int borderDirection = getBorderDirectionOnSegment(segment, colorsFromInside, &borderSegment);
+
+        /*
+        std::cout << ball->surroundMetrics[1] <<':' << ball->surroundMetrics[0] << std::endl;
+        float metrics = ball->surroundMetrics[0]; //+ ball->surroundMetrics[1]; */
+
+        if (borderDirection == -1) {
+			int distance = std::max(abs(borderSegment.startX - startX), abs(borderSegment.startY - startY));
+
+			if (debug) {
+				canvas.drawText(ball->x - 15, ball->y, Util::toString(ball->width), 0, 255, 0, true);
+				canvas.drawText(ball->x + 15, ball->y, Util::toString(distance), 0, 255, 0, true);
+			}
+
+			if (distance > ball->width) {
+				isBallValid = false;
+			}
+        }
+	};
+
 	if (ball->y < Config::surroundSenseThresholdY) {
-		// From ball to bottom
-		isBallValid = isBallValid && getBorderDirectionBetweenPoints(ball->x, ball->y + ball->width / 2, ball->x, Config::surroundSenseThresholdY,
-													  colorsFromInside) != -1;
+        // From ball to bottom
+        checkBorderBetweenPoints(ball->x, ball->y + ball->width / 2, ball->x, Config::surroundSenseThresholdY);
 
-		// From ball to right
-		isBallValid = isBallValid && getBorderDirectionBetweenPoints(
-				ball->x + ball->width / 2, ball->y,
-				Config::cameraWidth, ball->y,
-				colorsFromInside
-		) != -1;
+        // From ball to right
+        checkBorderBetweenPoints(ball->x + ball->width / 2, ball->y + ball->width / 2, Config::cameraWidth, ball->y + ball->width / 2);
 
-		// From ball to left
-		isBallValid = isBallValid && getBorderDirectionBetweenPoints(
-				ball->x - ball->width / 2, ball->y,
-				0, ball->y,
-				colorsFromInside
-		) != -1;
-	}
+        // From ball to left
+        checkBorderBetweenPoints(ball->x - ball->width / 2, ball->y + ball->width / 2, 0, ball->y + ball->width / 2);
+    }
 
 	// From ball to top
 	if (isBallValid) {
@@ -744,31 +748,119 @@ bool Vision::isBallWithinBorders(Object* ball, ObjectList& baskets) {
 		}
 
 		if (checkToTop) {
-			isBallValid = getBorderDirectionBetweenPoints(ball->x, ball->y - ball->width / 2, ball->x, 50,
-																		 colorsFromInside) != -1;
+            checkBorderBetweenPoints(ball->x, ball->y - ball->width / 2, ball->x, 50);
 		}
 	}
 
 	return isBallValid;
 }
 
-int Vision::getBorderDirectionBetweenPoints(int startX, int startY, int endX, int endY,
-											std::vector<Blobber::BlobColor> colorSequence, int *borderX, int *borderY) {
+int Vision::getBorderDirectionOnSegment(
+		LineSegment segment, std::vector<Blobber::BlobColor> colorSequence,
+		LineSegment *borderSegment) {
+	int startX = segment.startX;
+	int startY = segment.startY;
+	int endX = segment.endX;
+	int endY = segment.endY;
+
 	if (colorSequence.empty() || (startX == endX && startY == endY)) {
 		return false;
 	}
 
 	bool debug = canvas.data != nullptr;
+	int borderDirection = 0;
 	int tolerance = 10;
-	int minStripeHeight = 8;
+	int minStripeHeight = 3;
+	int maxStripeHeight = Config::cameraHeight;
+	float idealStripeHeight;
 
 	Blobber::BlobColor currentColor = Blobber::BlobColor::unknown;
+	std::map<Blobber::BlobColor, int> nextColorPixels;
+
 	int currentPixels = 0;
 	int otherPixels = 0;
 
 	//auto colorIterator = colorSequence.begin();
 	std::vector<int> stripeLengths;
 	std::vector<Blobber::BlobColor> validColorStripes;
+	std::vector<LineSegment> colorStripeSegments;
+
+	auto recalculateStripeProperties = [
+	        &idealStripeHeight, &minStripeHeight,
+	        &maxStripeHeight, &tolerance
+	        ] (int y) {
+        idealStripeHeight = (0.0003f * y*y + 0.05f * y - 10.51f);
+        minStripeHeight = std::max((int) (idealStripeHeight / 5), 3);
+        maxStripeHeight = (int) (idealStripeHeight * 2.3);
+        tolerance = minStripeHeight * 3;
+	};
+
+    auto validateColorStripe = [
+            &currentPixels, &minStripeHeight, &validColorStripes, &currentColor,
+            &maxStripeHeight, &otherPixels, &colorSequence, &borderSegment,
+            &borderDirection, &nextColorPixels, &colorStripeSegments
+            ](int x, int y) {
+    	auto colorSegment = colorStripeSegments.back();
+    	colorSegment.endX = x;
+    	colorSegment.endY = y;
+
+        // TODO: Need to think more
+        if (!validColorStripes.empty() && validColorStripes.back() == currentColor) {
+            return;
+        }
+
+        if (currentPixels < minStripeHeight || currentPixels > maxStripeHeight) {
+            validColorStripes.clear();
+            return;
+        }
+
+        validColorStripes.push_back(currentColor);
+
+        otherPixels = 0;
+        currentPixels = 0;
+        nextColorPixels.clear();
+
+        if (validColorStripes.size() < colorSequence.size()) {
+            return;
+        }
+
+        int i = 0;
+        bool foundForward = true;
+        bool foundBackward = true;
+
+        for (auto color : colorSequence) {
+            if (validColorStripes.at(validColorStripes.size() - 1 - i) != color) {
+                foundBackward = false;
+            }
+
+            if (validColorStripes.at(validColorStripes.size() - colorSequence.size() + i) != color) {
+                foundForward = false;
+            }
+
+            i++;
+        }
+
+        if (foundForward || foundBackward) {
+            if (borderSegment != nullptr) {
+            	LineSegment firstColorSegment = colorStripeSegments.at(
+            			colorStripeSegments.size() - colorSequence.size()
+				);
+
+            	borderSegment->startX = firstColorSegment.startX;
+            	borderSegment->startY = firstColorSegment.startY;
+				borderSegment->endX = x;
+				borderSegment->endY = y;
+            }
+        }
+
+        if (foundForward) {
+            borderDirection = 1;
+            return;
+        } else if (foundBackward) {
+            borderDirection = -1;
+            return;
+        }
+    };
 
 	bool isMainAxisY = abs(startY - endY) > abs(startX - endX);
 	int mainAxisStart = isMainAxisY ? startY : startX;
@@ -787,19 +879,24 @@ int Vision::getBorderDirectionBetweenPoints(int startX, int startY, int endX, in
 		bool isSequenceColor = std::find(colorSequence.begin(), colorSequence.end(), color) != colorSequence.end();
 
 		if (!currentPixels && isSequenceColor) {
+            recalculateStripeProperties(y);
 			currentColor = color;
+			nextColorPixels.clear();
+
 			++currentPixels;
 			otherPixels = 0;
 
-			//
-			//tolerance = y / 20 - std::max(std::abs(x - Config::cameraWidth / 2), 0) / 100 + 2;
-			//minStripeHeight = y / 20 - std::max(std::abs(x - Config::cameraWidth / 2), 0) / 100 + 2;
-			//tolerance = (int) (2.3 + 0.012 * y);
-			minStripeHeight = std::max((int) (0.0003 * y*y + 0.05 * y - 10.51) / 5, 3);
-			tolerance = minStripeHeight * 2;
+			LineSegment stripeSegment = {
+					.startX = x,
+					.startY = y,
+					.endX = -1,
+					.endY = -1
+			};
+
+			colorStripeSegments.push_back(stripeSegment);
 
 			if (debug) {
-				canvas.drawMarker(x, y, 0, 200, 0, true);
+				canvas.drawMarker(x, y, 0, 0, 255, false);
 				//canvas.drawText(x + 50, y, Util::toString(y), 0, 0, 0, true);
 				//canvas.drawText(x, y + 50, Util::toString(minStripeHeight), 0, 0, 0, true);
 			}
@@ -810,119 +907,85 @@ int Vision::getBorderDirectionBetweenPoints(int startX, int startY, int endX, in
 				if (debug) {
 					canvas.drawMarker(x, y, 0, 200, 0, true);
 				}
-			} else if (isSequenceColor) {
-				currentColor = color;
+			} else if (isSequenceColor ) {
+			    ++nextColorPixels[color];
 
-				//
-				//tolerance = (int) (2.3 + 0.012 * y);
-				minStripeHeight = std::max((int) (0.0003 * y*y + 0.05 * y - 10.51) / 5, 3);
-				tolerance = minStripeHeight * 2;
+			    if (nextColorPixels[color] > 0.5*minStripeHeight) {
+			        validateColorStripe(x, y);
+                    recalculateStripeProperties(y);
+
+			        currentPixels = nextColorPixels[color];
+			        currentColor = color;
+			        nextColorPixels.clear();
+			        otherPixels = 0;
+
+					LineSegment stripeSegment = {
+							.startX = x,
+							.startY = y,
+							.endX = -1,
+							.endY = -1
+					};
+
+					colorStripeSegments.push_back(stripeSegment);
+			    } else {
+			        ++otherPixels;
+			    }
 
 				if (debug) {
 					canvas.drawMarker(x, y, 0, 200, 0, true);
 					//canvas.drawText(x + 50, y, Util::toString(y), 0, 255, 0, true);
-					//canvas.drawText(x + 100, y + 50, Util::toString(otherPixels), 0, 0, 0, true);
-					//canvas.drawText(x, y + 50, Util::toString(minStripeHeight), 0, 0, 0, true);
 				}
-
-				currentPixels = 1;
-				otherPixels = 0;
 			} else if (++otherPixels > tolerance) {
-				currentPixels = otherPixels = 0;
+                if (debug) {
+                	/*
+                    canvas.drawMarker(x, y, 200, 0, 0, true);
+                    canvas.drawText(x, y, Util::toString(currentPixels), 255, 0, 0, true);
+                    canvas.drawText(x + 30, y, Util::toString(maxStripeHeight), 255, 0, 0, true);
+                    */
+                }
 
-				//if (!isSequenceColor) {
-					validColorStripes.clear();
-				//}
+			    // Finish collecting current color
+			    validateColorStripe(x, y);
 
-				if (debug) {
-					canvas.drawMarker(x, y, 200, 0, 0, true);
-				}
+                currentPixels = otherPixels = 0;
+
+                //if (!isSequenceColor) {
+                nextColorPixels.clear();
+                //}
 			}
 		}
 
-		if (currentPixels > minStripeHeight) {
-			if (!validColorStripes.empty() && validColorStripes.back() == currentColor) {
-				continue;
-			}
-
-			validColorStripes.push_back(currentColor);
-
-			otherPixels = 0;
-			currentPixels = 0;
-
-			if (validColorStripes.size() < colorSequence.size()) {
-				continue;
-			}
-
-			int i = 0;
-			bool foundForward = true;
-			bool foundBackward = true;
-
-			/*
-			for (auto color : validColorStripes) {
-				std::cout << color << " ";
-			}
-
-			std::cout << "\n";
-			 */
-
-			for (auto color : colorSequence) {
-				if (validColorStripes.at(validColorStripes.size() - 1 - i) != color) {
-					foundBackward = false;
-				}
-
-				if (validColorStripes.at(validColorStripes.size() - colorSequence.size() + i) != color) {
-					foundForward = false;
-				}
-
-				i++;
-			}
-
-			if (foundForward || foundBackward) {
-				if (borderX != nullptr) {
-					*borderX = x;
-				}
-
-				if (borderY != nullptr) {
-					*borderY = y;
-				}
-			}
-
-			if (foundForward) {
-				return 1;
-			} else if (foundBackward) {
-				return -1;
-			}
+		if (borderDirection) {
+		    return borderDirection;
 		}
 	}
 
-	return 0;
+    // Try to collect stripe if reached screen edge before stripe ended
+    int x = isMainAxisY ? secondaryAxisEnd : mainAxisEnd;
+    int y = isMainAxisY ? mainAxisEnd : secondaryAxisEnd;
+
+	validateColorStripe(x, y);
+
+	return borderDirection;
 }
 
 int Vision::getBorderY() {
-	int borderY = 0;
 	std::vector<Blobber::BlobColor> colors = { Blobber::BlobColor::white, Blobber::BlobColor::black };
 
-	if (getBorderDirectionBetweenPoints(
-			Config::cameraWidth / 2, Config::surroundSenseThresholdY,
-			Config::cameraWidth / 2, 50,
-			colors, nullptr, &borderY
-	) == -1) {
+	LineSegment segment = {
+			.startX = Config::cameraWidth / 2,
+			.startY = Config::surroundSenseThresholdY,
+			.endX = Config::cameraWidth / 2,
+			.endY = 50
+	};
+
+	LineSegment borderSegment = {};
+
+	if (getBorderDirectionOnSegment(segment, colors, &borderSegment) == -1) {
         return 0;
     }
 
-    return borderY;
-
-	/*
-        borderYStack.push_back(borderY);
-
-        if (borderYStack.size() > 10) {
-            borderYStack.erase(borderYStack.begin());
-        }
-    }
-
-	return *std::max_element(borderYStack.begin(), borderYStack.end());
-	 */
+    return borderSegment.endY;
 }
 
 /*
@@ -1328,9 +1391,18 @@ float Vision::getSurroundMetric(
 			senseX < 0
 			|| senseX > width - 1
 			|| senseY < 0
-			|| senseY > Config::surroundSenseThresholdY
 		) {
 			continue;
+		}
+
+		if (senseY > Config::surroundSenseThresholdY) {
+            matches++;
+
+            if (debug) {
+                canvas.drawMarker(senseX, senseY, 0, 200, 0);
+            }
+
+            continue;
 		}
 
         Blobber::BlobColor color = blobber->getColorAt(senseX, senseY);
