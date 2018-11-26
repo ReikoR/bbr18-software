@@ -564,6 +564,10 @@ function processVisionInfo(info) {
             continue;
         }
 
+        if (balls[i].cy > 950 && Math.abs(balls[i].cx - frameCenterX) < 100) {
+            continue;
+        }
+
         balls[i].size = balls[i].w * balls[i].h;
         balls[i].confidence = computeBallConfidence(balls[i], basket, otherBasket);
 
