@@ -744,9 +744,11 @@ function handleMotionFindBall() {
             if (secondaryBall) {
                 const lastY = aiState.secondaryBallY;
                 const currentY = ball.cy;
-                const allowedDiff = Math.round(lastY * 0.2);
+                const allowedDiff = Math.round(lastY * 0.1);
 
-                if (Math.abs(lastY - currentY) < allowedDiff && findObjectRotateLoopCount === 0) {
+                const isCloserBall = (currentY + allowedDiff) > lastY;
+
+                if (isCloserBall && findObjectRotateLoopCount === 0) {
                     aiState.updatedSecondaryLastState = false;
                     resetMotionFindBall();
                     setMotionState(motionStates.DRIVE_TO_BALL);
@@ -844,10 +846,10 @@ function resetMotionDriveToBall() {
     lockCounter = 0;
 }
 
-function updateSecondaryBall() {
+function updateSecondaryBall(isMoving) {
     const secondaryBall = processedVisionState.secondClosestBall;
     if (secondaryBall) {
-        aiState.secondaryBallY = secondaryBall.cy > aiState.secondaryBallY ? secondaryBall.cy : aiState.secondaryBallY;
+        aiState.secondaryBallY = secondaryBall.cy > aiState.secondaryBallY || isMoving ? secondaryBall.cy : aiState.secondaryBallY;
         aiState.updatedSecondaryLastState = true;
     }
 }
@@ -862,7 +864,7 @@ function handleMotionDriveToBall() {
 
     if (closestBall) {
 
-        updateSecondaryBall();
+        updateSecondaryBall(true);
 
         const driveability = closestBall.straightAhead.driveability;
         const leftSideMetric = closestBall.straightAhead.leftSideMetric;
@@ -1024,7 +1026,7 @@ function handleMotionGrabBall() {
 
     if (closestBall) {
 
-        updateSecondaryBall();
+        updateSecondaryBall(false);
 
         const centerX = closestBall.cx;
         const centerY = closestBall.cy;
