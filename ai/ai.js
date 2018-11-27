@@ -1271,13 +1271,13 @@ function resetMotionDriveWithBall() {
 }
 
 let findBasketTimeout = null;
-const findBasketTimeoutDelay = 2000;
+const findBasketTimeoutDelay = 1000;
 
 const requiredStableThrowerSpeedCount = 5;
 let stableThrowerSpeedCount = 0;
 let isThrowerSpeedStable = false;
 let basketNotFoundCount = 0;
-const basketNotFoundLimit = 2;
+const basketNotFoundLimit = 4;
 let unstableThrowerSpeedAllowedError = 100;
 
 function handleMotionFindBasket() {
@@ -1307,11 +1307,10 @@ function handleMotionFindBasket() {
 
             console.log('handleMotionFindBasket: basket not found', basketNotFoundCount);
 
-            aiState.basketBottomFilterThreshold -= 0.5;
+            aiState.basketBottomFilterThreshold -= 0.3;
 
             if (basketNotFoundCount > basketNotFoundLimit) {
-                const visionMetrics = visionState.metrics;
-                const reach = visionMetrics.straightAhead.reach;
+                const reach = processedVisionState.metrics.filteredReach;
 
                 if (reach > 200 || basketNotFoundCount > basketNotFoundLimit + 1) {
                     setThrowerState(throwerStates.THROW_BALL_AWAY);
@@ -1330,14 +1329,16 @@ function handleMotionFindBasket() {
         }, findBasketTimeoutDelay);
     }
 
+    let ballErrorX = 0;
+
     if (closestBall || throwerState === throwerStates.THROW_BALL && mainboardState.balls[0]) {
         if (closestBall) {
-            const reach = visionState.metrics.straightAhead.reach;
+            const reach = processedVisionState.metrics.filteredReach;
             const ballTargetY = frameHeight * (basket ? util.mapFromRangeToRange(reach, 100, 200, 0.84, 0.8) : 0.8);
             //console.log(reach, ballTargetY / frameHeight);
             const ballCenterX = closestBall.cx;
             const ballCenterY = closestBall.cy;
-            const ballErrorX = ballCenterX - frameCenterX;
+            ballErrorX = ballCenterX - frameCenterX;
             const ballErrorY = ballTargetY - ballCenterY;
 
             xSpeed = Math.sign(ballErrorX) * Math.pow(Math.abs(ballErrorX) / 400, 1.5);
@@ -1414,6 +1415,15 @@ function handleMotionFindBasket() {
 
     if (throwerState === throwerStates.THROW_BALL) {
         xSpeed = 0;
+    }
+
+    if (basketNotFoundCount === 2) {
+        rotationSpeed = 16 * -ballErrorX / frameWidth;
+        xSpeed = 0;
+        forwardSpeed = Math.max(forwardSpeed, 0.2);
+        setThrowerState(throwerStates.PUSH_BALL);
+    } else if (throwerState === throwerStates.PUSH_BALL) {
+        setThrowerState(throwerStates.IDLE);
     }
 
     xSpeed = util.clamped(xSpeed, -maxSideSpeed, maxSideSpeed);
