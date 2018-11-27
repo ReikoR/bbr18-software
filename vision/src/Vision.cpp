@@ -1592,6 +1592,7 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 	for (; yIndex < gridRowCount; yIndex++) {
 		xIndex = 0;
 		y = yGrid[xIndex][yIndex];
+		int rowValidCount = 0;
 
 		for (; xIndex < gridColumnCount; xIndex++) {
 			i = xIndex - maxSideColumns;
@@ -1605,7 +1606,7 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 			if (validGrid[xIndex][yIndex] == 1) {
 				validCount += std::abs(i);
 
-				if (y < reach) {
+				if (y < reach && ++rowValidCount >= 3) {
 					reach = y;
 				}
 			} else {
