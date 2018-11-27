@@ -624,6 +624,20 @@ function processVisionInfo(info) {
     //console.log(processedVisionState);
 }
 
+function getBackboardAngle(basket) {
+    const metrics = basket.metrics;
+    const metricsLength = Math.sqrt(metrics[0]*metrics[0] + metrics[1]*metrics[1]);
+
+    if (metricsLength) {
+        const normalizedMetrics = [
+            metrics[0] / metricsLength, metrics[1] / metricsLength
+        ];
+        return  normalizedMetrics[0] - normalizedMetrics[1];
+    }
+
+    return 0;
+}
+
 function getClosestBasket() {
     if (!processedVisionState.basket) {
         return processedVisionState.otherBasket;
@@ -1171,6 +1185,7 @@ function handleMotionDriveWithBall() {
         const errorY = 0.1 * frameHeight - basketY;
         const normalizedErrorY = errorY / frameHeight;
         const maxForwardSpeed = 3;
+        const sideSpeed = -0.5 * getBackboardAngle(basket);
 
         let forwardSpeed = Math.sign(normalizedErrorY) *
             Math.max(Math.abs(maxForwardSpeed * normalizedErrorY), 0.5);
@@ -1180,7 +1195,7 @@ function handleMotionDriveWithBall() {
             forwardSpeed = -0.1;
         }
 
-        setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, forwardSpeed, rotationSpeed, true));
+        setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
 
         if (basketY < 200) {
             setThrowerState(throwerStates.EJECT_BALL);
@@ -1647,19 +1662,8 @@ function handleThrowerThrowBall() {
 
     if (processedVisionState.basket) {
         const basket = processedVisionState.basket;
-        const metrics = basket.metrics;
-        const metricsLength = Math.sqrt(metrics[0]*metrics[0] + metrics[1]*metrics[1]);
 
-        if (metricsLength) {
-            const normalizedMetrics = [
-                metrics[0] / metricsLength, metrics[1] / metricsLength
-            ];
-
-            aiState.ballThrowAngle = normalizedMetrics[0] - normalizedMetrics[1];
-        } else {
-            aiState.ballThrowAngle = 0;
-        }
-
+        aiState.ballThrowAngle = getBackboardAngle(basket);
         aiState.ballThrowBasketOffset = frameCenterX - basket.cx;
     } else {
         aiState.ballThrowAngle = 0;
