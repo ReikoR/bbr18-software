@@ -147,9 +147,9 @@ ObjectList Vision::processBalls(Dir dir, ObjectList& baskets) {
     }
 
 	// TODO Make the overlap margin dependent on distance (larger for objects close-by)
-	ObjectList mergedBalls = Object::mergeOverlapping(allBalls, Config::ballOverlapMargin);
+	//ObjectList mergedBalls = Object::mergeOverlapping(allBalls, Config::ballOverlapMargin);
 
-	for (ObjectListItc it = mergedBalls.begin(); it != mergedBalls.end(); it++) {
+	for (ObjectListItc it = allBalls.begin(); it != allBalls.end(); it++) {
 		Object* ball = *it;
 
 		if (isValidBall(ball, dir, baskets)) {
