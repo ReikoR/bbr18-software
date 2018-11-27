@@ -1144,21 +1144,25 @@ function handleMotionDriveToGoalTimeout() {
         const basketErrorX = basketCenterX - thrower.getAimOffset(basketState.distance) - frameCenterX;
         const basketErrorY = basketCenterY - frameCenterY;
         const normalizedErrorY = basketErrorY / frameHeight;
-        const minBasketDistance = 400;
+        const minBasketDistance = 300;
 
-        const maxErrorRotationSpeed = 9;
+        const maxErrorRotationSpeed = 5;
+        const maxErrorForwardSpeed = 6;
 
         rotationSpeed = maxErrorRotationSpeed * -basketErrorX / frameWidth;
 
         let isBasketTooClose = basket && basket.y2 > minBasketDistance;
 
-        forwardSpeed = maxForwardSpeed * Math.max(Math.min((100 - basket.y2) / 10, 1), 0.2);
+        forwardSpeed = maxErrorForwardSpeed * Math.max(Math.min((100 - basket.y2) / 10, 1), 0.2);
 
         if(Math.abs(forwardSpeed) < minForwardSpeed) {
             forwardSpeed = Math.sign(forwardSpeed) * minForwardSpeed;
         }
+        if(Math.abs(forwardSpeed) > maxForwardSpeed) {
+            forwardSpeed = Math.sign(forwardSpeed) * maxForwardSpeed;
+        }
 
-        rotationSpeed *= util.clamped(1.5 - normalizedErrorY, 0.5, 1);
+        rotationSpeed *= util.clamped(1.3 - normalizedErrorY, 0.5, 1);
 
         if (Math.abs(rotationSpeed) < minRotationSpeed) {
             rotationSpeed = Math.sign(rotationSpeed) * minRotationSpeed;
@@ -1321,11 +1325,13 @@ function handleMotionFindBasket() {
 
     const basket = processedVisionState.basket;
     const minRotationSpeed = 0.05;
-    const maxRotationSpeed = 4;
+    const maxRotationSpeed = 6;
     const minThrowError = 7;
+    const maxThrowError = 15;
     const maxThrowDistance = 400;
     const minForwardSpeed = 0.2;
-    const defaultAimFrames = 4;
+    const defaultAimFrames = 5;
+    const maxAimFrames = 8;
     let minValidAimFrames = defaultAimFrames;
 
     let sideSpeed = 0;
@@ -1456,7 +1462,13 @@ function handleMotionFindBasket() {
 
         let throwError = util.clamped((1 / (basketState.distance / maxThrowDistance)) * minThrowError, minThrowError, minThrowError * 2);
 
+        if (throwError > maxThrowError)
+            throwError = maxThrowError;
+
         let aimFrames = util.clamped((1 / (basketState.distance / maxThrowDistance)) * minValidAimFrames, minValidAimFrames, minValidAimFrames * 2);
+
+        if (aimFrames > maxAimFrames)
+            aimFrames = maxAimFrames;
 
         isBasketErrorXSmallEnough = Math.abs(basketErrorX) < throwError;
 
