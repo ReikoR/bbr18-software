@@ -1421,9 +1421,7 @@ function handleMotionFindBasket() {
 
         const maxErrorForwardSpeed = 5;
 
-        aiState.speeds[4] = throwerIdleSpeed;
-
-        const maxErrorRotationSpeed = 10;
+        const maxErrorRotationSpeed = 17;
 
         rotationSpeed = maxErrorRotationSpeed * -basketErrorX / frameWidth;
 
@@ -1548,7 +1546,7 @@ function handleThrowerThrowBall() {
 }
 
 function handleThrowerGrabBall() {
-    const feederGrabSpeed = 80;
+    const feederGrabSpeed = 100;
     const feederTweakSpeed = 25;
 
     if (mainboardState.balls[1] && !mainboardState.balls[0]) {
@@ -1562,6 +1560,8 @@ function handleThrowerGrabBall() {
     }
 
     if (mainboardState.ballGrabbed) {
+        aiState.speeds[4] = throwerIdleSpeed;
+
         if (motionState !== motionStates.FIND_BASKET_TIMEOUT) {
             setMotionState(motionStates.FIND_BASKET);
         }
