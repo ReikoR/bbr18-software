@@ -771,7 +771,6 @@ int Vision::getBorderDirectionOnSegment(
 	int borderDirection = 0;
 	int tolerance = 10;
 	int minStripeHeight = 3;
-	int maxStripeHeight = Config::cameraHeight;
 	float idealStripeHeight;
 
 	Blobber::BlobColor currentColor = Blobber::BlobColor::unknown;
@@ -786,30 +785,33 @@ int Vision::getBorderDirectionOnSegment(
 	std::vector<LineSegment> colorStripeSegments;
 
 	auto recalculateStripeProperties = [
-	        &idealStripeHeight, &minStripeHeight,
-	        &maxStripeHeight, &tolerance
+	        &idealStripeHeight, &minStripeHeight, &tolerance
 	        ] (int y) {
         idealStripeHeight = (0.0003f * y*y + 0.05f * y - 10.51f);
         minStripeHeight = std::max((int) (idealStripeHeight / 5), 3);
-        maxStripeHeight = (int) (idealStripeHeight * 2.3);
-        tolerance = minStripeHeight * 3;
+        tolerance = minStripeHeight;
 	};
 
     auto validateColorStripe = [
             &currentPixels, &minStripeHeight, &validColorStripes, &currentColor,
-            &maxStripeHeight, &otherPixels, &colorSequence, &borderSegment,
-            &borderDirection, &nextColorPixels, &colorStripeSegments
+            &otherPixels, &colorSequence, &borderSegment,
+            &borderDirection, &nextColorPixels, &colorStripeSegments, &debug, &tolerance, this
             ](int x, int y) {
     	auto colorSegment = colorStripeSegments.back();
     	colorSegment.endX = x;
     	colorSegment.endY = y;
+
+        /*if (debug) {
+            canvas.drawText(x, y, Util::toString(tolerance), 255, 0, 0, true);
+            canvas.drawText(x + 30, y, Util::toString(otherPixels), 255, 0, 0, true);
+        }*/
 
         // TODO: Need to think more
         if (!validColorStripes.empty() && validColorStripes.back() == currentColor) {
             return;
         }
 
-        if (currentPixels < minStripeHeight || currentPixels > maxStripeHeight) {
+        if (currentPixels < minStripeHeight) {
             validColorStripes.clear();
             return;
         }
@@ -903,6 +905,7 @@ int Vision::getBorderDirectionOnSegment(
 		} else if (currentPixels) {
 			if (color == currentColor) {
 				++currentPixels;
+				otherPixels = 0;
 
 				if (debug) {
 					canvas.drawMarker(x, y, 0, 200, 0, true);
