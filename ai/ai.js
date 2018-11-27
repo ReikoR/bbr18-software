@@ -806,7 +806,7 @@ function resetMotionFindBall() {
     aiState.secondaryBallY = null;
 }
 
-const driveToBallMinSpeed = 0.1;
+const driveToBallMinSpeed = 0.2;
 const driveToBallMaxSpeed = 4.5;
 const driveToBallStartSpeed = 0.5;
 let driveToBallStartTime = null;
@@ -822,7 +822,6 @@ const maxBallErrorYDiffSamples = 100;
 let ballErrorYDiffSamples = [];
 ballErrorYDiffSamples.fill(20, 0, maxBallErrorYDiffSamples);
 let smallDeltaYCounter = 0;
-let lockCounter = 0;
 
 function getDriveToBallMaxSpeed(startTime, startSpeed, speedLimit, rampTime) {
     const currentTime = Date.now();
@@ -887,7 +886,7 @@ function handleMotionDriveToBall() {
         const centerY = closestBall.cy;
         const errorX = centerX - frameCenterX;
 
-        const errorY = 0.85 * frameHeight - centerY;
+        const errorY = 0.825 * frameHeight - centerY;
 
         //In case ball is on the thrower
         if (710 > centerX > 660 && centerY > 950) {
@@ -956,7 +955,7 @@ function handleMotionDriveToBall() {
 
         let sideSpeed = 0;
 
-        if (Math.abs(sideMetric) > 0.1) {
+        if (Math.abs(sideMetric) > 0.1 && reach < 200) {
             sideSpeed = -Math.sign(sideMetric) * Math.max(6 * Math.abs(sideMetric), 0.3);
 
             const normalizedCloseToBallErrorY = Math.abs(errorY) / 400;
@@ -971,16 +970,10 @@ function handleMotionDriveToBall() {
         sideSpeed = util.clamped(sideSpeed, -maxForwardSpeed, maxForwardSpeed);
 
         forwardSpeed *= Math.pow(util.mapFromRangeToRange(processedVisionState.metrics.filteredBorderY, 50, 820, 1, 0.7), 4);
+
         forwardSpeed = util.clamped(forwardSpeed, -maxForwardSpeed, maxForwardSpeed);
 
-        if(lockCounter < forwardLock){
-            forwardSpeed *= lockCounter / forwardLock;
-        }
-
-
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
-
-        lockCounter ++;
 
         if (
             errorY <= 100 &&
