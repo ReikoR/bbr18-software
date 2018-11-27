@@ -4,6 +4,8 @@ let measurements = require('../calibration/measurements.json');
 const minServo = 1085;
 const maxServo = 1650;
 
+const speedOffset = -90;
+
 function reloadMeasurements () {
     delete require.cache[require.resolve('../training/measurements.json')];
     measurements = require('../calibration/measurements.json');
@@ -115,7 +117,7 @@ function getSpeedPrev(distance) {
     const speedDiff = higherSpeed - lowerSpeed;
     const percentage = (distance - lowerDistance) / distanceDiff;
 
-    return lowerSpeed + speedDiff * percentage;
+    return ((lowerSpeed + speedDiff * percentage) + speedOffset);
 }
 
 module.exports = {
