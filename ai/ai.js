@@ -191,13 +191,14 @@ let processedVisionState = {
     basket: null,
     otherBasket: null,
     lastVisibleBasketDirection: -1,
-    metrics: null
+    metrics: {}
 };
 
 const lidarDistanceSampleCount = 5;
 let lidarDistanceSamples = [];
 
 const borderYSampler = util.getSampler(3, util.arrayMax);
+const reachSampler = util.getSampler(3, util.arrayMax);
 
 const mainboardButtonEvents = {
     NONE: 0,
@@ -492,6 +493,7 @@ function processVisionInfo(info) {
     // Add borderY sample
     processedVisionState.metrics = {};
     processedVisionState.metrics.filteredBorderY = borderYSampler(visionState.metrics.borderY);
+    processedVisionState.metrics.filteredReach = reachSampler(visionState.metrics.straightAhead.reach);
 
     // Find largest basket
     for (let i = 0; i < baskets.length; i++) {
@@ -639,7 +641,8 @@ function sendState() {
     const state = {
         motionState,
         throwerState,
-        filteredBorderY: borderYSampler(),
+        filteredBorderY: processedVisionState.metrics.filteredBorderY,
+        filteredReach: processedVisionState.metrics.filteredReach,
         ballSensors: mainboardState.balls,
         ballThrown: mainboardState.ballThrown,
         lidarDistance: mainboardState.lidarDistance,
@@ -785,11 +788,20 @@ function shouldMoveAwayWithBall() {
         */
 }
 
+function isTooCloseToEdge() {
+    return processedVisionState.metrics.filteredReach > 800;
+}
+
 let isFindBallDriveToBasket = false;
 let driveToBasketColour = basketColours.blue;
 
 function handleMotionFindBall() {
     setThrowerState(throwerStates.IDLE);
+
+    if (isTooCloseToEdge()) {
+        setMotionState(motionStates.NUDGE_BALL);
+        return;
+    }
 
     if (checkPotentialNextClosestBall()) {
         return;
@@ -809,7 +821,7 @@ function handleMotionFindBall() {
         const leftSideMetric = visionMetrics.straightAhead.leftSideMetric;
         const rightSideMetric = visionMetrics.straightAhead.rightSideMetric;
         let sideMetric = -leftSideMetric + rightSideMetric;
-        const reach = visionMetrics.straightAhead.reach;
+        const reach = processedVisionState.metrics.filteredReach;
         const driveability = visionMetrics.straightAhead.driveability;
 
         if (Math.abs(sideMetric) < 0.1 && (leftSideMetric > 0.1 || rightSideMetric > 0.1)) {
@@ -922,6 +934,11 @@ function getDriveToBallMaxSpeed(startTime, startSpeed, speedLimit) {
 }
 
 function handleMotionDriveToBall() {
+    if (isTooCloseToEdge()) {
+        setMotionState(motionStates.NUDGE_BALL);
+        return;
+    }
+
     const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
     const basket = processedVisionState.basket;
 
@@ -1131,6 +1148,15 @@ let isDriveWithBallNoBasket = false;
 function handleMotionDriveWithBall() {
     const basket = processedVisionState.basket;
 
+    if (!basket && !processedVisionState.otherBasket && isTooCloseToEdge()) {
+        if (throwerState === throwerStates.GRAB_BALL || throwerState === throwerStates.HOLD_BALL) {
+            setThrowerState(throwerStates.THROW_BALL_AWAY);
+        }
+
+        setMotionState(motionStates.NUDGE_BALL);
+        return;
+    }
+
     const maxRotationSpeed = 2;
     let rotationSpeed = 0;
 
@@ -1183,7 +1209,7 @@ function handleMotionDriveWithBall() {
             const leftSideMetric = visionMetrics.straightAhead.leftSideMetric;
             const rightSideMetric = visionMetrics.straightAhead.rightSideMetric;
             let sideMetric = -leftSideMetric + rightSideMetric;
-            const reach = visionMetrics.straightAhead.reach;
+            const reach = processedVisionState.metrics.filteredReach;
 
             if (sideMetric < 0.1 && (leftSideMetric > 0.1 || rightSideMetric > 0.1)) {
                 if (sideMetric > 0) {
@@ -1225,6 +1251,12 @@ const basketNotFoundLimit = 2;
 let unstableThrowerSpeedAllowedError = 100;
 
 function handleMotionFindBasket() {
+    // Prevent rotating around ball when too close to the edge
+    if (processedVisionState.metrics.filteredReach > 400) {
+        setMotionState(motionStates.NUDGE_BALL);
+        return;
+    }
+
     const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
     const basket = processedVisionState.basket;
     const minRotationSpeed = 0.05;
@@ -1411,6 +1443,11 @@ let moveBallAwayStartTime = null;
 const moveBallAwayRotationRampUpper = util.getRampUpper(0.5, 8, 2000);
 
 function handleMotionMoveBallAwayFromObstacle() {
+    if (isTooCloseToEdge()) {
+        setMotionState(motionStates.NUDGE_BALL);
+        return;
+    }
+
     const closestBall = processedVisionState.closestBall || processedVisionState.lastClosestBall;
 
     let forwardSpeed = 0;
@@ -1439,7 +1476,7 @@ function handleMotionMoveBallAwayFromObstacle() {
         const leftSideMetric = visionMetrics.straightAhead.leftSideMetric;
         const rightSideMetric = visionMetrics.straightAhead.rightSideMetric;
         let sideMetric = -leftSideMetric + rightSideMetric;
-        const globalReach = visionMetrics.straightAhead.reach;
+        const globalReach = processedVisionState.metrics.filteredReach;
         const globalDriveability = visionMetrics.straightAhead.driveability;
         const filteredBorderY = processedVisionState.metrics.filteredBorderY;
 
