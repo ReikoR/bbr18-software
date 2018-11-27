@@ -1127,8 +1127,13 @@ function resetMotionDriveToBall() {
 
 let driveGrabBallTimeout = null;
 const driveGrabBallTimeoutDelay = 3000;
+let driveGrabBallHasBall = false;
 
 function handleMotionDriveGrabBall() {
+    if (mainboardState.balls[0]) {
+        driveGrabBallHasBall = true;
+    }
+
     if (driveGrabBallTimeout === null) {
         driveGrabBallTimeout = setTimeout(() => {
             if (!mainboardState.balls[0] && !mainboardState.balls[1]) {
@@ -1151,7 +1156,7 @@ function handleMotionDriveGrabBall() {
         rotationSpeed = -2 * basketErrorX / frameWidth;
     }
 
-    if (closestBall) {
+    if (!driveGrabBallHasBall && closestBall) {
         const ballErrorX = closestBall.cx - frameCenterX;
         sideSpeed = 2 * ballErrorX / frameWidth;
     }
@@ -1162,6 +1167,7 @@ function handleMotionDriveGrabBall() {
 function resetMotionDriveGrabBall() {
     clearTimeout(driveGrabBallTimeout);
     driveGrabBallTimeout = null;
+    driveGrabBallHasBall = false;
 }
 
 let driveWithBallTimeout = null;
