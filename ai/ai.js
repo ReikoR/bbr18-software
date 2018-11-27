@@ -572,7 +572,9 @@ function processVisionInfo(info) {
     if (balls.length) {
         ball = balls[0];
 
-        if (balls.length > 1 && (motionState === motionStates.DRIVE_TO_BALL || motionState === motionStates.FIND_BASKET)
+        if (balls.length > 1
+            && (ball.metrics[0] + ball.metrics[1]) > 1.5
+            && (motionState === motionStates.DRIVE_TO_BALL || motionState === motionStates.FIND_BASKET)
                 && throwerState === throwerStates.IDLE && balls[1].size > 40) {
             if (!potentialNextClosestBall || balls[1].size > potentialNextClosestBall.size) {
                 potentialNextClosestBall = balls[1];
