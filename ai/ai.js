@@ -1424,7 +1424,9 @@ function resetMotionFindBasket() {
     basketNotFoundCount = 0;
     unstableThrowerSpeedAllowedError = 100;
 
-    setThrowerState(throwerStates.IDLE);
+    if (throwerState === throwerStates.THROW_BALL) {
+        setThrowerState(throwerStates.IDLE);
+    }
 }
 
 function handleMotionGetRidOfBall() {
