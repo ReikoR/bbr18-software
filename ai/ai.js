@@ -158,9 +158,6 @@ const findBallRotatePattern = [[-1, 100], [-8, 200], [-1, 100], [-8, 200], [-1, 
 let findBallRotatePatternIndex = 0;
 let findBallRotateTimeout = null;
 let findBallRotateLoopCount = 0;
-
-let throwBallTimeout = 0;
-const throwBallTimeoutDelay = 3000;
 const findBallRotateLoopLimit = 3;
 
 const lastClosestBallLimit = 10;
@@ -976,7 +973,7 @@ function handleMotionDriveToBall() {
     }
 
     if (Date.now() - driveToBallStartTime > maxDriveToBallTime) {
-        console.log('drive to ball timeout');
+        console.log('Drive to ball timeout', maxDriveToBallTime);
         setMotionState(motionStates.FIND_BALL);
         return;
     }
@@ -986,7 +983,6 @@ function handleMotionDriveToBall() {
         const leftSideMetric = closestBall.straightAhead.leftSideMetric;
         const rightSideMetric = closestBall.straightAhead.rightSideMetric;
         let sideMetric = -leftSideMetric + rightSideMetric;
-        const reach = closestBall.straightAhead.reach;
 
         if (sideMetric < 0.1 && (leftSideMetric > 0.1 || rightSideMetric > 0.1)) {
             if (sideMetric > 0) {
@@ -1467,17 +1463,24 @@ function handleMotionGetRidOfBall() {
     setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
 }
 
+let nudgeBallTimeout = null;
+
 function handleMotionNudgeBall() {
     const rotationSpeed = 8 * -processedVisionState.lastVisibleBasketDirection;
 
     setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, 0, rotationSpeed, true));
 
-    setTimeout(() => {
-        setMotionState(motionStates.FIND_BALL);
-    }, 500);
+    if (nudgeBallTimeout === null) {
+        nudgeBallTimeout = setTimeout(() => {
+            setMotionState(motionStates.FIND_BALL);
+        }, 500);
+    }
 }
 
-let moveBallAwayDirection = 0;
+function resetNudgeBall() {
+    clearTimeout(nudgeBallTimeout);
+}
+
 let moveBallAwayTimeout = null;
 let moveBallAwayTimeoutDelay = 5000;
 
@@ -1603,8 +1606,6 @@ function handleMotionMoveBallAwayFromObstacle() {
 function resetMotionMoveBallAwayFromObstacle() {
     moveBallAwayStartTime = null;
 
-    moveBallAwayDirection = 0;
-
     clearTimeout(moveBallAwayTimeout);
     moveBallAwayTimeout = null;
 }
@@ -1685,12 +1686,22 @@ function getAllowedThrowerTechnique() {
 let afterBallThrownCount = 0;
 let maxAfterBallThrownCount = 3;
 
+let throwBallTimeout = 0;
+const throwBallTimeoutDelay = 3000;
+
 function handleThrowerThrowBall() {
     const technique = getAllowedThrowerTechnique();
     aiState.speeds[4] = calibration.getThrowerSpeed(technique, mainboardState.lidarDistance);
 
     aiState.ballThrowSpeed = aiState.speeds[4];
     aiState.ballThrowLidarDistance = mainboardState.lidarDistance;
+
+    if (throwBallTimeout === null) {
+        throwBallTimeout = setTimeout(() => {
+            setThrowerState(throwerStates.IDLE);
+            setMotionState(motionStates.FIND_BALL);
+        }, throwBallTimeoutDelay);
+    }
 
     if (processedVisionState.basket) {
         const basket = processedVisionState.basket;
@@ -1719,6 +1730,10 @@ function handleThrowerThrowBall() {
             setThrowerState(throwerStates.IDLE);
         }
     }
+}
+
+function resetThrowerThrowBall() {
+    clearTimeout(throwBallTimeout);
 }
 
 function handleThrowerThrowBallAway() {
@@ -1809,6 +1824,9 @@ function setMotionState(newState) {
             case motionStates.CHECK_BALLS:
                 resetMotionCheckBalls();
                 break;
+            case motionStates.NUDGE_BALL:
+                resetNudgeBall();
+                break;
         }
 
         motionState = newState;
@@ -1835,23 +1853,18 @@ function setThrowerState(newState) {
             console.log('setThrowerState mainboardState.ballThrown', mainboardState.ballThrown);
         }
 
-        throwerState = newState;
-
-        clearTimeout(throwBallTimeout);
-
-        if (throwerState === throwerStates.THROW_BALL) {
-            throwBallTimeout = setTimeout(() => {
-                setThrowerState(throwerStates.IDLE);
-                setMotionState(motionStates.FIND_BALL);
-            }, throwBallTimeoutDelay);
+        switch (throwerState) {
+            case throwerStates.THROW_BALL:
+                resetThrowerThrowBall();
+                break;
         }
+
+        throwerState = newState;
     }
 }
 
 function update() {
     if (motionState !== prevMotionState) {
-        console.log('Enter state:', prevMotionState, '->', motionState);
-
         prevMotionState = motionState;
 
         if (motionState in motionStateEnterHandlers) {
