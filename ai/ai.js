@@ -158,10 +158,10 @@ const findBallRotatePattern = [[-1, 100], [-8, 200], [-1, 100], [-8, 200], [-1, 
 let findBallRotatePatternIndex = 0;
 let findBallRotateTimeout = null;
 let findBallRotateLoopCount = 0;
-const findBallRotateLoopLimit = 2;
 
 let throwBallTimeout = 0;
 const throwBallTimeoutDelay = 3000;
+const findBallRotateLoopLimit = 3;
 
 const lastClosestBallLimit = 10;
 let lastClosestBallCount = 0;
@@ -875,9 +875,9 @@ function handleMotionFindBall() {
 
             forwardSpeed = Math.sign(normalizedErrorY) *
                 Math.max(Math.abs(maxForwardSpeed * Math.pow(normalizedErrorY, 0.5)), 0.1);
-            rotationSpeed = Math.sign(-errorX) * Math.max(Math.abs(4 * errorX / frameWidth), 0.1);
+            rotationSpeed = Math.sign(-errorX) * Math.max(Math.abs(8 * errorX / frameWidth), 0.1);
 
-            if (driveToBasket.w > 80) {
+            if (driveToBasket.w > 60) {
                 driveToBasketColour = driveToBasketColour === basketColours.blue ?
                     basketColours.magenta : basketColours.blue;
 
@@ -885,7 +885,7 @@ function handleMotionFindBall() {
             }
 
         } else {
-            rotationSpeed = util.clamped((reach / 100), 0, 2);
+            rotationSpeed = util.clamped((reach / 100), 0, 8);
 
             if (reach < 150) {
                 forwardSpeed = Math.max(3 * (150 - reach) / 150, 0.2);
