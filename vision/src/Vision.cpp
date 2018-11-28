@@ -714,12 +714,12 @@ bool Vision::isBallWithinBorders(Object* ball, ObjectList& baskets) {
         if (borderDirection == -1) {
 			int distance = std::max(abs(borderSegment.startX - startX), abs(borderSegment.startY - startY));
 
-			if (debug) {
+			/*if (debug) {
 				canvas.drawText(ball->x - 15, ball->y, Util::toString(ball->width), 0, 255, 0, true);
 				canvas.drawText(ball->x + 15, ball->y, Util::toString(distance), 0, 255, 0, true);
-			}
+			}*/
 
-			if (distance > ball->width) {
+			if (distance > ball->width * 0.5) {
 				isBallValid = false;
 			}
         }
@@ -727,7 +727,7 @@ bool Vision::isBallWithinBorders(Object* ball, ObjectList& baskets) {
 
 	if (ball->y < Config::surroundSenseThresholdY) {
         // From ball to bottom
-        checkBorderBetweenPoints(ball->x, ball->y + ball->width / 2, ball->x, Config::surroundSenseThresholdY);
+        checkBorderBetweenPoints(ball->x, ball->y + ball->width, ball->x, Config::surroundSenseThresholdY);
 
         // From ball to right
         checkBorderBetweenPoints(ball->x + ball->width / 2, ball->y + ball->width / 2, Config::cameraWidth, ball->y + ball->width / 2);
