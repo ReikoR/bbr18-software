@@ -6,27 +6,7 @@ const COMPETITION_DATA = {
     straight: require('./data/competition/straight.json')
 };
 
-//console.log(COMPETITION_DATA);
-
 const MAX_DISTANCE = 500;
-
-/*
-const MIN_THROWER_SPEED = 6000;
-const MAX_THROWER_SPEED = 20000;
-const MAX_CENTER_OFFSET = 30;
-
-const MEASUREMENTS = {};
-const THROWER_SPEED_NETS = {};
-const CENTER_OFFSET_NETS = {};
-
-let RANDOM_THROWER_SPEED, RANDOM_CENTER_OFFSET, RANDOM_SPEEDS_GENERATED = 0;
-
-function generateRandomSpeeds () {
-    RANDOM_THROWER_SPEED = 5000 + Math.random() * 10000;
-    RANDOM_CENTER_OFFSET = -20 + Math.random() * 40;
-    RANDOM_SPEEDS_GENERATED = new Date();
-}
-*/
 
 const TRAINERS = {
     bounce: new Trainer(config.bounce),
@@ -92,38 +72,6 @@ exports.trainAllTechniques = function (N = 200) {
     TRAINERS.bounce.trainAllMeasurements(N);
     TRAINERS.straight.trainAllMeasurements(N);
 };
-
-/*
-function interpolate (measurements, z, x, y = 0) {
-    let closeData = measurements;//.filter(m => Math.abs(m.x - x) <= 10);
-
-    // Find two closest points if there are no points close enough
-    if (closeData.length < 2) {
-        const sortedData = [...measurements].sort((a, b) =>
-            Math.abs(a.x - x) - Math.abs(b.x - x)
-        );
-
-        // Find two closest objects with different x-positions
-        const obj1 = sortedData.find(obj => obj.x < x) || sortedData[0];
-        const obj2 = sortedData.find(obj => obj.x > x && obj.x !== obj1.x) || sortedData.find(obj => obj.x !== obj1.x);
-
-        closeData = [obj1, obj2];
-    }
-
-    const line = regression(closeData.map(m => m.x), closeData.map(m => m[z]));
-
-    console.log(closeData.length, line, line.a * x + line.b);
-
-    /
-    // Get 2 closest object interpolation
-    //const a = (obj1[z] - obj2[z]) / (obj1.x - obj2.x);
-    //const b = obj1[z] - a*obj1.x;
-
-    //return a*x + b;
-
-    return line.a * x + line.b;
-}
-*/
 
 exports.getNets = function () {
     TRAINERS.bounce.trainAllMeasurements(20);
