@@ -823,6 +823,8 @@ let ballErrorYDiffSamples = [];
 ballErrorYDiffSamples.fill(20, 0, maxBallErrorYDiffSamples);
 let smallDeltaYCounter = 0;
 
+let speedDecelerationConstant = 0.825;
+
 function getDriveToBallMaxSpeed(startTime, startSpeed, speedLimit, rampTime) {
     const currentTime = Date.now();
     const timeDiff = currentTime - startTime;
@@ -842,7 +844,7 @@ function resetMotionDriveToBall() {
     lastBallErrorY = -1;
     ballErrorYDiffSamples.fill(20, 0, maxBallErrorYDiffSamples);
     smallDeltaYCounter = 0;
-    lockCounter = 0;
+    speedDecelerationConstant = 0.825;
 }
 
 function updateSecondaryBall(isMoving) {
@@ -886,7 +888,7 @@ function handleMotionDriveToBall() {
         const centerY = closestBall.cy;
         const errorX = centerX - frameCenterX;
 
-        const errorY = 0.825 * frameHeight - centerY;
+        const errorY = speedDecelerationConstant * frameHeight - centerY;
 
         //In case ball is on the thrower
         if (710 > centerX > 660 && centerY > 950) {
@@ -906,6 +908,10 @@ function handleMotionDriveToBall() {
 
         let forwardSpeed = maxErrorForwardSpeed * Math.pow(normalizedErrorY, 2);
         let rotationSpeed = maxErrorRotationSpeed * -errorX / frameWidth;
+
+
+
+        speedDecelerationConstant = util.clamped(1 - (forwardSpeed * 0.4 / driveToBallMaxSpeed), 0.7, 0.9);
 
 
         if (lastBallErrorY === -1) {
