@@ -1011,8 +1011,8 @@ function calculateSideSpeedBallBasketAlign(sideSpd, basket, ballY, maxSpeed) {
     return sideSpeed;
 }
 
-const grabBallStartSpeed = 0.1;
-const grabBallMaxSpeed = 1;
+const grabBallStartSpeed = 0.2;
+const grabBallMaxSpeed = 1.5;
 
 function handleMotionGrabBall() {
 
@@ -1303,7 +1303,7 @@ function handleMotionThrowBallMoving() {
 let findBasketTimeout = null;
 const findBasketTimeoutDelay = 5000;
 const driveToBasketStartSpeed = 0.5;
-const driveToBasketMaxSpeed = 1.5;
+const driveToBasketMaxSpeed = 2;
 
 let validAimFrames = 0;
 let movedForThrowFlag = 0;
@@ -1337,17 +1337,13 @@ function handleMotionFindBasket() {
     const maxThrowDistance = 400;
     const minForwardSpeed = 0.2;
     const defaultAimFrames = 5;
-    const maxAimFrames = 8;
+    const maxAimFrames = 10;
     let minValidAimFrames = defaultAimFrames;
 
     let sideSpeed = 0;
     let forwardSpeed = 0;
     let rotationSpeed = 0;
     let isBasketErrorXSmallEnough = false;
-
-    const maxForwardSpeed = getDriveToBallMaxSpeed(
-        driveToBasketStartTime, driveToBasketStartSpeed, driveToBasketMaxSpeed, 500
-    );
 
     const patternStep = findObjectRotatePattern[findObjectRotatePatternIndex];
 
@@ -1416,14 +1412,18 @@ function handleMotionFindBasket() {
             driveToBasketStartTime = Date.now();
         }
 
+        const maxForwardSpeed = getDriveToBallMaxSpeed(
+            driveToBasketStartTime, driveToBasketStartSpeed, driveToBasketMaxSpeed, 750
+        );
+
 
         const basketCenterX = basket.cx;
         const basketCenterY = basket.cy;
         const basketErrorX = basketCenterX - thrower.getAimOffset(basketState.distance) - frameCenterX;
-        const basketErrorY = frameHeight - basketCenterY;
+        const basketErrorY = frameHeight - basketCenterY * 0.85;
         const normalizedErrorY = basketErrorY / frameHeight;
         const minBasketDistance = 450;
-        const maxBasketDistance = 105;
+        const maxBasketDistance = 95;
 
         const maxErrorForwardSpeed = 5;
 
@@ -1439,7 +1439,7 @@ function handleMotionFindBasket() {
             forwardSpeed = -maxErrorForwardSpeed * minBasketDistance / basket.y2;
         } else if (isBasketTooFar) {
             movedForThrowFlag = 1;
-            forwardSpeed = maxErrorForwardSpeed * Math.pow(normalizedErrorY, 2);
+            forwardSpeed = maxErrorForwardSpeed * Math.pow(normalizedErrorY, 1);
         }
 
         //reset ball memory on move
@@ -1476,7 +1476,7 @@ function handleMotionFindBasket() {
 
         isBasketErrorXSmallEnough = Math.abs(basketErrorX) < throwError;
 
-        let isRobotStopped = robotWheelSpeedsLessThan(mainboardState.speeds, 70);
+        let isRobotStopped = robotWheelSpeedsLessThan(mainboardState.speeds, 35);
 
         if (isBasketErrorXSmallEnough && !isBasketTooClose && !isBasketTooFar && isRobotStopped) {
             validAimFrames++;
