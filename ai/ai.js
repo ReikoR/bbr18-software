@@ -1551,9 +1551,12 @@ function handleThrowerThrowBall() {
     }
 }
 
+let grabStaggerCounter = 0;
+
 function handleThrowerGrabBall() {
-    const feederGrabSpeed = 100;
+    const feederGrabSpeed = 70;
     const feederTweakSpeed = 25;
+    const stagger = 3;
 
     if (mainboardState.balls[1] && !mainboardState.balls[0]) {
         aiState.speeds[5] = -feederTweakSpeed;
@@ -1566,12 +1569,18 @@ function handleThrowerGrabBall() {
     }
 
     if (mainboardState.ballGrabbed) {
-        aiState.speeds[4] = throwerIdleSpeed;
+        grabStaggerCounter ++;
 
-        if (motionState !== motionStates.FIND_BASKET_TIMEOUT) {
-            setMotionState(motionStates.FIND_BASKET);
+        if (grabStaggerCounter > stagger) {
+            grabStaggerCounter = 0;
+            aiState.speeds[4] = throwerIdleSpeed;
+
+            if (motionState !== motionStates.FIND_BASKET_TIMEOUT) {
+                setMotionState(motionStates.FIND_BASKET);
+            }
+            setThrowerState(throwerStates.HOLD_BALL);
         }
-        setThrowerState(throwerStates.HOLD_BALL);
+
     }
 }
 
