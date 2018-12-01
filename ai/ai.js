@@ -302,14 +302,16 @@ function handleInfo(info) {
                 mainboardState.ballThrown = true;
                 //aiState.ballThrownBasketOffset = processedVisionState.basket ?
                 //    processedVisionState.basket.cx - frameCenterX : 0;
-                console.log('mainboardState.ballThrown', mainboardState.ballThrown);
+                //console.log('mainboardState.ballThrown', mainboardState.ballThrown);
 
+                /*
                 if (visionState.basket) {
                     console.log('THROWN', visionState.basket.cx);
                 }
+                */
 
                 aiState.basketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
-                console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
+                //console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
 
                 processedVisionState.lastClosestBall = null;
                 lastClosestBallCount = 0;
@@ -605,7 +607,7 @@ function processVisionInfo(info) {
                 && throwerState === throwerStates.IDLE && balls[1].size > 40) {
             if (!potentialNextClosestBall || balls[1].size > potentialNextClosestBall.size) {
                 potentialNextClosestBall = balls[1];
-                console.log('NEW', balls[1].size, motionState);
+                //console.log('NEW', balls[1].size, motionState);
             }
         }
     }
@@ -835,6 +837,7 @@ function shouldMoveAwayWithBall() {
         }
     }
 
+    /*
     console.log(
         'CHECK MOVE AWAY',
         'globalDriveability', globalDriveability,
@@ -842,6 +845,7 @@ function shouldMoveAwayWithBall() {
         'globalReach', globalReach,
         'filteredBorderY', filteredBorderY
     );
+    */
 
     return !isBasketTooClose() && globalDriveability < 0.7 && Math.abs(sideMetric) > 0.3 &&
         globalReach < 150 &&
@@ -869,7 +873,6 @@ function handleMotionFindBall() {
 
     if (processedVisionState.closestBall) {
         resetMotionFindBall();
-        console.log('back to drive');
         setMotionState(motionStates.DRIVE_TO_BALL);
         return;
     }
@@ -916,7 +919,7 @@ function handleMotionFindBall() {
                 driveToBasketColour = driveToBasketColour === basketColours.blue ?
                     basketColours.magenta : basketColours.blue;
 
-                console.log('driveToBasketColour', driveToBasketColour);
+                //console.log('driveToBasketColour', driveToBasketColour);
             }
 
         } else {
@@ -950,7 +953,7 @@ function handleMotionFindBall() {
                 aiState.ballTopArcFilterThreshold = 0;
             }
 
-            console.log('aiState.ballTopArcFilterThreshold', aiState.ballTopArcFilterThreshold);
+            //console.log('aiState.ballTopArcFilterThreshold', aiState.ballTopArcFilterThreshold);
         }, patternStep[1] * (findBallRotateLoopCount + 1));
 
         setAiStateSpeeds(omniMotion.calculateSpeeds(0, 0, patternStep[0] / (findBallRotateLoopCount + 1), true));
@@ -1011,7 +1014,7 @@ function handleMotionDriveToBall() {
     }
 
     if (Date.now() - driveToBallStartTime > maxDriveToBallTime) {
-        console.log('Drive to ball timeout', maxDriveToBallTime);
+        //console.log('Drive to ball timeout', maxDriveToBallTime);
         setMotionState(motionStates.FIND_BALL);
         return;
     }
@@ -1128,6 +1131,11 @@ function handleMotionDriveToBall() {
         forwardSpeed *= Math.pow(util.mapFromRangeToRange(processedVisionState.metrics.filteredBorderY, 50, 820, 1, 0.7), 4);
         forwardSpeed = util.clamped(forwardSpeed, -maxForwardSpeed, maxForwardSpeed);
 
+        /*console.log('xyr',
+            sideSpeed.toFixed(2),
+            forwardSpeed.toFixed(2),
+            rotationSpeed.toFixed(2)
+        );*/
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
 
         if (
@@ -1340,7 +1348,7 @@ function handleMotionFindBasket() {
     aiState.basketBottomFilterThreshold =
         util.mapFromRangeToRange(elapsedTime, 1000, 2000, defaultBasketBottomFilterThreshold, 0);
 
-    console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
+        //console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
 
     if (elapsedTime > basketNotFoundTimeLimit) {
         console.log('basket not found in', basketNotFoundTimeLimit);
@@ -1674,20 +1682,20 @@ function handleMotionCheckBalls() {
 
     const ballDirection = Math.sign(potentialNextClosestBall.cx - frameCenterX);
     const rotationSpeed = 8 * ballDirection;
-    console.log(rotationSpeed, potentialNextClosestBall.cx);
+    //console.log(rotationSpeed, potentialNextClosestBall.cx);
 
     if (checkBallsIterations > 0) {
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, 0, rotationSpeed, true));
     }
 
-    console.log('SET checkBallsTimeout 1', checkBallsIterations);
+    //console.log('SET checkBallsTimeout 1', checkBallsIterations);
 
     checkBallsTimeout = setTimeout(() => {
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, 0, ballDirection, true));
 
-        console.log('SET checkBallsTimeout 2', checkBallsIterations);
+        //console.log('SET checkBallsTimeout 2', checkBallsIterations);
         checkBallsTimeout = setTimeout( () => {
-            console.log('ITERATION', checkBallsIterations + 1);
+            //console.log('ITERATION', checkBallsIterations + 1);
 
             if (++checkBallsIterations >= 3) {
                 potentialNextClosestBall = null;
@@ -1874,7 +1882,7 @@ function setMotionState(newState) {
             resetMotionFindBall();
 
             aiState.ballTopArcFilterThreshold = defaultBallTopArcFilterThreshold;
-            console.log('aiState.ballTopArcFilterThreshold', aiState.ballTopArcFilterThreshold);
+            //console.log('aiState.ballTopArcFilterThreshold', aiState.ballTopArcFilterThreshold);
         }
     }
 }
