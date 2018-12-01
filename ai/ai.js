@@ -693,17 +693,7 @@ function processVisionInfo(info) {
 }
 
 function getBackboardAngle(basket) {
-    const metrics = basket.metrics;
-    const metricsLength = Math.sqrt(metrics[0]*metrics[0] + metrics[1]*metrics[1]);
-
-    if (metricsLength) {
-        const normalizedMetrics = [
-            metrics[0] / metricsLength, metrics[1] / metricsLength
-        ];
-        return  normalizedMetrics[0] - normalizedMetrics[1];
-    }
-
-    return 0;
+    return util.getNormalizedMetricsDifference(basket.metrics);
 }
 
 function getClosestBasket() {
@@ -1458,16 +1448,18 @@ function handleMotionFindBasket() {
     } else {
         setMotionState(motionStates.FIND_BALL);
     }
-
+    //
     if (basket && (closestBall || throwerState === throwerStates.THROW_BALL)) {
         const technique = getAllowedThrowerTechnique();
-        const basketCenterX = basket.cx + calibration.getCenterOffset(technique, mainboardState.lidarDistance);
+        const basketCenterX = basket.cx + calibration.getCenterOffset(
+            technique, mainboardState.lidarDistance,
+            getBackboardAngle(basket)
+        );
         const basketErrorX = basketCenterX - frameCenterX;
         isBasketErrorXSmallEnough = Math.abs(basketErrorX) < 40;
         rotationSpeed = maxRotationSpeed * -basketErrorX / (frameWidth / 2);
 
         if (isBasketErrorXSmallEnough && isBallCloseEnough) {
-            setThrowerState(throwerStates.THROW_BALL);
             if (!isBasketDistanceCorrect()) {
                 // Wait
                 console.log('claude');

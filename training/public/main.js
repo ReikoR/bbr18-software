@@ -42,7 +42,7 @@ function getDecisionBoundary (net, x, initialBounds) {
 }
 
 // Initialize plot with measurements
-function initializePlot(id, title, y, fbIndex, info) {
+function initializePlot(id, title, y, fbIndex, info, x = 'distance') {
     let data = [];
 
     for (let technique of selectedTechniques) {
@@ -54,7 +54,7 @@ function initializePlot(id, title, y, fbIndex, info) {
         const lastMeasurement = measurements.length ? measurements[measurements.length - 1] : null;
 
         data.push({
-            x: lastMeasurement ? [lastMeasurement.distance] : [],
+            x: lastMeasurement ? [lastMeasurement[x]] : [],
             y: lastMeasurement ? [lastMeasurement[y]] : [],
             mode: 'markers',
             marker: {
@@ -65,7 +65,7 @@ function initializePlot(id, title, y, fbIndex, info) {
         });
 
         data.push({
-            x: high.map(obj => obj.distance),
+            x: high.map(obj => obj[x]),
             y: high.map(obj => obj[y]),
             mode: 'markers',
             name: 'Too high',
@@ -76,18 +76,19 @@ function initializePlot(id, title, y, fbIndex, info) {
         });
 
         data.push({
-            x: ok.map(obj => obj.distance),
+            x: ok.map(obj => obj[x]),
             y: ok.map(obj => obj[y]),
             mode: 'markers',
             name: 'OK',
             marker: {
                 symbol: 'x',
-                color: COLORS[technique]
+                color: 'rgb(0,255,0)',//COLORS[technique]
+                opacity: 0.4
             }  
         });
 
         data.push({
-            x: low.map(obj => obj.distance),
+            x: low.map(obj => obj[x]),
             y: low.map(obj => obj[y]),
             mode: 'markers',
             name: 'Too low',
@@ -109,10 +110,10 @@ function initializePlot(id, title, y, fbIndex, info) {
         title,
         hovermode: 'closest',
         xaxis: {
-            range: [0, 500]
+            range: x === 'distance' ? [0, 500] : [-0.25, 0.25]
         },
         yaxis: {
-            range: (y === 'throwerSpeed') ? [0, MAX_THROWER_SPEED] : [-40, 40]
+            range: y === 'throwerSpeed' ? [0, MAX_THROWER_SPEED] : [-50, 50]
         }
     });
 
@@ -124,7 +125,7 @@ function initializePlot(id, title, y, fbIndex, info) {
             wsSend({
                 type: 'delete_measurement',
                 technique,
-                index: info[technique].findIndex(m => m.distance === point.x && m[y] === point.y)
+                index: info[technique].findIndex(m => m[x] === point.x && m[y] === point.y)
             });
 
             console.log('Point', point.x, point.y, point.pointNumber, point.curveNumber, technique);
@@ -187,7 +188,7 @@ function plotDecisionBoundaries(plotId, info, y, bounds, scale) {
 }
 
 // Plot decision boundary
-function plotTrainingData(plotId, info, y) {
+function plotTrainingData(plotId, info, y, x) {
     for (let technique of selectedTechniques) {
         if (!info[technique] || !info[technique][y]) {
             continue;
@@ -203,7 +204,9 @@ function plotTrainingData(plotId, info, y) {
         */
 
         const boundary = {
-            x: Array(500).fill().map((x, i) => i),
+            x: x === 'distance'
+                ? Array(500).fill().map((x, i) => i)
+                : Array(200).fill().map((x, i) => (i - 100)/500),
             y: info[technique][y],
             name: 'Decision boundary',
             mode: 'line',
@@ -226,17 +229,21 @@ function onSocketMessage(message) {
 
         if (info.type === 'measurements') {
             initializePlot('thrower-speed-plot', 'Thrower speed calibration', 'throwerSpeed', 0, info);
-            initializePlot('center-offset-plot', 'Center offset calibration', 'centerOffset', 1, info);
+            //initializePlot('center-offset-plot', 'Center offset calibration', 'centerOffset', 1, info);
+            initializePlot('angle-plot', 'Center offset calibration by angle', 'centerOffset', 1, info, 'angle');
         }
 
+        /*
         if (info.type === 'nets') {
             plotDecisionBoundaries('thrower-speed-plot', info, 'throwerSpeed', [0, 1], [500, MAX_THROWER_SPEED]);
             plotDecisionBoundaries('center-offset-plot', info, 'centerOffset', [-1, 1], [500, 30]);
         }
+        */
 
         if (info.type === 'training_data') {
-            plotTrainingData('thrower-speed-plot', info.data, 'throwerSpeed');
-            plotTrainingData('center-offset-plot', info.data, 'centerOffset');
+            plotTrainingData('thrower-speed-plot', info.data, 'throwerSpeed', 'distance');
+            //plotTrainingData('center-offset-plot', info.data, 'centerOffset');
+            plotTrainingData('angle-plot', info.data, 'centerOffset', 'angle');
         }
     } catch (error) {
         console.info(error.message, error.stack);

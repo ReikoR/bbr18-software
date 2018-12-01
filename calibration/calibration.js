@@ -7,10 +7,11 @@ const COMPETITION_DATA = {
 };
 
 const MAX_DISTANCE = 500;
+const MAX_ANGLE = 0.2;
 
 const TRAINERS = {
-    bounce: new Trainer(config.bounce),
-    straight: new Trainer(config.straight)
+    bounce: new Trainer(config.bounce, true),
+    straight: new Trainer(config.straight, false)
 };
 
 exports.getThrowerTechnique = function (distance, angle = 0) {
@@ -48,15 +49,20 @@ exports.setCompetitionData = function (data, isPredictable) {
 };
 
 exports.getThrowerSpeed = function (technique, distance) {
-    console.log(technique);
     const data = COMPETITION_DATA[technique];
     return data.throwerSpeed[Math.max(0, Math.min(499, Math.round(distance)))];
 };
 
-exports.getCenterOffset = function (technique, distance) {
-    console.log(technique);
+exports.getCenterOffset = function (technique, distance, angle) {
+    if (technique === 'straight' || Math.abs(angle) > MAX_ANGLE) {
+        return 0;
+    }
+
     const data = COMPETITION_DATA[technique];
-    return data.centerOffset[Math.max(0, Math.min(499, Math.round(distance)))];
+    const angleStep = Math.max(0, Math.min(199, Math.round((angle + MAX_ANGLE) / (2 * MAX_ANGLE) * 200)));
+    //console.log(angleStep, angle, MAX_ANGLE);
+    //return data.centerOffset[Math.max(0, Math.min(199, Math.round(distance)))];
+    return Math.round(data.centerOffset[angleStep]);
 };
 
 exports.recordFeedback = function (measurement, fb) {

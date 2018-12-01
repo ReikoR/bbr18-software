@@ -4,13 +4,11 @@ const convnet = require('./convnet');
 const MAX_DISTANCE = 500;
 const MIN_THROWER_SPEED = 6000;
 const MAX_THROWER_SPEED = 19000;
-const MAX_CENTER_OFFSET = 50;
-const MAX_ANGLE = 0.2;
+const MAX_CENTER_OFFSET = 30;
 
 class Trainer {
-    constructor (filename, trainCenterOffset=true) {
+    constructor (filename) {
         this.path = `${__dirname}/data/training/${filename}.json`;
-        this.trainCenterOffset = trainCenterOffset;
 
         if (!fs.existsSync(this.path)) {
             this.initialize();
@@ -29,21 +27,21 @@ class Trainer {
     resetNets() {
         this.throwerSpeedNet = new convnet.Net();
         this.centerOffsetNet = new convnet.Net();
-
+        
         // Layers
         this.throwerSpeedNet.makeLayers([
             { type: 'input', out_sx: 1, out_sy: 1, out_depth: 2 },
             //{ type: 'fc', num_neurons: 4 },
             { type: 'fc', num_neurons: 4, activation: 'relu' },
-            //{ type: 'fc', num_neurons: 4, activation: 'relu' },
+            { type: 'fc', num_neurons: 4, activation: 'relu' },
             { type: 'svm', num_classes: 2 }
         ]);
 
         this.centerOffsetNet.makeLayers([
-            {type: 'input', out_sx: 1, out_sy: 1, out_depth: 2},
-            { type: 'fc', num_neurons: 4 },
-            //{type: 'fc', num_neurons: 4, activation: 'relu'},
-            {type: 'svm', num_classes: 2}
+            { type: 'input', out_sx: 1, out_sy: 1, out_depth: 2 },
+            //{ type: 'fc', num_neurons: 4, activation: 'tanh' },
+            { type: 'fc', num_neurons: 4, activation: 'relu' },
+            { type: 'svm', num_classes: 2 }
         ]);
 
         // Trainers
@@ -66,14 +64,12 @@ class Trainer {
         });
         */
 
-        if (this.trainCenterOffset) {
-            this.centerOffsetTrainer = new convnet.SGDTrainer(this.centerOffsetNet, {
-                learning_rate: 0.1,
-                momentum: 0.1,
-                batch_size: 1,
-                l2_decay: 0.001
-            });
-        }
+        this.centerOffsetTrainer = new convnet.SGDTrainer(this.centerOffsetNet, {
+            learning_rate: 0.1,
+            momentum: 0.1,
+            batch_size: 1,
+            l2_decay: 0.001
+        });
 
         /*
         this.centerOffsetTrainer = new convnet.Trainer(this.centerOffsetNet, {
@@ -110,8 +106,8 @@ class Trainer {
             this.throwerSpeedTrainer.train(input, m.fb[0] === -1 ? 0 : 1);
         }
 
-        if (this.trainCenterOffset && m.fb[1] && m.angle !== 0) {
-            const input = new convnet.Vol([m.angle/MAX_ANGLE, m.centerOffset/MAX_CENTER_OFFSET]);
+        if (m.fb[1]) {
+            const input = new convnet.Vol([m.distance/MAX_DISTANCE, m.centerOffset/MAX_CENTER_OFFSET]);
             this.centerOffsetTrainer.train(input, m.fb[1] === -1 ? 0 : 1);
         }
     }
@@ -132,18 +128,10 @@ class Trainer {
             data.throwerSpeed.push(
                 this.getDecisionBoundary(this.throwerSpeedNet, distance / MAX_DISTANCE, [0, 1]) * MAX_THROWER_SPEED
             );
-        }
 
-        if (this.trainCenterOffset) {
-            const angleStep = 2 * MAX_ANGLE / 200;
-
-            for (let i = 0; i < 200; ++i) {
-                const angle = -MAX_ANGLE + angleStep * i;
-
-                data.centerOffset.push(
-                    this.getDecisionBoundary(this.centerOffsetNet, angle / MAX_ANGLE, [-1, 1]) * MAX_CENTER_OFFSET
-                );
-            }
+            data.centerOffset.push(
+                this.getDecisionBoundary(this.centerOffsetNet, distance / MAX_DISTANCE, [-1, 1]) * MAX_CENTER_OFFSET
+            );
         }
 
         return data;
@@ -183,7 +171,6 @@ class Trainer {
         this.resetNets();
         this.throwerSpeedNet.fromJSON(data.throwerSpeedNet);
         this.centerOffsetNet.fromJSON(data.centerOffsetNet);
-
         this.resetTrainers();
     }
 

@@ -54,5 +54,29 @@ module.exports = {
 
             return startValue + startEndDiff * Math.pow(timePassedPercent, 2);
         };
+    },
+    getNormalizedMetrics: function (metrics) {
+        const metricsLength = Math.sqrt(metrics[0]*metrics[0] + metrics[1]*metrics[1]);
+
+        if (metricsLength) {
+            return [
+                metrics[0] / metricsLength, metrics[1] / metricsLength
+            ];
+        }
+
+        return [0, 0];
+    },
+    getNormalizedMetricsDifference: function (metrics) {
+        const metricsLength = Math.sqrt(metrics[0]*metrics[0] + metrics[1]*metrics[1]);
+
+        if (metricsLength) {
+            const normalizedMetrics = [
+                metrics[0] / metricsLength, metrics[1] / metricsLength
+            ];
+
+            return normalizedMetrics[0] - normalizedMetrics[1];
+        }
+
+        return 0;
     }
 };

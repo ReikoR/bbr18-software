@@ -102,7 +102,8 @@ function handleWsMessage(message) {
             technique: message.technique,
             distance: message.distance,
             throwerSpeed: message.throwerSpeed,
-            centerOffset: message.centerOffset
+            centerOffset: message.centerOffset,
+            angle: message.angle
         }, message.feedback);
     } else if (message.type === 'delete_measurement') {
         calibration.deleteMeasurement(message);
