@@ -308,6 +308,12 @@ void VisionManager::sendState() {
         basketJson["h"] = basket->height;
         basketJson["color"] = basket->type == 0 ? "blue" : "magenta";
         basketJson["metrics"] = {basket->surroundMetrics[3], basket->surroundMetrics[4]};
+        basketJson["straightAhead"] = {
+                {"reach", basket->straightAheadInfo.reach},
+                {"driveability", basket->straightAheadInfo.driveability},
+                {"leftSideMetric", basket->straightAheadInfo.leftSideMetric},
+                {"rightSideMetric", basket->straightAheadInfo.rightSideMetric},
+        };
 
         j["baskets"].push_back(basketJson);
 	}

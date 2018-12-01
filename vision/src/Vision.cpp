@@ -82,7 +82,7 @@ Vision::Result* Vision::process() {
 			Blobber::BlobColor::green
 	};
 
-	result->straightAheadInfo = getStraightAheadMetric(validDriveableColors, result->balls);
+	result->straightAheadInfo = getStraightAheadMetric(validDriveableColors, result->balls, result->baskets);
 
 	//std::cout << getBorderY() << std::endl;
 	result->borderY = getBorderY();
@@ -1449,7 +1449,7 @@ float Vision::getSurroundMetric(
 }
 
 Object::StraightAheadInfo Vision::getStraightAheadMetric(
-		std::vector<Blobber::BlobColor> validColors, ObjectList& balls
+		std::vector<Blobber::BlobColor> validColors, ObjectList& balls, ObjectList& baskets
 ) {
 	bool debug = canvas.data != nullptr;
 
@@ -1639,6 +1639,17 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 							.rightSideMetric = 0.0
 					};
 				}
+			}
+		}
+
+		for (auto basket : baskets) {
+			if (basket->y + basket->height / 2 <= y) {
+				basket->straightAheadInfo = Object::StraightAheadInfo{
+						.reach = reach,
+						.driveability = (float)validCount / (float)totalCount,
+						.leftSideMetric = (float)leftInvalidCount / (float)totalSideCount,
+						.rightSideMetric = (float)rightInvalidCount / (float)totalSideCount
+				};
 			}
 		}
 	}
