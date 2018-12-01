@@ -693,7 +693,7 @@ bool Vision::isBallWithinBorders(Object* ball, ObjectList& baskets) {
 
 	auto checkBorderBetweenPoints = [ &isBallValid, &colorsFromInside, &ball, &debug, this ] (int startX, int startY, int endX, int endY) {
         if (!isBallValid) {
-            return;
+            return false;
         }
 
         LineSegment segment = {
@@ -711,6 +711,10 @@ bool Vision::isBallWithinBorders(Object* ball, ObjectList& baskets) {
         std::cout << ball->surroundMetrics[1] <<':' << ball->surroundMetrics[0] << std::endl;
         float metrics = ball->surroundMetrics[0]; //+ ball->surroundMetrics[1]; */
 
+        if (borderDirection == 1) {
+        	return true;
+        }
+
         if (borderDirection == -1) {
 			int distance = std::max(abs(borderSegment.startX - startX), abs(borderSegment.startY - startY));
 
@@ -723,17 +727,37 @@ bool Vision::isBallWithinBorders(Object* ball, ObjectList& baskets) {
 				isBallValid = false;
 			}
         }
+
+        return false;
 	};
 
 	if (ball->y < Config::surroundSenseThresholdY) {
         // From ball to bottom
-        checkBorderBetweenPoints(ball->x, ball->y + ball->width, ball->x, Config::surroundSenseThresholdY);
+        if (checkBorderBetweenPoints(ball->x, ball->y + ball->width, ball->x, Config::surroundSenseThresholdY)) {
+        	return true;
+        }
+
+        // Ignore regions near baskets
+        int minX = 0;
+        int maxX = Config::cameraWidth;
+
+        for (auto basket : baskets) {
+            if (ball->x > basket->x && basket->x > minX) {
+                minX = basket->x + basket->width * 2;
+            } else if (ball->x < basket->x && basket->x < maxX) {
+                maxX = basket->x - basket->width * 2;
+            }
+        }
 
         // From ball to right
-        checkBorderBetweenPoints(ball->x + ball->width / 2, ball->y + ball->width / 2, Config::cameraWidth, ball->y + ball->width / 2);
+        if (checkBorderBetweenPoints(ball->x + ball->width / 2, ball->y + ball->width / 2, maxX, ball->y + ball->width / 2)) {
+        	return true;
+        }
 
         // From ball to left
-        checkBorderBetweenPoints(ball->x - ball->width / 2, ball->y + ball->width / 2, 0, ball->y + ball->width / 2);
+        if (checkBorderBetweenPoints(ball->x - ball->width / 2, ball->y + ball->width / 2, minX, ball->y + ball->width / 2)) {
+        	return true;
+        }
     }
 
 	// From ball to top
@@ -748,7 +772,9 @@ bool Vision::isBallWithinBorders(Object* ball, ObjectList& baskets) {
 		}
 
 		if (checkToTop) {
-            checkBorderBetweenPoints(ball->x, ball->y - ball->width / 2, ball->x, 50);
+            if (checkBorderBetweenPoints(ball->x, ball->y - ball->width / 2, ball->x, 50)) {
+            	return true;
+            }
 		}
 	}
 
