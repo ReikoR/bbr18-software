@@ -420,14 +420,14 @@ function toggleBasketColour() {
         ? basketColours.magenta : basketColours.blue);
 }
 
-function isBasketDistanceCorrect() {
+function isBasketDistanceCorrect(percent = 1.5) {
     const lidarDistance = mainboardState.lidarDistance;
 
     if (processedVisionState.basket) {
         const w = basketWidthSampler(processedVisionState.basket.w);
         const estimate = -19.57441435527052 + 14799.40959516034 / (w + 11.976158790286876);
 
-        if (estimate / lidarDistance < 1.5 || estimate < 50) {
+        if (estimate / lidarDistance < percent || estimate < 50) {
             /*
             if (throwerState === throwerStates.THROW_BALL) {
                 console.log('USE ESTIMATION', {estimate, lidarDistance, ratio: estimate / lidarDistance, w});
@@ -1235,6 +1235,9 @@ function resetMotionDriveGrabBall() {
 let driveWithBallTimeout = null;
 const driveWithBallTimeoutDelay = 2000;
 let isDriveWithBallNoBasket = false;
+let isDriveWithBallToBasket = false;
+let driveWithBallStartTime = null;
+let driveWithBallToBasketCount = 0;
 
 function handleMotionDriveWithBall() {
     const basket = processedVisionState.basket;
@@ -1251,6 +1254,11 @@ function handleMotionDriveWithBall() {
     const maxRotationSpeed = 2;
     let rotationSpeed = 0;
 
+    if (throwerState === throwerStates.EJECT_BALL) {
+        setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, -0.1, 0, true));
+        return;
+    }
+
     if (basket) {
         clearTimeout(driveWithBallTimeout);
         driveWithBallTimeout = null;
@@ -1262,19 +1270,60 @@ function handleMotionDriveWithBall() {
         const errorY = 0.1 * frameHeight - basketY;
         const normalizedErrorY = errorY / frameHeight;
         const maxForwardSpeed = 3;
-        const sideSpeed = -0.5 * getBackboardAngle(basket);
 
+        let sideSpeed = -0.5 * getBackboardAngle(basket);
         let forwardSpeed = Math.sign(normalizedErrorY) *
             Math.max(Math.abs(maxForwardSpeed * normalizedErrorY), 0.5);
         rotationSpeed = Math.sign(-errorX) * Math.max(Math.abs(maxRotationSpeed * errorX / frameWidth), 0.1);
 
+        if (isDriveWithBallToBasket) {
+            if (mainboardState.lidarDistance < 100) {
+                forwardSpeed = -0.1;
+            } else {
+                forwardSpeed = util.mapFromRangeToRange(mainboardState.lidarDistance, 100, 500, -0.1, 2);
+            }
+
+            rotationSpeed *= 8;
+
+            const leftSideMetric = basket.straightAhead.leftSideMetric;
+            const rightSideMetric = basket.straightAhead.rightSideMetric;
+            const normalizedMetrics = util.getNormalizedMetrics([leftSideMetric, rightSideMetric]);
+            let sideMetric = -leftSideMetric + rightSideMetric;
+            let normalizedSideMetric = -normalizedMetrics[0] + normalizedMetrics[1];
+
+            if (normalizedSideMetric < 0.2 && (normalizedMetrics[0] > 0.2 || normalizedMetrics[1] > 0.2)) {
+                if (normalizedSideMetric > 0) {
+                    normalizedSideMetric = normalizedMetrics[1];
+                } else {
+                    normalizedSideMetric = -normalizedMetrics[0];
+                }
+            }
+
+            if (driveToBallStartTime === null) {
+                driveToBallStartTime = Date.now();
+            }
+
+            const elapsedTime = Date.now() - driveToBallStartTime;
+
+            if ((mainboardState.lidarDistance < 300 && (
+                Math.abs(normalizedSideMetric) < 0.2
+                || (Math.abs(errorX) < 20 && isBasketDistanceCorrect(1.3))
+            )) || elapsedTime > 2000) {
+                console.log('exit', { sideMetric, errorX, elapsedTime, basketCorrect: isBasketDistanceCorrect(), normalizedSideMetric });
+                setThrowerState(throwerStates.EJECT_BALL);
+            }
+
+            sideSpeed = -Math.sign(normalizedSideMetric) * Math.max(Math.abs(normalizedSideMetric), 0.1);
+        }
+
         if (throwerState === throwerStates.EJECT_BALL) {
+            sideSpeed = 0;
             forwardSpeed = -0.1;
         }
 
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(sideSpeed, forwardSpeed, rotationSpeed, true));
 
-        if (basketY < 200) {
+        if (!isDriveWithBallToBasket && basketY < 200) {
             setThrowerState(throwerStates.EJECT_BALL);
         }
     } else {
@@ -1330,6 +1379,8 @@ function handleMotionDriveWithBall() {
 function resetMotionDriveWithBall() {
     clearTimeout(driveWithBallTimeout);
     driveWithBallTimeout = null;
+    isDriveWithBallToBasket = false;
+    driveToBallStartTime = null;
 }
 
 let findBasketStartTime = null;
@@ -1459,13 +1510,26 @@ function handleMotionFindBasket() {
         isBasketErrorXSmallEnough = Math.abs(basketErrorX) < 40;
         rotationSpeed = maxRotationSpeed * -basketErrorX / (frameWidth / 2);
 
-        if (isBasketErrorXSmallEnough && isBallCloseEnough) {
-            if (!isBasketDistanceCorrect()) {
-                // Wait
-                console.log('claude');
+        if (isBasketErrorXSmallEnough && mainboardState.lidarDistance > 350) {
+            setMotionState(motionStates.DRIVE_GRAB_BALL);
+            setThrowerState(throwerStates.GRAB_BALL);
+        }
 
-                // Drive with ball
+        if (isBasketErrorXSmallEnough && isBallCloseEnough) {
+            if (mainboardState.lidarDistance > 350) {
                 isDriveWithBallToBasket = true;
+                setMotionState(motionStates.DRIVE_GRAB_BALL);
+                setThrowerState(throwerStates.GRAB_BALL);
+            } else if (!isBasketDistanceCorrect()) {
+                /*driveWithBallToBasketCount++;
+
+                if (driveWithBallToBasketCount >= 1) {
+                    driveWithBallToBasketCount = 0;
+                    isDriveWithBallToBasket = false;
+                } else {
+                    */isDriveWithBallToBasket = true;
+                //}
+
                 setMotionState(motionStates.DRIVE_GRAB_BALL);
                 setThrowerState(throwerStates.GRAB_BALL);
             } else {
@@ -1504,6 +1568,8 @@ function resetMotionFindBasket() {
     isThrowerSpeedStable = false;
     stableThrowerSpeedCount = 0;
     unstableThrowerSpeedAllowedError = 100;
+    findBasketHasBall = false;
+    findBasketBallErrorSampler = util.getSampler(10, findBasketBallErrorReducer);
 
     if (throwerState === throwerStates.THROW_BALL) {
         setThrowerState(throwerStates.IDLE);
@@ -1535,7 +1601,7 @@ function handleMotionGetRidOfBall() {
 let nudgeBallTimeout = null;
 
 function handleMotionNudgeBall() {
-    const rotationSpeed = 8 * -processedVisionState.lastVisibleBasketDirection;
+    const rotationSpeed = 8 * -processedVisionState.basketDirection;
 
     setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, 0, rotationSpeed, true));
 
