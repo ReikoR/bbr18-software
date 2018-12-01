@@ -1012,7 +1012,7 @@ function calculateSideSpeedBallBasketAlign(sideSpd, basket, ballY, maxSpeed) {
 }
 
 const grabBallStartSpeed = 0.2;
-const grabBallMaxSpeed = 1.5;
+const grabBallMaxSpeed = 2;
 
 function handleMotionGrabBall() {
 
@@ -1108,7 +1108,7 @@ function handleMotionGrabBall() {
         const isCloseToEdge = reach > slowdownReach;
 
         if (isCloseToEdge && !isBasketTooClose) {
-            const clampSpeed = util.clamped(1 - util.clamped(reach - slowdownReach, 0, maxReach) / maxReach, 0.1, 1);
+            const clampSpeed = util.clamped(1 - util.clamped(reach - slowdownReach, 0, maxReach) / maxReach, 0.1, 0.9);
             forwardSpeed *= Math.pow(clampSpeed, 2);
         }
 
@@ -1337,7 +1337,7 @@ function handleMotionFindBasket() {
     const maxThrowDistance = 400;
     const minForwardSpeed = 0.2;
     const defaultAimFrames = 5;
-    const maxAimFrames = 10;
+    const maxAimFrames = 7;
     let minValidAimFrames = defaultAimFrames;
 
     let sideSpeed = 0;
@@ -1483,7 +1483,8 @@ function handleMotionFindBasket() {
             rotationSpeed = 0;
             forwardSpeed = 0;
             sideSpeed = 0;
-            if (validAimFrames > aimFrames) {
+            if (validAimFrames > aimFrames && throwerState === throwerStates.HOLD_BALL) {
+
                 setThrowerState(throwerStates.THROW_BALL);
                 validAimFrames = 0;
             }
@@ -1554,9 +1555,9 @@ function handleThrowerThrowBall() {
 let grabStaggerCounter = 0;
 
 function handleThrowerGrabBall() {
-    const feederGrabSpeed = 70;
+    const feederGrabSpeed = 80;
     const feederTweakSpeed = 25;
-    const stagger = 3;
+    const stagger = 5;
 
     if (mainboardState.balls[1] && !mainboardState.balls[0]) {
         aiState.speeds[5] = -feederTweakSpeed;
