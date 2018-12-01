@@ -176,6 +176,7 @@ let checkBallsIterations;
  * @property {?VisionBasketInfo} otherBasket
  * @property {number} lastVisibleBasketDirection
  * @property {number} basketDirection
+ * @property {number} filteredBasketWidth
  * @property {{straightAhead: VisionStraightAheadInfo}} metrics
  * @property {number} borderY
  */
@@ -190,6 +191,7 @@ let processedVisionState = {
     otherBasket: null,
     lastVisibleBasketDirection: -1,
     basketDirection: -1,
+    filteredBasketWidth: null,
     metrics: {}
 };
 
@@ -198,6 +200,7 @@ let lidarDistanceSamples = [];
 
 const borderYSampler = util.getSampler(3, util.arrayMax);
 const reachSampler = util.getSampler(3, util.arrayMax);
+const basketWidthSampler = util.getSampler(10, util.average);
 
 const mainboardButtonEvents = {
     NONE: 0,
@@ -415,6 +418,27 @@ function toggleBasketColour() {
         ? basketColours.magenta : basketColours.blue);
 }
 
+function isBasketDistanceCorrect() {
+    const lidarDistance = mainboardState.lidarDistance;
+
+    if (processedVisionState.basket) {
+        const w = basketWidthSampler(processedVisionState.basket.w);
+        const estimate = -19.57441435527052 + 14799.40959516034 / (w + 11.976158790286876);
+
+        if (estimate / lidarDistance < 1.5 || estimate < 50) {
+            /*
+            if (throwerState === throwerStates.THROW_BALL) {
+                console.log('USE ESTIMATION', {estimate, lidarDistance, ratio: estimate / lidarDistance, w});
+            }
+            */
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /**
  * @param {VisionBallInfo} ball
  * @param {VisionBasketInfo} basket
@@ -542,6 +566,10 @@ function processVisionInfo(info) {
             aiState.basketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
             console.log('aiState.otherBasketBottomFilterThreshold', aiState.otherBasketBottomFilterThreshold);
         }
+    }
+
+    if (!basket) {
+        basketWidthSampler(undefined, true);
     }
 
     processedVisionState.basket = basket;
@@ -1402,6 +1430,17 @@ function handleMotionFindBasket() {
 
         if (isBasketErrorXSmallEnough && isBallCloseEnough) {
             setThrowerState(throwerStates.THROW_BALL);
+            if (!isBasketDistanceCorrect()) {
+                // Wait
+                console.log('claude');
+
+                // Drive with ball
+                isDriveWithBallToBasket = true;
+                setMotionState(motionStates.DRIVE_GRAB_BALL);
+                setThrowerState(throwerStates.GRAB_BALL);
+            } else {
+                setThrowerState(throwerStates.THROW_BALL);
+            }
         }
     }
 
