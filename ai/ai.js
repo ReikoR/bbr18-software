@@ -548,26 +548,56 @@ function processVisionInfo(info) {
                 }
             }
         }
+    }
 
-        // Reset threshold back to default if basket is above it
-        if (isTargetColour) {
-            if (
-                basket &&
-                basket.bottomMetric >= defaultBasketBottomFilterThreshold &&
-                aiState.basketBottomFilterThreshold !== defaultBasketBottomFilterThreshold
-            ) {
-                aiState.basketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
-                console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
-            }
-        } else if (
-            otherBasket &&
-            otherBasket.bottomMetric >= defaultBasketBottomFilterThreshold &&
-            aiState.otherBasketBottomFilterThreshold !== defaultBasketBottomFilterThreshold
+    // Reset threshold back to default if basket is above it
+    if (
+        basket &&
+        basket.bottomMetric >= defaultBasketBottomFilterThreshold// &&
+        //aiState.basketBottomFilterThreshold !== defaultBasketBottomFilterThreshold
+    ) {
+        if (
+            motionState === motionStates.FIND_BASKET
+            || motionState === motionStates.DRIVE_WITH_BALL
+            || motionState === motionStates.DRIVE_TO_BALL
+            || motionState === motionStates.DRIVE_GRAB_BALL
         ) {
-            aiState.otherBasketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
+            if (aiState.basketBottomFilterThreshold !== 0) {
+                console.log('aiState.basketBottomFilterThreshold', 0);
+            }
+
+            aiState.basketBottomFilterThreshold = 0;
+        } else {
+            if (aiState.basketBottomFilterThreshold !== defaultBasketBottomFilterThreshold) {
+                console.log('aiState.basketBottomFilterThreshold', defaultBasketBottomFilterThreshold);
+            }
+
             aiState.basketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
-            console.log('aiState.otherBasketBottomFilterThreshold', aiState.otherBasketBottomFilterThreshold);
         }
+    } else if (
+        (!basket || basket.bottomMetric < defaultBasketBottomFilterThreshold)
+        && motionState === motionStates.DRIVE_TO_BALL
+    ) {
+        // Reset basket threshold when in DRIVE_TO_BALL and good basket not in vision
+        if (aiState.basketBottomFilterThreshold !== defaultBasketBottomFilterThreshold) {
+            console.log('aiState.basketBottomFilterThreshold', defaultBasketBottomFilterThreshold);
+        }
+
+        aiState.basketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
+    }
+
+    if (
+        otherBasket &&
+        otherBasket.bottomMetric >= defaultBasketBottomFilterThreshold &&
+        aiState.otherBasketBottomFilterThreshold !== defaultBasketBottomFilterThreshold
+    ) {
+        aiState.otherBasketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
+        aiState.basketBottomFilterThreshold = defaultBasketBottomFilterThreshold;
+        //console.log('aiState.otherBasketBottomFilterThreshold', aiState.otherBasketBottomFilterThreshold);
+    }
+
+    if (basket && basket.bottomMetric < threshold) {
+        basket = null;
     }
 
     if (!basket) {
