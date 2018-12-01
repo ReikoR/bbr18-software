@@ -175,6 +175,7 @@ let checkBallsIterations;
  * @property {?VisionBasketInfo} basket
  * @property {?VisionBasketInfo} otherBasket
  * @property {number} lastVisibleBasketDirection
+ * @property {number} basketDirection
  * @property {{straightAhead: VisionStraightAheadInfo}} metrics
  * @property {number} borderY
  */
@@ -188,6 +189,7 @@ let processedVisionState = {
     basket: null,
     otherBasket: null,
     lastVisibleBasketDirection: -1,
+    basketDirection: -1,
     metrics: {}
 };
 
@@ -617,7 +619,14 @@ function processVisionInfo(info) {
     }
 
     if (processedVisionState.basket) {
-        processedVisionState.lastVisibleBasketDirection =  Math.sign(frameWidth / 2 - processedVisionState.basket.cx);
+        processedVisionState.lastVisibleBasketDirection = Math.sign(frameCenterX - processedVisionState.basket.cx);
+        processedVisionState.basketDirection = processedVisionState.lastVisibleBasketDirection;
+    } else if (processedVisionState.otherBasket) {
+        const otherBasketDirection = Math.sign(frameCenterX - processedVisionState.otherBasket.cx);
+
+        if (otherBasketDirection === processedVisionState.lastVisibleBasketDirection) {
+            processedVisionState.basketDirection = -otherBasketDirection;
+        }
     }
 
     //console.log(processedVisionState);
@@ -670,6 +679,7 @@ function sendState() {
         isManualOverride: aiState.isManualOverride,
         isCompetition: aiState.isCompetition,
         basketColour: aiState.basketColour,
+        basketDirection: processedVisionState.basketDirection,
         ballThrowLidarDistance: aiState.ballThrowLidarDistance,
         ballThrowSpeed: aiState.ballThrowSpeed,
         ballThrowBasketOffset: aiState.ballThrowBasketOffset,
@@ -1254,7 +1264,7 @@ function handleMotionDriveWithBall() {
             }
         } else {
             // Try to find basket
-            rotationSpeed = maxRotationSpeed * processedVisionState.lastVisibleBasketDirection;
+            rotationSpeed = maxRotationSpeed * processedVisionState.basketDirection;
         }
 
         setAiStateSpeeds(omniMotion.calculateSpeedsFromXY(0, forwardSpeed, rotationSpeed, true));
@@ -1293,7 +1303,7 @@ function handleMotionFindBasket() {
     const maxRotationSpeed = 3;
     const maxSideSpeed = 5;
     const maxForwardSpeed = 5;
-    let rotationSpeed = maxRotationSpeed * processedVisionState.lastVisibleBasketDirection;
+    let rotationSpeed = maxRotationSpeed * processedVisionState.basketDirection;
     let xSpeed = 0;
     let forwardSpeed = 0;
     let isBasketErrorXSmallEnough = false;
