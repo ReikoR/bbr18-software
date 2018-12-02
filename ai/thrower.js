@@ -4,7 +4,7 @@ let measurements = require('../calibration/measurements.json');
 const minServo = 1085;
 const maxServo = 1650;
 
-const speedOffset = -90;
+const speedOffset = 560;
 
 function reloadMeasurements () {
     delete require.cache[require.resolve('../training/measurements.json')];
@@ -20,20 +20,14 @@ function getSpeed (distance) {
 const aimOffset = 21;
 
 const distanceToSpeedMapClose = [
-    /*[0.26, 7700],
-    [0.49, 8700],
-    [0.80, 9700],
-    [1.05, 11000],
-    [1.45, 13000],
-    [1.92, 14100],
-    [2.45, 16500]*/
     [26, 7200],
-    [49, 8320],
-    [80, 9650],
-    [105, 10750],
+    [49, 8740],
+    [80, 9800],
+    [105, 10800],
     [124, 11400],
-    [145, 12560],
-    [192, 13980],
+    [135, 12000],
+    [145, 12450],
+    [192, 13850],
     [245, 17020]
 ];
 
@@ -42,17 +36,17 @@ const distanceToSpeedMapFar = [
     [144, 9200],
     [176, 9000],
     [215, 11050],
-    [265, 12050],
-    [355, 14100],
+    [265, 12100],
+    [355, 13850],
     [440, 15100],
     [520, 18100]
 ];
 
 function getAimOffset(distance) {
     if (distance < 200)
-        return Math.round(distance / 170 * aimOffset);
+        return Math.round(distance / 120 * aimOffset);
     else
-        return Math.round(distance / 350 * aimOffset);
+        return Math.round(distance / 320 * aimOffset);
 }
 
 

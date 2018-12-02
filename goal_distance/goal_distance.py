@@ -118,7 +118,7 @@ try:
         x = 680
         y = 350
         w = 30
-        h = 3
+        h = 4
 
         cv2.rectangle(color_image, (x, y), (x + w, y + h), (255, 255, 0), 1)
 
