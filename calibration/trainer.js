@@ -110,7 +110,7 @@ class Trainer {
             this.throwerSpeedTrainer.train(input, m.fb[0] === -1 ? 0 : 1);
         }
 
-        if (this.trainCenterOffset && m.fb[1] && m.angle !== 0) {
+        if (this.trainCenterOffset && m.fb[1] && m.angle !== 0 && m.distance < 400) {
             const input = new convnet.Vol([m.angle/MAX_ANGLE, m.centerOffset/MAX_CENTER_OFFSET]);
             this.centerOffsetTrainer.train(input, m.fb[1] === -1 ? 0 : 1);
         }

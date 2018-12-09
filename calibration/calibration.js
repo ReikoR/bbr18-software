@@ -58,6 +58,10 @@ exports.getCenterOffset = function (technique, distance, angle) {
         return 0;
     }
 
+    if (distance >= 400) {
+        return -2;
+    }
+
     const data = COMPETITION_DATA[technique];
     const angleStep = Math.max(0, Math.min(199, Math.round((angle + MAX_ANGLE) / (2 * MAX_ANGLE) * 200)));
     //console.log(angleStep, angle, MAX_ANGLE);
