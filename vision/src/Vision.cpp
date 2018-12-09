@@ -737,6 +737,8 @@ bool Vision::isBallWithinBorders(Object* ball, ObjectList& baskets) {
         	return true;
         }
 
+        // TODO: Border detection does not work with basket backboards and black area outside the field and white walls
+        /*
         // Ignore regions near baskets
         int minX = 0;
         int maxX = Config::cameraWidth;
@@ -758,8 +760,10 @@ bool Vision::isBallWithinBorders(Object* ball, ObjectList& baskets) {
         if (checkBorderBetweenPoints(ball->x - ball->width / 2, ball->y + ball->width / 2, minX, ball->y + ball->width / 2)) {
         	return true;
         }
+         */
     }
 
+	/*
 	// From ball to top
 	if (isBallValid) {
 		bool checkToTop = true;
@@ -777,6 +781,7 @@ bool Vision::isBallWithinBorders(Object* ball, ObjectList& baskets) {
             }
 		}
 	}
+	 */
 
 	return isBallValid;
 }
