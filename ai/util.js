@@ -18,15 +18,19 @@ module.exports = {
     arrayMin: arr => Math.min.apply(Math, arr),
     arrayMax: arr => Math.max.apply(Math, arr),
     getSampler: (count, reducer) => {
-        const values = [];
+        let values = [];
 
-        return function (value) {
+        return function (value, clear = false) {
             if (value !== undefined) {
                 values.push(value);
 
                 if (values.length > count) {
                     values.splice(0, 1);
                 }
+            }
+
+            if (clear) {
+                values = [];
             }
 
             return reducer(values);
