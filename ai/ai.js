@@ -1117,7 +1117,7 @@ function handleMotionDriveToBall() {
         const normalizedCloseToBallErrorY = Math.abs(errorY) / 400;
 
         let avoidObstacleSideSpeed = 0;
-        let turnToBasketSideSpeed = 0;
+        //let turnToBasketSideSpeed = 0;
 
         if (isBasketTooClose(closestBasket) && errorY <= 50 && Math.abs(errorX) <= 50) {
             setThrowerState(throwerStates.GRAB_BALL);
@@ -1132,16 +1132,17 @@ function handleMotionDriveToBall() {
             }
         }
 
-        const maxTurnToBasketSideSpeed = 0.1;
+        // TODO: Turning towards basket is conflicting with avoiding obstacles
+        /*const maxTurnToBasketSideSpeed = 0.1;
 
         if (basket && Math.abs(sideMetric) < 0.1) {
             const basketCenterX = basket.cx;
             const basketErrorX = basketCenterX - frameCenterX;
             turnToBasketSideSpeed = maxTurnToBasketSideSpeed * -basketErrorX / (frameWidth / 2);
-        }
+        }*/
 
         sideSpeed += avoidObstacleSideSpeed;
-        sideSpeed += turnToBasketSideSpeed * forwardSpeed;
+        //sideSpeed += turnToBasketSideSpeed * forwardSpeed;
         sideSpeed = util.clamped(sideSpeed, -maxSideSpeed, maxSideSpeed);
 
         forwardSpeed *= Math.pow(util.mapFromRangeToRange(processedVisionState.metrics.filteredBorderY, 50, 820, 1, 0.7), 4);
