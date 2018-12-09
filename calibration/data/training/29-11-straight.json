@@ -255,39 +255,6 @@
     },
     {
       "technique": "straight",
-      "distance": 70,
-      "throwerSpeed": 7352.5848388671875,
-      "centerOffset": 10,
-      "angle": -0.7321835471790016,
-      "fb": [
-        -1,
-        0
-      ]
-    },
-    {
-      "technique": "straight",
-      "distance": 68,
-      "throwerSpeed": 7289.3829345703125,
-      "centerOffset": 10,
-      "angle": -0.7410436002347749,
-      "fb": [
-        0,
-        0
-      ]
-    },
-    {
-      "technique": "straight",
-      "distance": 213,
-      "throwerSpeed": 11823.974609375,
-      "centerOffset": 6,
-      "angle": -0.13701913588871328,
-      "fb": [
-        -1,
-        0
-      ]
-    },
-    {
-      "technique": "straight",
       "distance": 85,
       "throwerSpeed": 7513.959884643555,
       "centerOffset": -1,
@@ -431,28 +398,6 @@
     },
     {
       "technique": "straight",
-      "distance": 65,
-      "throwerSpeed": 7014.251708984375,
-      "centerOffset": 1,
-      "angle": -0.12878597581163753,
-      "fb": [
-        0,
-        0
-      ]
-    },
-    {
-      "technique": "straight",
-      "distance": 48,
-      "throwerSpeed": 6540.382385253906,
-      "centerOffset": 13,
-      "angle": 0.19868576978989627,
-      "fb": [
-        0,
-        0
-      ]
-    },
-    {
-      "technique": "straight",
       "distance": 95,
       "throwerSpeed": 7850.462913513184,
       "centerOffset": 0,
@@ -464,54 +409,10 @@
     },
     {
       "technique": "straight",
-      "distance": 46,
-      "throwerSpeed": 6484.627723693848,
-      "centerOffset": 15,
-      "angle": 0.8299253423488763,
-      "fb": [
-        0,
-        0
-      ]
-    },
-    {
-      "technique": "straight",
       "distance": 154,
       "throwerSpeed": 9495.017051696777,
       "centerOffset": 2,
       "angle": -0.4152216135806599,
-      "fb": [
-        0,
-        0
-      ]
-    },
-    {
-      "technique": "straight",
-      "distance": 67,
-      "throwerSpeed": 7070.006370544434,
-      "centerOffset": 0,
-      "angle": -0.9578602447127337,
-      "fb": [
-        0,
-        0
-      ]
-    },
-    {
-      "technique": "straight",
-      "distance": 65,
-      "throwerSpeed": 7086.241722106934,
-      "centerOffset": 2,
-      "angle": -0.18437957593831478,
-      "fb": [
-        0,
-        0
-      ]
-    },
-    {
-      "technique": "straight",
-      "distance": 65,
-      "throwerSpeed": 7086.241722106934,
-      "centerOffset": 0,
-      "angle": -0.19230475787892665,
       "fb": [
         0,
         0
@@ -545,17 +446,6 @@
       "throwerSpeed": 7811.668395996094,
       "centerOffset": 9,
       "angle": 0.524677460317285,
-      "fb": [
-        0,
-        0
-      ]
-    },
-    {
-      "technique": "straight",
-      "distance": 53,
-      "throwerSpeed": 6751.4238357543945,
-      "centerOffset": 15,
-      "angle": -0.1809219423193098,
       "fb": [
         0,
         0
@@ -607,17 +497,6 @@
     },
     {
       "technique": "straight",
-      "distance": 135,
-      "throwerSpeed": 9025.532722473145,
-      "centerOffset": 9,
-      "angle": -0.16995359504361007,
-      "fb": [
-        0,
-        0
-      ]
-    },
-    {
-      "technique": "straight",
       "distance": 84,
       "throwerSpeed": 7620.939254760742,
       "centerOffset": 5,
@@ -657,17 +536,6 @@
       "angle": -0.7353160297350045,
       "fb": [
         0,
-        0
-      ]
-    },
-    {
-      "technique": "straight",
-      "distance": 212,
-      "throwerSpeed": 11146.067142486572,
-      "centerOffset": 1,
-      "angle": -0.10469719189775961,
-      "fb": [
-        1,
         0
       ]
     },
@@ -890,6 +758,2052 @@
         0,
         0
       ]
+    },
+    {
+      "technique": "straight",
+      "distance": 184,
+      "throwerSpeed": 10535.076141357422,
+      "centerOffset": -3,
+      "angle": 0,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 170,
+      "throwerSpeed": 10109.604835510254,
+      "centerOffset": 10,
+      "angle": -0.05728594585359015,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 150,
+      "throwerSpeed": 9613.411903381348,
+      "centerOffset": 2,
+      "angle": 0.05017714095575565,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 173,
+      "throwerSpeed": 10227.872848510742,
+      "centerOffset": -1,
+      "angle": 0.11057911016909672,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 153,
+      "throwerSpeed": 9618.612289428711,
+      "centerOffset": 1,
+      "angle": 0.11514373721994609,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 59,
+      "throwerSpeed": 6918.905258178711,
+      "centerOffset": -1,
+      "angle": -0.498496802831747,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 102,
+      "throwerSpeed": 8218.548774719238,
+      "centerOffset": 4,
+      "angle": -0.0028685814463778048,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 131,
+      "throwerSpeed": 9086.125373840332,
+      "centerOffset": 2,
+      "angle": -0.061429523348128234,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 152,
+      "throwerSpeed": 9586.114406585693,
+      "centerOffset": 8,
+      "angle": -0.17433865813076843,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 161,
+      "throwerSpeed": 9837.780475616455,
+      "centerOffset": 0,
+      "angle": -0.08679418322252752,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 116,
+      "throwerSpeed": 8574.69367980957,
+      "centerOffset": 12,
+      "angle": -0.15761527123787666,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 120,
+      "throwerSpeed": 8611.196041107178,
+      "centerOffset": -5,
+      "angle": -0.0031637687173331486,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 56,
+      "throwerSpeed": 6810.530662536621,
+      "centerOffset": 4,
+      "angle": -0.004973737762601349,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 74,
+      "throwerSpeed": 7267.276763916016,
+      "centerOffset": 3,
+      "angle": -0.09551279970459181,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 141,
+      "throwerSpeed": 9243.29662322998,
+      "centerOffset": 4,
+      "angle": -0.018557617732795628,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 102,
+      "throwerSpeed": 8106.60457611084,
+      "centerOffset": 7,
+      "angle": -0.6338876190766429,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 139,
+      "throwerSpeed": 9137.54940032959,
+      "centerOffset": -2,
+      "angle": -0.12452777995427466,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 97,
+      "throwerSpeed": 7918.747425079346,
+      "centerOffset": 1,
+      "angle": -0.33489052302598843,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 58,
+      "throwerSpeed": 6727.424144744873,
+      "centerOffset": 17,
+      "angle": -0.7395446145774827,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 107,
+      "throwerSpeed": 8197.094917297363,
+      "centerOffset": 0,
+      "angle": -0.03154660918734864,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 92,
+      "throwerSpeed": 7744.462013244629,
+      "centerOffset": 2,
+      "angle": 0.08336076945723103,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 162,
+      "throwerSpeed": 9760.852813720703,
+      "centerOffset": -1,
+      "angle": 0.03556644474438442,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 169,
+      "throwerSpeed": 9933.19034576416,
+      "centerOffset": -1,
+      "angle": -0.009123803391145713,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 148,
+      "throwerSpeed": 9373.061656951904,
+      "centerOffset": 8,
+      "angle": -0.044873063275335356,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 141,
+      "throwerSpeed": 9146.618366241455,
+      "centerOffset": 4,
+      "angle": -0.028709054619973418,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 157,
+      "throwerSpeed": 9574.390888214111,
+      "centerOffset": -5,
+      "angle": 0.04930303001136538,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 157,
+      "throwerSpeed": 9584.23900604248,
+      "centerOffset": -1,
+      "angle": -0.03795180520375241,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 85,
+      "throwerSpeed": 7583.739280700684,
+      "centerOffset": 4,
+      "angle": -0.14589705565564948,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 102,
+      "throwerSpeed": 8072.566509246826,
+      "centerOffset": 0,
+      "angle": 0,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 164,
+      "throwerSpeed": 9766.560554504395,
+      "centerOffset": 3,
+      "angle": 0.04930303001136538,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 138,
+      "throwerSpeed": 9050.066947937012,
+      "centerOffset": 9,
+      "angle": -0.02001046194787459,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 154,
+      "throwerSpeed": 9494.265079498291,
+      "centerOffset": 6,
+      "angle": -0.10047296447365361,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 214,
+      "throwerSpeed": 11226.79090499878,
+      "centerOffset": -4,
+      "angle": -0.07305132237787515,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 206,
+      "throwerSpeed": 11035.146713256836,
+      "centerOffset": 6,
+      "angle": -0.01625422633325102,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 199,
+      "throwerSpeed": 10836.98844909668,
+      "centerOffset": 0,
+      "angle": 0.026881314039425952,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 201,
+      "throwerSpeed": 10933.358669281006,
+      "centerOffset": 6,
+      "angle": -0.11114913878867705,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 150,
+      "throwerSpeed": 9422.41096496582,
+      "centerOffset": -1,
+      "angle": -0.27236002956649363,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 109,
+      "throwerSpeed": 8249.597072601318,
+      "centerOffset": 2,
+      "angle": 0.4002471424393963,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 117,
+      "throwerSpeed": 8478.44123840332,
+      "centerOffset": 0,
+      "angle": 0.6730171318306766,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 170,
+      "throwerSpeed": 9994.507789611816,
+      "centerOffset": 5,
+      "angle": 0.18034299612594107,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 141,
+      "throwerSpeed": 9164.96467590332,
+      "centerOffset": 4,
+      "angle": 0.13994968947396058,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 115,
+      "throwerSpeed": 8504.175901412964,
+      "centerOffset": 0,
+      "angle": 0.07651999011727706,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 98,
+      "throwerSpeed": 8014.592170715332,
+      "centerOffset": 4,
+      "angle": -0.15078440776629387,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 182,
+      "throwerSpeed": 10433.713912963867,
+      "centerOffset": 3,
+      "angle": 0.022268281377918253,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 192,
+      "throwerSpeed": 10721.710205078125,
+      "centerOffset": -1,
+      "angle": 0.08369968963264607,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 106,
+      "throwerSpeed": 8244.985580444336,
+      "centerOffset": 1,
+      "angle": -0.14429058129297911,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 177,
+      "throwerSpeed": 10289.724826812744,
+      "centerOffset": 1,
+      "angle": -0.12532469659211032,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 126,
+      "throwerSpeed": 8820.969104766846,
+      "centerOffset": 2,
+      "angle": -0.12397166393818315,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 100,
+      "throwerSpeed": 8072.18599319458,
+      "centerOffset": -2,
+      "angle": -0.30463525685568604,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 59,
+      "throwerSpeed": 6984.535217285156,
+      "centerOffset": 0,
+      "angle": -0.2756800933687996,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 62,
+      "throwerSpeed": 7068.312168121338,
+      "centerOffset": -6,
+      "angle": -0.9006863843624897,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 190,
+      "throwerSpeed": 10679.59976196289,
+      "centerOffset": 1,
+      "angle": -0.04873701788285789,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 197,
+      "throwerSpeed": 10901.051044464111,
+      "centerOffset": 1,
+      "angle": 0.07745643638513944,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 75,
+      "throwerSpeed": 7431.333541870117,
+      "centerOffset": 2,
+      "angle": 0.2793210441852325,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 93,
+      "throwerSpeed": 7933.977127075195,
+      "centerOffset": 0,
+      "angle": 0.8479303551737147,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 196,
+      "throwerSpeed": 10869.41385269165,
+      "centerOffset": 0,
+      "angle": 0.10156046894770521,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 170,
+      "throwerSpeed": 10095.888137817383,
+      "centerOffset": 0,
+      "angle": 0.13282657923127206,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 107,
+      "throwerSpeed": 8322.864532470703,
+      "centerOffset": 1,
+      "angle": 0.8163833567051824,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 52,
+      "throwerSpeed": 6774.997711181641,
+      "centerOffset": 2,
+      "angle": 0.4239181702737173,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 112,
+      "throwerSpeed": 8463.582992553711,
+      "centerOffset": 3,
+      "angle": -0.7082495069134073,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 178,
+      "throwerSpeed": 10321.044921875,
+      "centerOffset": 3,
+      "angle": -0.13282658008410475,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 142,
+      "throwerSpeed": 9307.875633239746,
+      "centerOffset": -1,
+      "angle": -0.11884908058714305,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 88,
+      "throwerSpeed": 7788.148880004883,
+      "centerOffset": 7,
+      "angle": -0.6262168599124447,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 162,
+      "throwerSpeed": 9870.749473571777,
+      "centerOffset": 0,
+      "angle": -0.0328798157859278,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 157,
+      "throwerSpeed": 9735.30387878418,
+      "centerOffset": -1,
+      "angle": -0.12803685398190612,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 99,
+      "throwerSpeed": 8140.162467956543,
+      "centerOffset": 1,
+      "angle": -0.511401056257938,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 88,
+      "throwerSpeed": 7837.652206420898,
+      "centerOffset": 5,
+      "angle": 0.16158319286296097,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 219,
+      "throwerSpeed": 11665.027618408203,
+      "centerOffset": 4,
+      "angle": 0.03820803599504341,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 55,
+      "throwerSpeed": 6868.586540222168,
+      "centerOffset": 0,
+      "angle": -0.15258458394382846,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 54,
+      "throwerSpeed": 6849.832534790039,
+      "centerOffset": 13,
+      "angle": -0.9609456054525487,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 119,
+      "throwerSpeed": 8681.600570678711,
+      "centerOffset": -1,
+      "angle": 0.1133398573719211,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 134,
+      "throwerSpeed": 9106.56452178955,
+      "centerOffset": 7,
+      "angle": -0.6931132342005808,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 174,
+      "throwerSpeed": 10239.777565002441,
+      "centerOffset": -1,
+      "angle": -0.11375963380223642,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 123,
+      "throwerSpeed": 8794.921875,
+      "centerOffset": 3,
+      "angle": 0.08756204250895261,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 176,
+      "throwerSpeed": 10296.438217163086,
+      "centerOffset": -1,
+      "angle": -0.0050327878152891525,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 222,
+      "throwerSpeed": 11790.996551513672,
+      "centerOffset": 0,
+      "angle": 0.011984441879513308,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 70,
+      "throwerSpeed": 7300.127983093262,
+      "centerOffset": 1,
+      "angle": -0.6259716815290804,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 117,
+      "throwerSpeed": 8642.407417297363,
+      "centerOffset": 5,
+      "angle": 0.08029944594376781,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 131,
+      "throwerSpeed": 9042.23918914795,
+      "centerOffset": 1,
+      "angle": 0.2518919620607021,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 196,
+      "throwerSpeed": 10898.595809936523,
+      "centerOffset": 1,
+      "angle": 0.08713127626889494,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 211,
+      "throwerSpeed": 11353.656768798828,
+      "centerOffset": 0,
+      "angle": 0.026429303528148096,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 207,
+      "throwerSpeed": 11229.06494140625,
+      "centerOffset": 2,
+      "angle": -0.0654027811883735,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 83,
+      "throwerSpeed": 7682.456016540527,
+      "centerOffset": 5,
+      "angle": -0.24928408246300138,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 115,
+      "throwerSpeed": 8596.50993347168,
+      "centerOffset": 0,
+      "angle": 0,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 332,
+      "throwerSpeed": 14964.264869689941,
+      "centerOffset": -1,
+      "angle": 0,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 150,
+      "throwerSpeed": 9597.792625427246,
+      "centerOffset": -2,
+      "angle": -0.16108386431351984,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 136,
+      "throwerSpeed": 9200.69694519043,
+      "centerOffset": 0,
+      "angle": -0.004052186769707089,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 128,
+      "throwerSpeed": 8973.782539367676,
+      "centerOffset": 2,
+      "angle": 0.06726731140260045,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 109,
+      "throwerSpeed": 8434.863090515137,
+      "centerOffset": -3,
+      "angle": 0.2242787648143294,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 83,
+      "throwerSpeed": 7697.404861450195,
+      "centerOffset": 4,
+      "angle": 0.7305082515425414,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 82,
+      "throwerSpeed": 7669.029235839844,
+      "centerOffset": -1,
+      "angle": 0.26199878121989995,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 80,
+      "throwerSpeed": 7612.296104431152,
+      "centerOffset": -2,
+      "angle": -0.1818028508023598,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 90,
+      "throwerSpeed": 7895.943641662598,
+      "centerOffset": 4,
+      "angle": 0.12496372183781412,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 94,
+      "throwerSpeed": 8100.317001342773,
+      "centerOffset": 3,
+      "angle": 0.03482228865968651,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 97,
+      "throwerSpeed": 8180.5877685546875,
+      "centerOffset": 0,
+      "angle": 0.30537999099902347,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 88,
+      "throwerSpeed": 7939.793586730957,
+      "centerOffset": 5,
+      "angle": 0.14776174284705856,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 89,
+      "throwerSpeed": 9457.237243652344,
+      "centerOffset": 0,
+      "angle": 0.33848716153896585,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 80,
+      "throwerSpeed": 9365.043640136719,
+      "centerOffset": 1,
+      "angle": 0.19480380779269058,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 76,
+      "throwerSpeed": 9324.020385742188,
+      "centerOffset": 14,
+      "angle": 0.24393834746177434,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 79,
+      "throwerSpeed": 9354.751586914062,
+      "centerOffset": -3,
+      "angle": 0.22127451485311234,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 98,
+      "throwerSpeed": 9549.430847167969,
+      "centerOffset": 3,
+      "angle": 0.15495890226804,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 59,
+      "throwerSpeed": 9149.925231933594,
+      "centerOffset": 4,
+      "angle": -0.018917538042112048,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 116,
+      "throwerSpeed": 9733.963012695312,
+      "centerOffset": -1,
+      "angle": -0.17304494478321708,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 99,
+      "throwerSpeed": 9559.722900390625,
+      "centerOffset": 3,
+      "angle": 0.4294058741395365,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 65,
+      "throwerSpeed": 9211.387634277344,
+      "centerOffset": -3,
+      "angle": 0.4454314854501325,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 74,
+      "throwerSpeed": 8262.018203735352,
+      "centerOffset": -6,
+      "angle": 0.06187707601071557,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 111,
+      "throwerSpeed": 9009.496688842773,
+      "centerOffset": 0,
+      "angle": -0.9032570653417139,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 110,
+      "throwerSpeed": 8989.311218261719,
+      "centerOffset": 1,
+      "angle": -0.9203579866168444,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 54,
+      "throwerSpeed": 7857.982635498047,
+      "centerOffset": 6,
+      "angle": 0.4756515104723767,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 79,
+      "throwerSpeed": 8363.018035888672,
+      "centerOffset": 14,
+      "angle": 0.025708694143689037,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 61,
+      "throwerSpeed": 7999.3896484375,
+      "centerOffset": 0,
+      "angle": 0.298438204592699,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 94,
+      "throwerSpeed": 8666.053771972656,
+      "centerOffset": 0,
+      "angle": 0,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 100,
+      "throwerSpeed": 8545.122146606445,
+      "centerOffset": 2,
+      "angle": 0.24028467312058244,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 99,
+      "throwerSpeed": 8522.50862121582,
+      "centerOffset": 0,
+      "angle": 0,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 280,
+      "throwerSpeed": 12871.807098388672,
+      "centerOffset": -7,
+      "angle": -0.09884269985747052,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 192,
+      "throwerSpeed": 10690.834045410156,
+      "centerOffset": 1,
+      "angle": 0.03350275151888715,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 148,
+      "throwerSpeed": 9629.919052124023,
+      "centerOffset": 4,
+      "angle": 0.054585588086985326,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 246,
+      "throwerSpeed": 12703.474044799805,
+      "centerOffset": -32,
+      "angle": 0.024806962408207123,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 95,
+      "throwerSpeed": 8380.739212036133,
+      "centerOffset": -1,
+      "angle": 0.3055875021651655,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 57,
+      "throwerSpeed": 7533.293724060059,
+      "centerOffset": -2,
+      "angle": 0.2861089752428878,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 109,
+      "throwerSpeed": 8777.236938476562,
+      "centerOffset": 0,
+      "angle": 0.5275571733574727,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 102,
+      "throwerSpeed": 8638.692855834961,
+      "centerOffset": -2,
+      "angle": 0.4749176346421376,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 188,
+      "throwerSpeed": 10544.498443603516,
+      "centerOffset": 1,
+      "angle": -0.22219425416247873,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 211,
+      "throwerSpeed": 11549.676895141602,
+      "centerOffset": -5,
+      "angle": -0.17119676956228547,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 164,
+      "throwerSpeed": 9865.911483764648,
+      "centerOffset": -1,
+      "angle": 0.0199165161613003,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 154,
+      "throwerSpeed": 9667.970657348633,
+      "centerOffset": 0,
+      "angle": 0,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 76,
+      "throwerSpeed": 8124.017715454102,
+      "centerOffset": -5,
+      "angle": 0.15750349911015105,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 172,
+      "throwerSpeed": 10024.27864074707,
+      "centerOffset": 0,
+      "angle": -0.47449521800197775,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 197,
+      "throwerSpeed": 10937.843322753906,
+      "centerOffset": 0,
+      "angle": -0.11228091696258957,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 194,
+      "throwerSpeed": 10806.72836303711,
+      "centerOffset": 5,
+      "angle": -0.17157158323623423,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 161,
+      "throwerSpeed": 9806.550979614258,
+      "centerOffset": -1,
+      "angle": 0.24944092783338567,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 84,
+      "throwerSpeed": 8282.384872436523,
+      "centerOffset": -4,
+      "angle": 0.17119670730558456,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 97,
+      "throwerSpeed": 8539.722442626953,
+      "centerOffset": 1,
+      "angle": -0.14189015891933687,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 117,
+      "throwerSpeed": 8935.604095458984,
+      "centerOffset": 4,
+      "angle": 0.08224193004854563,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 154,
+      "throwerSpeed": 9667.970657348633,
+      "centerOffset": 3,
+      "angle": 0.2488382837211286,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 144,
+      "throwerSpeed": 9470.029830932617,
+      "centerOffset": -2,
+      "angle": -0.635592300423306,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 183,
+      "throwerSpeed": 10325.973510742188,
+      "centerOffset": 1,
+      "angle": -0.184889077620343,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 200,
+      "throwerSpeed": 11068.958282470703,
+      "centerOffset": 1,
+      "angle": -0.2429966442395144,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 201,
+      "throwerSpeed": 11112.663269042969,
+      "centerOffset": 0,
+      "angle": -0.16849678689051917,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 176,
+      "throwerSpeed": 10300.642013549805,
+      "centerOffset": 5,
+      "angle": -0.24413092857192564,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 178,
+      "throwerSpeed": 10350.852012634277,
+      "centerOffset": 7,
+      "angle": -0.15617373464368467,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 192,
+      "throwerSpeed": 10903.143882751465,
+      "centerOffset": 0,
+      "angle": -0.07772892715018087,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 216,
+      "throwerSpeed": 11863.729476928711,
+      "centerOffset": 3,
+      "angle": -0.27735012108422363,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 146,
+      "throwerSpeed": 9682.538986206055,
+      "centerOffset": -17,
+      "angle": -0.8574099893385628,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 158,
+      "throwerSpeed": 10000.070571899414,
+      "centerOffset": 4,
+      "angle": -0.3461286426540452,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 46,
+      "throwerSpeed": 6975.873947143555,
+      "centerOffset": 10,
+      "angle": -0.726689365010624,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 196,
+      "throwerSpeed": 11163.797378540039,
+      "centerOffset": -2,
+      "angle": -0.1835409341813553,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 159,
+      "throwerSpeed": 9872.25341796875,
+      "centerOffset": -27,
+      "angle": -0.880695561095164,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 174,
+      "throwerSpeed": 10311.006546020508,
+      "centerOffset": 4,
+      "angle": -0.3824490435295887,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 145,
+      "throwerSpeed": 9548.524856567383,
+      "centerOffset": -2,
+      "angle": -0.34488403835965786,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 124,
+      "throwerSpeed": 9079.801559448242,
+      "centerOffset": 0,
+      "angle": -0.05949314655468274,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 161,
+      "throwerSpeed": 9676.559448242188,
+      "centerOffset": 1,
+      "angle": -0.21927739313592698,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 255,
+      "throwerSpeed": 13403.569221496582,
+      "centerOffset": 1,
+      "angle": 0,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 125,
+      "throwerSpeed": 9102.12516784668,
+      "centerOffset": 1,
+      "angle": -0.1314220930077883,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 194,
+      "throwerSpeed": 11119.440078735352,
+      "centerOffset": 2,
+      "angle": -0.07062248841016261,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 140,
+      "throwerSpeed": 9436.906814575195,
+      "centerOffset": 4,
+      "angle": 0.05366562391271945,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 175,
+      "throwerSpeed": 10407.983779907227,
+      "centerOffset": -21,
+      "angle": -0.2773500981126146,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 145,
+      "throwerSpeed": 9576.257228851318,
+      "centerOffset": 2,
+      "angle": -0.005634266914238295,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 155,
+      "throwerSpeed": 9811.298370361328,
+      "centerOffset": 2,
+      "angle": 0.33026628949503645,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 98,
+      "throwerSpeed": 8449.956893920898,
+      "centerOffset": 0,
+      "angle": 0.5908529450186024,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 145,
+      "throwerSpeed": 9531.981468200684,
+      "centerOffset": 2,
+      "angle": 0.005502729746184376,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 221,
+      "throwerSpeed": 11975.220680236816,
+      "centerOffset": 4,
+      "angle": 0.10179194442413586,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 79,
+      "throwerSpeed": 7997.722625732422,
+      "centerOffset": -1,
+      "angle": 0.6950702594873059,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 129,
+      "throwerSpeed": 9175.92716217041,
+      "centerOffset": -1,
+      "angle": -0.3212120664227113,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 167,
+      "throwerSpeed": 10052.835464477539,
+      "centerOffset": -1,
+      "angle": -0.3074242459796007,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 148,
+      "throwerSpeed": 9614.372253417969,
+      "centerOffset": 3,
+      "angle": -0.3643900149394216,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 138,
+      "throwerSpeed": 9424.059867858887,
+      "centerOffset": 0,
+      "angle": -0.06448198892462376,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 150,
+      "throwerSpeed": 9679.676055908203,
+      "centerOffset": 14,
+      "angle": -0.4405166059742858,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 251,
+      "throwerSpeed": 13147.065162658691,
+      "centerOffset": 0,
+      "angle": -0.04873699547125143,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 192,
+      "throwerSpeed": 10974.082946777344,
+      "centerOffset": -3,
+      "angle": -0.24497097265950785,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 173,
+      "throwerSpeed": 10274.313926696777,
+      "centerOffset": 3,
+      "angle": -0.3775154647138849,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 166,
+      "throwerSpeed": 9979.16030883789,
+      "centerOffset": 11,
+      "angle": -0.35443171197684453,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 201,
+      "throwerSpeed": 11281.594276428223,
+      "centerOffset": 10,
+      "angle": -0.22518868439412798,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 163,
+      "throwerSpeed": 9945.964813232422,
+      "centerOffset": -4,
+      "angle": -0.0968261720536926,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 180,
+      "throwerSpeed": 10523.370742797852,
+      "centerOffset": 3,
+      "angle": -0.044771630639883875,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 161,
+      "throwerSpeed": 9898.943901062012,
+      "centerOffset": 3,
+      "angle": -0.14400955399970095,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 159,
+      "throwerSpeed": 9851.089477539062,
+      "centerOffset": 0,
+      "angle": 0.08176719643015484,
+      "fb": [
+        -1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 93,
+      "throwerSpeed": 8255.929946899414,
+      "centerOffset": -1,
+      "angle": -0.4181599512973856,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 182,
+      "throwerSpeed": 10641.511917114258,
+      "centerOffset": -2,
+      "angle": -0.2036786834759633,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 192,
+      "throwerSpeed": 11013.131141662598,
+      "centerOffset": 8,
+      "angle": -0.23834948132205303,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 149,
+      "throwerSpeed": 9662.027359008789,
+      "centerOffset": -1,
+      "angle": 0.09262549263035491,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 195,
+      "throwerSpeed": 11124.622344970703,
+      "centerOffset": -1,
+      "angle": -0.04645141734747826,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 111,
+      "throwerSpeed": 8766.111373901367,
+      "centerOffset": 6,
+      "angle": 0.7386608427369381,
+      "fb": [
+        1,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 121,
+      "throwerSpeed": 8998.479843139648,
+      "centerOffset": -4,
+      "angle": 0.6174429195778965,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 120,
+      "throwerSpeed": 8975.232124328613,
+      "centerOffset": -1,
+      "angle": -0.7332744138406262,
+      "fb": [
+        0,
+        0
+      ]
+    },
+    {
+      "technique": "straight",
+      "distance": 124,
+      "throwerSpeed": 9117.780685424805,
+      "centerOffset": -5,
+      "angle": 0.4796625632264058,
+      "fb": [
+        1,
+        0
+      ]
     }
   ],
   "throwerSpeedNet": {
@@ -914,8 +2828,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": -4.3931892507033085e-7,
-              "1": -6.832563476105947e-7
+              "0": 0.1257893602179081,
+              "1": 0.10654537311401585
             }
           },
           {
@@ -923,8 +2837,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": -0.20970626390421077,
-              "1": 5.638112907111629
+              "0": 8.249238184759301,
+              "1": 1.0576247823659095
             }
           },
           {
@@ -932,8 +2846,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": 10.568559517567108,
-              "1": -13.21282094741518
+              "0": -0.11540920570643688,
+              "1": 9.959146595420133
             }
           },
           {
@@ -941,8 +2855,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": -8.118854471114158,
-              "1": 10.087255464417451
+              "0": -10.09445472710248,
+              "1": 11.151068469749644
             }
           }
         ],
@@ -951,10 +2865,10 @@
           "sy": 1,
           "depth": 4,
           "w": {
-            "0": 3.257632060360889e-7,
-            "1": -2.3332316540711555,
-            "2": 3.6078973996166224,
-            "3": -2.4911742908211165
+            "0": -0.1106304966461515,
+            "1": -3.2317778784944173,
+            "2": -4.417149467954171,
+            "3": -2.5127170578178375
           }
         }
       },
@@ -978,10 +2892,10 @@
             "sy": 1,
             "depth": 4,
             "w": {
-              "0": -4.862170590518101e-7,
-              "1": 2.1650658661542774,
-              "2": -5.854258223291329,
-              "3": 4.480404593396343
+              "0": 0.12141292915615798,
+              "1": -2.2213086303702467,
+              "2": 1.9260760762707627,
+              "3": 2.94117632194782
             }
           },
           {
@@ -989,10 +2903,10 @@
             "sy": 1,
             "depth": 4,
             "w": {
-              "0": 4.860834471882813e-7,
-              "1": -2.1650658657396953,
-              "2": 5.85425822293178,
-              "3": -4.480404593908598
+              "0": -0.12172127221398285,
+              "1": 2.2220820811726956,
+              "2": -1.9262173278415147,
+              "3": -2.9409077583250287
             }
           }
         ],
@@ -1001,8 +2915,8 @@
           "sy": 1,
           "depth": 2,
           "w": {
-            "0": -0.6573555560131512,
-            "1": 0.6573555560131512
+            "0": -1.8055550169319634,
+            "1": 1.8055550169319634
           }
         }
       },
@@ -1037,8 +2951,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": -0.5792678844456385,
-              "1": 1.3499322255784596
+              "0": 0.5366116794575775,
+              "1": 0.02211704486729556
             }
           },
           {
@@ -1046,8 +2960,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": 0.47187248928406983,
-              "1": -0.9209221035971009
+              "0": 0.5111243356471227,
+              "1": -0.5548001807719122
             }
           },
           {
@@ -1055,8 +2969,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": -0.5715379487411443,
-              "1": 0.6273702784843953
+              "0": 1.013790824568411,
+              "1": -0.6039790945048946
             }
           },
           {
@@ -1064,8 +2978,8 @@
             "sy": 1,
             "depth": 2,
             "w": {
-              "0": -1.0956556654574308,
-              "1": -0.48861621211564094
+              "0": 1.033663911150685,
+              "1": -0.17595731761525832
             }
           }
         ],
@@ -1095,10 +3009,10 @@
             "sy": 1,
             "depth": 4,
             "w": {
-              "0": -0.7005219432127696,
-              "1": 0.38024142875698347,
-              "2": -0.4972454336632244,
-              "3": 1.2116356482385118
+              "0": 0.7170970695806026,
+              "1": -0.053176508068770764,
+              "2": -0.34253227991974666,
+              "3": 0.25047242796216396
             }
           },
           {
@@ -1106,10 +3020,10 @@
             "sy": 1,
             "depth": 4,
             "w": {
-              "0": 0.48708820493645205,
-              "1": 0.5032479463207835,
-              "2": -0.8143093009432454,
-              "3": -0.18706404296907933
+              "0": -0.13818839355054244,
+              "1": 0.030729805979636093,
+              "2": 0.0186396966284481,
+              "3": -0.03494365328119911
             }
           }
         ],
