@@ -1059,10 +1059,9 @@ function handleMotionDriveToBall() {
         const maxForwardSpeed = driveToBallForwardSpeedRampUpper();
         const maxRotationSpeed = driveToBallCurrentRotationSpeedLimit;
         const maxErrorForwardSpeed = 5;
-        const maxErrorRotationSpeed = 16;
-        const normalizedErrorY = errorY / frameHeight;
+        const maxErrorRotationSpeed = 8;
         let forwardSpeed = maxErrorForwardSpeed * Math.pow(normalizedErrorY, 2);
-        let rotationSpeed = maxErrorRotationSpeed * -errorX / frameWidth;
+        let rotationSpeed = maxErrorRotationSpeed * -errorX / frameCenterX;
 
         if (lastBallErrorY === -1) {
             lastBallErrorY = errorY;
