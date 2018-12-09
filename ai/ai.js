@@ -1387,6 +1387,14 @@ const requiredStableThrowerSpeedCount = 5;
 let stableThrowerSpeedCount = 0;
 let isThrowerSpeedStable = false;
 let unstableThrowerSpeedAllowedError = 100;
+let findBasketHasBall = false; // For when ball is so close that vision might not detect it
+let findBasketBallErrorSampler = util.getSampler(10, findBasketBallErrorReducer);
+
+function findBasketBallErrorReducer(values) {
+    const ordered = values.slice();
+    ordered.sort((a, b) => a.y - b.y);
+    return ordered[0];
+}
 
 function handleMotionFindBasket() {
     // Prevent rotating around ball when too close to the edge
@@ -1432,17 +1440,27 @@ function handleMotionFindBasket() {
         }
     }
 
+    if ((throwerState === throwerStates.THROW_BALL && mainboardState.balls[0])) {
+        findBasketHasBall = true;
+    }
+
     let ballErrorX = 0;
 
-    if (closestBall || throwerState === throwerStates.THROW_BALL && mainboardState.balls[0]) {
-        if (closestBall) {
+    if (closestBall || throwerState === throwerStates.THROW_BALL && findBasketHasBall) {
+        if (closestBall && !findBasketHasBall) {
             const reach = processedVisionState.metrics.filteredReach;
             const ballTargetY = frameHeight * (basket ? util.mapFromRangeToRange(reach, 100, 200, 0.84, 0.8) : 0.8);
             //console.log(reach, ballTargetY / frameHeight);
             const ballCenterX = closestBall.cx;
             const ballCenterY = closestBall.cy;
-            ballErrorX = ballCenterX - frameCenterX;
-            const ballErrorY = ballTargetY - ballCenterY;
+
+            const filteredBallError = findBasketBallErrorSampler({
+                x: ballCenterX - frameCenterX,
+                y: ballTargetY - ballCenterY
+            });
+
+            ballErrorX = filteredBallError.x;
+            const ballErrorY = filteredBallError.y;
 
             xSpeed = Math.sign(ballErrorX) * Math.pow(Math.abs(ballErrorX) / 400, 1.5);
             forwardSpeed = ballErrorY / 400;
