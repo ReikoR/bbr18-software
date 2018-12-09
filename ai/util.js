@@ -15,6 +15,7 @@ module.exports = {
         return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
     },
     average: arr => arr.reduce( ( p, c ) => p + c, 0 ) / arr.length,
+    arrayMin: arr => Math.min.apply(Math, arr),
     arrayMax: arr => Math.max.apply(Math, arr),
     getSampler: (count, reducer) => {
         const values = [];
