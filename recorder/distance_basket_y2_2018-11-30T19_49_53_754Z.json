@@ -1,0 +1,1991 @@
+[
+  {
+    "distance": 22,
+    "count": 17,
+    "stdDev": 8.693950487925795,
+    "mean": 457.94117647058823,
+    "min": 434,
+    "max": 470,
+    "median": 460
+  },
+  {
+    "distance": 23,
+    "count": 3,
+    "stdDev": 5.734883511361751,
+    "mean": 431.6666666666667,
+    "min": 425,
+    "max": 439,
+    "median": 431
+  },
+  {
+    "distance": 27,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 369,
+    "min": 369,
+    "max": 369,
+    "median": 369
+  },
+  {
+    "distance": 28,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 33,
+    "min": 33,
+    "max": 33,
+    "median": 33
+  },
+  {
+    "distance": 34,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 29,
+    "min": 29,
+    "max": 29,
+    "median": 29
+  },
+  {
+    "distance": 39,
+    "count": 2,
+    "stdDev": 3.5,
+    "mean": 32.5,
+    "min": 29,
+    "max": 36,
+    "median": 32.5
+  },
+  {
+    "distance": 40,
+    "count": 2,
+    "stdDev": 5,
+    "mean": 84,
+    "min": 79,
+    "max": 89,
+    "median": 84
+  },
+  {
+    "distance": 41,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 29,
+    "min": 29,
+    "max": 29,
+    "median": 29
+  },
+  {
+    "distance": 45,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 44,
+    "min": 44,
+    "max": 44,
+    "median": 44
+  },
+  {
+    "distance": 49,
+    "count": 2,
+    "stdDev": 1,
+    "mean": 216,
+    "min": 215,
+    "max": 217,
+    "median": 216
+  },
+  {
+    "distance": 50,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 216,
+    "min": 216,
+    "max": 216,
+    "median": 216
+  },
+  {
+    "distance": 59,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 183,
+    "min": 183,
+    "max": 183,
+    "median": 183
+  },
+  {
+    "distance": 75,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 140,
+    "min": 140,
+    "max": 140,
+    "median": 140
+  },
+  {
+    "distance": 76,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 138,
+    "min": 138,
+    "max": 138,
+    "median": 138
+  },
+  {
+    "distance": 85,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 124,
+    "min": 124,
+    "max": 124,
+    "median": 124
+  },
+  {
+    "distance": 101,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 110.5,
+    "min": 110,
+    "max": 111,
+    "median": 110.5
+  },
+  {
+    "distance": 102,
+    "count": 6,
+    "stdDev": 0.5,
+    "mean": 108.5,
+    "min": 108,
+    "max": 109,
+    "median": 108.5
+  },
+  {
+    "distance": 111,
+    "count": 2,
+    "stdDev": 0,
+    "mean": 97,
+    "min": 97,
+    "max": 97,
+    "median": 97
+  },
+  {
+    "distance": 114,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 90,
+    "min": 90,
+    "max": 90,
+    "median": 90
+  },
+  {
+    "distance": 115,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 90,
+    "min": 90,
+    "max": 90,
+    "median": 90
+  },
+  {
+    "distance": 118,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 90,
+    "min": 90,
+    "max": 90,
+    "median": 90
+  },
+  {
+    "distance": 119,
+    "count": 4,
+    "stdDev": 1.479019945774904,
+    "mean": 93.25,
+    "min": 91,
+    "max": 95,
+    "median": 93.5
+  },
+  {
+    "distance": 120,
+    "count": 2,
+    "stdDev": 2.5,
+    "mean": 93.5,
+    "min": 91,
+    "max": 96,
+    "median": 93.5
+  },
+  {
+    "distance": 121,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 90,
+    "min": 90,
+    "max": 90,
+    "median": 90
+  },
+  {
+    "distance": 124,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 90.66666666666667,
+    "min": 90,
+    "max": 91,
+    "median": 91
+  },
+  {
+    "distance": 125,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 91.66666666666667,
+    "min": 91,
+    "max": 92,
+    "median": 92
+  },
+  {
+    "distance": 129,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 89,
+    "min": 89,
+    "max": 89,
+    "median": 89
+  },
+  {
+    "distance": 130,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 89,
+    "min": 89,
+    "max": 89,
+    "median": 89
+  },
+  {
+    "distance": 131,
+    "count": 5,
+    "stdDev": 0.4,
+    "mean": 88.2,
+    "min": 88,
+    "max": 89,
+    "median": 88
+  },
+  {
+    "distance": 132,
+    "count": 4,
+    "stdDev": 0.8660254037844386,
+    "mean": 88.5,
+    "min": 88,
+    "max": 90,
+    "median": 88
+  },
+  {
+    "distance": 133,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 87,
+    "min": 87,
+    "max": 87,
+    "median": 87
+  },
+  {
+    "distance": 134,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 86.5,
+    "min": 86,
+    "max": 87,
+    "median": 86.5
+  },
+  {
+    "distance": 135,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 86,
+    "min": 86,
+    "max": 86,
+    "median": 86
+  },
+  {
+    "distance": 136,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 85.66666666666667,
+    "min": 85,
+    "max": 86,
+    "median": 86
+  },
+  {
+    "distance": 137,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 85.33333333333333,
+    "min": 85,
+    "max": 86,
+    "median": 85
+  },
+  {
+    "distance": 138,
+    "count": 4,
+    "stdDev": 2.165063509461097,
+    "mean": 83.75,
+    "min": 80,
+    "max": 85,
+    "median": 85
+  },
+  {
+    "distance": 139,
+    "count": 5,
+    "stdDev": 0.8944271909999159,
+    "mean": 84,
+    "min": 83,
+    "max": 85,
+    "median": 84
+  },
+  {
+    "distance": 140,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 83,
+    "min": 83,
+    "max": 83,
+    "median": 83
+  },
+  {
+    "distance": 141,
+    "count": 4,
+    "stdDev": 1.0897247358851685,
+    "mean": 82.75,
+    "min": 81,
+    "max": 84,
+    "median": 83
+  },
+  {
+    "distance": 142,
+    "count": 3,
+    "stdDev": 1.247219128924647,
+    "mean": 82.66666666666667,
+    "min": 81,
+    "max": 84,
+    "median": 83
+  },
+  {
+    "distance": 143,
+    "count": 5,
+    "stdDev": 1.019803902718557,
+    "mean": 81.6,
+    "min": 80,
+    "max": 83,
+    "median": 82
+  },
+  {
+    "distance": 144,
+    "count": 2,
+    "stdDev": 1,
+    "mean": 81,
+    "min": 80,
+    "max": 82,
+    "median": 81
+  },
+  {
+    "distance": 145,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 81,
+    "min": 81,
+    "max": 81,
+    "median": 81
+  },
+  {
+    "distance": 146,
+    "count": 3,
+    "stdDev": 0.9428090415820634,
+    "mean": 79.66666666666667,
+    "min": 79,
+    "max": 81,
+    "median": 79
+  },
+  {
+    "distance": 147,
+    "count": 5,
+    "stdDev": 1.3564659966250536,
+    "mean": 79.4,
+    "min": 77,
+    "max": 81,
+    "median": 80
+  },
+  {
+    "distance": 148,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 79.5,
+    "min": 79,
+    "max": 80,
+    "median": 79.5
+  },
+  {
+    "distance": 149,
+    "count": 2,
+    "stdDev": 0,
+    "mean": 80,
+    "min": 80,
+    "max": 80,
+    "median": 80
+  },
+  {
+    "distance": 150,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 78.66666666666667,
+    "min": 78,
+    "max": 79,
+    "median": 79
+  },
+  {
+    "distance": 151,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 77,
+    "min": 77,
+    "max": 77,
+    "median": 77
+  },
+  {
+    "distance": 152,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 76,
+    "min": 76,
+    "max": 76,
+    "median": 76
+  },
+  {
+    "distance": 153,
+    "count": 2,
+    "stdDev": 1,
+    "mean": 78,
+    "min": 77,
+    "max": 79,
+    "median": 78
+  },
+  {
+    "distance": 154,
+    "count": 7,
+    "stdDev": 1.2453996981544782,
+    "mean": 78.85714285714286,
+    "min": 76,
+    "max": 80,
+    "median": 79
+  },
+  {
+    "distance": 155,
+    "count": 3,
+    "stdDev": 0,
+    "mean": 79,
+    "min": 79,
+    "max": 79,
+    "median": 79
+  },
+  {
+    "distance": 156,
+    "count": 6,
+    "stdDev": 0.816496580927726,
+    "mean": 78,
+    "min": 77,
+    "max": 79,
+    "median": 78
+  },
+  {
+    "distance": 157,
+    "count": 3,
+    "stdDev": 0,
+    "mean": 78,
+    "min": 78,
+    "max": 78,
+    "median": 78
+  },
+  {
+    "distance": 158,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 77.33333333333333,
+    "min": 77,
+    "max": 78,
+    "median": 77
+  },
+  {
+    "distance": 159,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 76,
+    "min": 76,
+    "max": 76,
+    "median": 76
+  },
+  {
+    "distance": 160,
+    "count": 11,
+    "stdDev": 3.055952057085747,
+    "mean": 74.54545454545455,
+    "min": 65,
+    "max": 76,
+    "median": 75
+  },
+  {
+    "distance": 161,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 75.66666666666667,
+    "min": 75,
+    "max": 76,
+    "median": 76
+  },
+  {
+    "distance": 163,
+    "count": 2,
+    "stdDev": 0,
+    "mean": 68,
+    "min": 68,
+    "max": 68,
+    "median": 68
+  },
+  {
+    "distance": 164,
+    "count": 3,
+    "stdDev": 3.0912061651652345,
+    "mean": 67.33333333333333,
+    "min": 63,
+    "max": 70,
+    "median": 69
+  },
+  {
+    "distance": 167,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 65,
+    "min": 65,
+    "max": 65,
+    "median": 65
+  },
+  {
+    "distance": 168,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 64,
+    "min": 64,
+    "max": 64,
+    "median": 64
+  },
+  {
+    "distance": 172,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 64,
+    "min": 64,
+    "max": 64,
+    "median": 64
+  },
+  {
+    "distance": 173,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 64,
+    "min": 64,
+    "max": 64,
+    "median": 64
+  },
+  {
+    "distance": 174,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 64,
+    "min": 64,
+    "max": 64,
+    "median": 64
+  },
+  {
+    "distance": 176,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 64,
+    "min": 64,
+    "max": 64,
+    "median": 64
+  },
+  {
+    "distance": 177,
+    "count": 6,
+    "stdDev": 0,
+    "mean": 63,
+    "min": 63,
+    "max": 63,
+    "median": 63
+  },
+  {
+    "distance": 178,
+    "count": 4,
+    "stdDev": 0.8660254037844386,
+    "mean": 62.5,
+    "min": 62,
+    "max": 64,
+    "median": 62
+  },
+  {
+    "distance": 179,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 63.5,
+    "min": 63,
+    "max": 64,
+    "median": 63.5
+  },
+  {
+    "distance": 180,
+    "count": 10,
+    "stdDev": 0.6,
+    "mean": 61.8,
+    "min": 61,
+    "max": 63,
+    "median": 62
+  },
+  {
+    "distance": 181,
+    "count": 30,
+    "stdDev": 0.6798692684790382,
+    "mean": 62.06666666666667,
+    "min": 61,
+    "max": 63,
+    "median": 62
+  },
+  {
+    "distance": 182,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 61.666666666666664,
+    "min": 61,
+    "max": 62,
+    "median": 62
+  },
+  {
+    "distance": 183,
+    "count": 5,
+    "stdDev": 0.4898979485566356,
+    "mean": 61.4,
+    "min": 61,
+    "max": 62,
+    "median": 61
+  },
+  {
+    "distance": 184,
+    "count": 2,
+    "stdDev": 0,
+    "mean": 61,
+    "min": 61,
+    "max": 61,
+    "median": 61
+  },
+  {
+    "distance": 186,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 60,
+    "min": 60,
+    "max": 60,
+    "median": 60
+  },
+  {
+    "distance": 187,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 59,
+    "min": 59,
+    "max": 59,
+    "median": 59
+  },
+  {
+    "distance": 188,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 60,
+    "min": 60,
+    "max": 60,
+    "median": 60
+  },
+  {
+    "distance": 189,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 60,
+    "min": 60,
+    "max": 60,
+    "median": 60
+  },
+  {
+    "distance": 200,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 51,
+    "min": 51,
+    "max": 51,
+    "median": 51
+  },
+  {
+    "distance": 201,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 53,
+    "min": 53,
+    "max": 53,
+    "median": 53
+  },
+  {
+    "distance": 203,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 51,
+    "min": 51,
+    "max": 51,
+    "median": 51
+  },
+  {
+    "distance": 220,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 47,
+    "min": 47,
+    "max": 47,
+    "median": 47
+  },
+  {
+    "distance": 223,
+    "count": 2,
+    "stdDev": 0,
+    "mean": 48,
+    "min": 48,
+    "max": 48,
+    "median": 48
+  },
+  {
+    "distance": 224,
+    "count": 3,
+    "stdDev": 0,
+    "mean": 49,
+    "min": 49,
+    "max": 49,
+    "median": 49
+  },
+  {
+    "distance": 225,
+    "count": 3,
+    "stdDev": 0.9428090415820634,
+    "mean": 47.666666666666664,
+    "min": 47,
+    "max": 49,
+    "median": 47
+  },
+  {
+    "distance": 226,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 47.666666666666664,
+    "min": 47,
+    "max": 48,
+    "median": 48
+  },
+  {
+    "distance": 227,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 48,
+    "min": 48,
+    "max": 48,
+    "median": 48
+  },
+  {
+    "distance": 229,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 47.5,
+    "min": 47,
+    "max": 48,
+    "median": 47.5
+  },
+  {
+    "distance": 230,
+    "count": 2,
+    "stdDev": 1,
+    "mean": 45,
+    "min": 44,
+    "max": 46,
+    "median": 45
+  },
+  {
+    "distance": 231,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 45,
+    "min": 45,
+    "max": 45,
+    "median": 45
+  },
+  {
+    "distance": 232,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 46.5,
+    "min": 46,
+    "max": 47,
+    "median": 46.5
+  },
+  {
+    "distance": 233,
+    "count": 3,
+    "stdDev": 0.816496580927726,
+    "mean": 47,
+    "min": 46,
+    "max": 48,
+    "median": 47
+  },
+  {
+    "distance": 234,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 44.5,
+    "min": 44,
+    "max": 45,
+    "median": 44.5
+  },
+  {
+    "distance": 235,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 45,
+    "min": 45,
+    "max": 45,
+    "median": 45
+  },
+  {
+    "distance": 237,
+    "count": 2,
+    "stdDev": 1,
+    "mean": 45,
+    "min": 44,
+    "max": 46,
+    "median": 45
+  },
+  {
+    "distance": 238,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 46,
+    "min": 46,
+    "max": 46,
+    "median": 46
+  },
+  {
+    "distance": 239,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 44.5,
+    "min": 44,
+    "max": 45,
+    "median": 44.5
+  },
+  {
+    "distance": 242,
+    "count": 3,
+    "stdDev": 0.816496580927726,
+    "mean": 44,
+    "min": 43,
+    "max": 45,
+    "median": 44
+  },
+  {
+    "distance": 243,
+    "count": 9,
+    "stdDev": 0.3142696805273545,
+    "mean": 44.111111111111114,
+    "min": 44,
+    "max": 45,
+    "median": 44
+  },
+  {
+    "distance": 244,
+    "count": 3,
+    "stdDev": 0.816496580927726,
+    "mean": 44,
+    "min": 43,
+    "max": 45,
+    "median": 44
+  },
+  {
+    "distance": 245,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 45,
+    "min": 45,
+    "max": 45,
+    "median": 45
+  },
+  {
+    "distance": 246,
+    "count": 4,
+    "stdDev": 0.7071067811865476,
+    "mean": 44,
+    "min": 43,
+    "max": 45,
+    "median": 44
+  },
+  {
+    "distance": 247,
+    "count": 4,
+    "stdDev": 0.5,
+    "mean": 43.5,
+    "min": 43,
+    "max": 44,
+    "median": 43.5
+  },
+  {
+    "distance": 248,
+    "count": 4,
+    "stdDev": 0.7071067811865476,
+    "mean": 43,
+    "min": 42,
+    "max": 44,
+    "median": 43
+  },
+  {
+    "distance": 249,
+    "count": 4,
+    "stdDev": 1,
+    "mean": 43,
+    "min": 42,
+    "max": 44,
+    "median": 43
+  },
+  {
+    "distance": 250,
+    "count": 3,
+    "stdDev": 0.816496580927726,
+    "mean": 43,
+    "min": 42,
+    "max": 44,
+    "median": 43
+  },
+  {
+    "distance": 251,
+    "count": 4,
+    "stdDev": 1.4142135623730951,
+    "mean": 43,
+    "min": 41,
+    "max": 45,
+    "median": 43
+  },
+  {
+    "distance": 252,
+    "count": 5,
+    "stdDev": 0.8944271909999159,
+    "mean": 42,
+    "min": 41,
+    "max": 43,
+    "median": 42
+  },
+  {
+    "distance": 253,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 42,
+    "min": 42,
+    "max": 42,
+    "median": 42
+  },
+  {
+    "distance": 254,
+    "count": 4,
+    "stdDev": 0.5,
+    "mean": 41.5,
+    "min": 41,
+    "max": 42,
+    "median": 41.5
+  },
+  {
+    "distance": 255,
+    "count": 3,
+    "stdDev": 0.816496580927726,
+    "mean": 41,
+    "min": 40,
+    "max": 42,
+    "median": 41
+  },
+  {
+    "distance": 256,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 42,
+    "min": 42,
+    "max": 42,
+    "median": 42
+  },
+  {
+    "distance": 257,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 41,
+    "min": 41,
+    "max": 41,
+    "median": 41
+  },
+  {
+    "distance": 258,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 41.5,
+    "min": 41,
+    "max": 42,
+    "median": 41.5
+  },
+  {
+    "distance": 259,
+    "count": 2,
+    "stdDev": 0,
+    "mean": 41,
+    "min": 41,
+    "max": 41,
+    "median": 41
+  },
+  {
+    "distance": 260,
+    "count": 6,
+    "stdDev": 0.816496580927726,
+    "mean": 41,
+    "min": 40,
+    "max": 42,
+    "median": 41
+  },
+  {
+    "distance": 261,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 41,
+    "min": 41,
+    "max": 41,
+    "median": 41
+  },
+  {
+    "distance": 262,
+    "count": 2,
+    "stdDev": 0,
+    "mean": 40,
+    "min": 40,
+    "max": 40,
+    "median": 40
+  },
+  {
+    "distance": 263,
+    "count": 7,
+    "stdDev": 0.4948716593053935,
+    "mean": 40.42857142857143,
+    "min": 40,
+    "max": 41,
+    "median": 40
+  },
+  {
+    "distance": 265,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 41,
+    "min": 41,
+    "max": 41,
+    "median": 41
+  },
+  {
+    "distance": 266,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 40,
+    "min": 40,
+    "max": 40,
+    "median": 40
+  },
+  {
+    "distance": 267,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 40,
+    "min": 40,
+    "max": 40,
+    "median": 40
+  },
+  {
+    "distance": 268,
+    "count": 2,
+    "stdDev": 0,
+    "mean": 39,
+    "min": 39,
+    "max": 39,
+    "median": 39
+  },
+  {
+    "distance": 269,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 39.333333333333336,
+    "min": 39,
+    "max": 40,
+    "median": 39
+  },
+  {
+    "distance": 270,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 38.666666666666664,
+    "min": 38,
+    "max": 39,
+    "median": 39
+  },
+  {
+    "distance": 271,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 39,
+    "min": 39,
+    "max": 39,
+    "median": 39
+  },
+  {
+    "distance": 272,
+    "count": 3,
+    "stdDev": 1.247219128924647,
+    "mean": 38.666666666666664,
+    "min": 37,
+    "max": 40,
+    "median": 39
+  },
+  {
+    "distance": 274,
+    "count": 2,
+    "stdDev": 1,
+    "mean": 38,
+    "min": 37,
+    "max": 39,
+    "median": 38
+  },
+  {
+    "distance": 275,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 38.333333333333336,
+    "min": 38,
+    "max": 39,
+    "median": 38
+  },
+  {
+    "distance": 276,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 38,
+    "min": 38,
+    "max": 38,
+    "median": 38
+  },
+  {
+    "distance": 277,
+    "count": 2,
+    "stdDev": 0,
+    "mean": 37,
+    "min": 37,
+    "max": 37,
+    "median": 37
+  },
+  {
+    "distance": 278,
+    "count": 7,
+    "stdDev": 0.4948716593053935,
+    "mean": 37.42857142857143,
+    "min": 37,
+    "max": 38,
+    "median": 37
+  },
+  {
+    "distance": 279,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 36,
+    "min": 36,
+    "max": 36,
+    "median": 36
+  },
+  {
+    "distance": 280,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 37.5,
+    "min": 37,
+    "max": 38,
+    "median": 37.5
+  },
+  {
+    "distance": 281,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 37,
+    "min": 37,
+    "max": 37,
+    "median": 37
+  },
+  {
+    "distance": 282,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 35,
+    "min": 35,
+    "max": 35,
+    "median": 35
+  },
+  {
+    "distance": 283,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 37.5,
+    "min": 37,
+    "max": 38,
+    "median": 37.5
+  },
+  {
+    "distance": 284,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 37,
+    "min": 37,
+    "max": 37,
+    "median": 37
+  },
+  {
+    "distance": 285,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 35.666666666666664,
+    "min": 35,
+    "max": 36,
+    "median": 36
+  },
+  {
+    "distance": 286,
+    "count": 2,
+    "stdDev": 1,
+    "mean": 36,
+    "min": 35,
+    "max": 37,
+    "median": 36
+  },
+  {
+    "distance": 287,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 36.333333333333336,
+    "min": 36,
+    "max": 37,
+    "median": 36
+  },
+  {
+    "distance": 289,
+    "count": 5,
+    "stdDev": 0.4,
+    "mean": 35.2,
+    "min": 35,
+    "max": 36,
+    "median": 35
+  },
+  {
+    "distance": 291,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 35,
+    "min": 35,
+    "max": 35,
+    "median": 35
+  },
+  {
+    "distance": 292,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 35.5,
+    "min": 35,
+    "max": 36,
+    "median": 35.5
+  },
+  {
+    "distance": 293,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 35,
+    "min": 35,
+    "max": 35,
+    "median": 35
+  },
+  {
+    "distance": 294,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 34.333333333333336,
+    "min": 34,
+    "max": 35,
+    "median": 34
+  },
+  {
+    "distance": 295,
+    "count": 2,
+    "stdDev": 0,
+    "mean": 35,
+    "min": 35,
+    "max": 35,
+    "median": 35
+  },
+  {
+    "distance": 296,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 35.5,
+    "min": 35,
+    "max": 36,
+    "median": 35.5
+  },
+  {
+    "distance": 297,
+    "count": 3,
+    "stdDev": 0.816496580927726,
+    "mean": 35,
+    "min": 34,
+    "max": 36,
+    "median": 35
+  },
+  {
+    "distance": 298,
+    "count": 10,
+    "stdDev": 0.4898979485566356,
+    "mean": 34.4,
+    "min": 34,
+    "max": 35,
+    "median": 34
+  },
+  {
+    "distance": 300,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 34,
+    "min": 34,
+    "max": 34,
+    "median": 34
+  },
+  {
+    "distance": 302,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 34,
+    "min": 34,
+    "max": 34,
+    "median": 34
+  },
+  {
+    "distance": 303,
+    "count": 4,
+    "stdDev": 0.5,
+    "mean": 32.5,
+    "min": 32,
+    "max": 33,
+    "median": 32.5
+  },
+  {
+    "distance": 305,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 33,
+    "min": 33,
+    "max": 33,
+    "median": 33
+  },
+  {
+    "distance": 306,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 33,
+    "min": 33,
+    "max": 33,
+    "median": 33
+  },
+  {
+    "distance": 308,
+    "count": 2,
+    "stdDev": 1,
+    "mean": 34,
+    "min": 33,
+    "max": 35,
+    "median": 34
+  },
+  {
+    "distance": 309,
+    "count": 4,
+    "stdDev": 0.8660254037844386,
+    "mean": 34.5,
+    "min": 33,
+    "max": 35,
+    "median": 35
+  },
+  {
+    "distance": 310,
+    "count": 3,
+    "stdDev": 0,
+    "mean": 33,
+    "min": 33,
+    "max": 33,
+    "median": 33
+  },
+  {
+    "distance": 311,
+    "count": 3,
+    "stdDev": 1.247219128924647,
+    "mean": 32.333333333333336,
+    "min": 31,
+    "max": 34,
+    "median": 32
+  },
+  {
+    "distance": 313,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 32,
+    "min": 32,
+    "max": 32,
+    "median": 32
+  },
+  {
+    "distance": 315,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 30,
+    "min": 30,
+    "max": 30,
+    "median": 30
+  },
+  {
+    "distance": 316,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 30,
+    "min": 30,
+    "max": 30,
+    "median": 30
+  },
+  {
+    "distance": 318,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 28.5,
+    "min": 28,
+    "max": 29,
+    "median": 28.5
+  },
+  {
+    "distance": 319,
+    "count": 2,
+    "stdDev": 0,
+    "mean": 32,
+    "min": 32,
+    "max": 32,
+    "median": 32
+  },
+  {
+    "distance": 321,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 30.5,
+    "min": 30,
+    "max": 31,
+    "median": 30.5
+  },
+  {
+    "distance": 322,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 31,
+    "min": 31,
+    "max": 31,
+    "median": 31
+  },
+  {
+    "distance": 323,
+    "count": 5,
+    "stdDev": 0.8944271909999159,
+    "mean": 29,
+    "min": 28,
+    "max": 30,
+    "median": 29
+  },
+  {
+    "distance": 324,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 29.5,
+    "min": 29,
+    "max": 30,
+    "median": 29.5
+  },
+  {
+    "distance": 325,
+    "count": 2,
+    "stdDev": 1,
+    "mean": 31,
+    "min": 30,
+    "max": 32,
+    "median": 31
+  },
+  {
+    "distance": 326,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 28.666666666666668,
+    "min": 28,
+    "max": 29,
+    "median": 29
+  },
+  {
+    "distance": 327,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 32,
+    "min": 32,
+    "max": 32,
+    "median": 32
+  },
+  {
+    "distance": 328,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 31,
+    "min": 31,
+    "max": 31,
+    "median": 31
+  },
+  {
+    "distance": 329,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 30,
+    "min": 30,
+    "max": 30,
+    "median": 30
+  },
+  {
+    "distance": 333,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 29.5,
+    "min": 29,
+    "max": 30,
+    "median": 29.5
+  },
+  {
+    "distance": 334,
+    "count": 10,
+    "stdDev": 1.1999999999999997,
+    "mean": 29.4,
+    "min": 26,
+    "max": 30,
+    "median": 30
+  },
+  {
+    "distance": 335,
+    "count": 6,
+    "stdDev": 1.067187372905475,
+    "mean": 29.166666666666668,
+    "min": 27,
+    "max": 30,
+    "median": 29.5
+  },
+  {
+    "distance": 336,
+    "count": 12,
+    "stdDev": 1.6051133570215184,
+    "mean": 28.916666666666668,
+    "min": 25,
+    "max": 30,
+    "median": 29.5
+  },
+  {
+    "distance": 337,
+    "count": 2,
+    "stdDev": 1.5,
+    "mean": 27.5,
+    "min": 26,
+    "max": 29,
+    "median": 27.5
+  },
+  {
+    "distance": 338,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 29.333333333333332,
+    "min": 29,
+    "max": 30,
+    "median": 29
+  },
+  {
+    "distance": 339,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 28.5,
+    "min": 28,
+    "max": 29,
+    "median": 28.5
+  },
+  {
+    "distance": 340,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 29.5,
+    "min": 29,
+    "max": 30,
+    "median": 29.5
+  },
+  {
+    "distance": 341,
+    "count": 3,
+    "stdDev": 1.8856180831641267,
+    "mean": 27.666666666666668,
+    "min": 25,
+    "max": 29,
+    "median": 29
+  },
+  {
+    "distance": 342,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 26,
+    "min": 26,
+    "max": 26,
+    "median": 26
+  },
+  {
+    "distance": 343,
+    "count": 2,
+    "stdDev": 1,
+    "mean": 29,
+    "min": 28,
+    "max": 30,
+    "median": 29
+  },
+  {
+    "distance": 344,
+    "count": 5,
+    "stdDev": 0.7999999999999999,
+    "mean": 28.4,
+    "min": 27,
+    "max": 29,
+    "median": 29
+  },
+  {
+    "distance": 345,
+    "count": 10,
+    "stdDev": 0.9165151389911679,
+    "mean": 28.4,
+    "min": 27,
+    "max": 30,
+    "median": 28
+  },
+  {
+    "distance": 346,
+    "count": 3,
+    "stdDev": 0,
+    "mean": 29,
+    "min": 29,
+    "max": 29,
+    "median": 29
+  },
+  {
+    "distance": 347,
+    "count": 4,
+    "stdDev": 0,
+    "mean": 29,
+    "min": 29,
+    "max": 29,
+    "median": 29
+  },
+  {
+    "distance": 348,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 29,
+    "min": 29,
+    "max": 29,
+    "median": 29
+  },
+  {
+    "distance": 353,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 28,
+    "min": 28,
+    "max": 28,
+    "median": 28
+  },
+  {
+    "distance": 354,
+    "count": 3,
+    "stdDev": 0.9428090415820634,
+    "mean": 28.333333333333332,
+    "min": 27,
+    "max": 29,
+    "median": 29
+  },
+  {
+    "distance": 355,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 28,
+    "min": 28,
+    "max": 28,
+    "median": 28
+  },
+  {
+    "distance": 356,
+    "count": 5,
+    "stdDev": 0.39999999999999997,
+    "mean": 27.8,
+    "min": 27,
+    "max": 28,
+    "median": 28
+  },
+  {
+    "distance": 357,
+    "count": 4,
+    "stdDev": 0.4330127018922193,
+    "mean": 27.75,
+    "min": 27,
+    "max": 28,
+    "median": 28
+  },
+  {
+    "distance": 358,
+    "count": 4,
+    "stdDev": 0.82915619758885,
+    "mean": 28.25,
+    "min": 27,
+    "max": 29,
+    "median": 28.5
+  },
+  {
+    "distance": 359,
+    "count": 9,
+    "stdDev": 0.5665577237325315,
+    "mean": 27.11111111111111,
+    "min": 26,
+    "max": 28,
+    "median": 27
+  },
+  {
+    "distance": 360,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 27.333333333333332,
+    "min": 27,
+    "max": 28,
+    "median": 27
+  },
+  {
+    "distance": 361,
+    "count": 3,
+    "stdDev": 0,
+    "mean": 27,
+    "min": 27,
+    "max": 27,
+    "median": 27
+  },
+  {
+    "distance": 362,
+    "count": 3,
+    "stdDev": 0,
+    "mean": 27,
+    "min": 27,
+    "max": 27,
+    "median": 27
+  },
+  {
+    "distance": 363,
+    "count": 3,
+    "stdDev": 0,
+    "mean": 28,
+    "min": 28,
+    "max": 28,
+    "median": 28
+  },
+  {
+    "distance": 364,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 27.333333333333332,
+    "min": 27,
+    "max": 28,
+    "median": 27
+  },
+  {
+    "distance": 365,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 27.5,
+    "min": 27,
+    "max": 28,
+    "median": 27.5
+  },
+  {
+    "distance": 366,
+    "count": 4,
+    "stdDev": 0.4330127018922193,
+    "mean": 26.75,
+    "min": 26,
+    "max": 27,
+    "median": 27
+  },
+  {
+    "distance": 367,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 27.333333333333332,
+    "min": 27,
+    "max": 28,
+    "median": 27
+  },
+  {
+    "distance": 368,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 26.5,
+    "min": 26,
+    "max": 27,
+    "median": 26.5
+  },
+  {
+    "distance": 369,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 27.5,
+    "min": 27,
+    "max": 28,
+    "median": 27.5
+  },
+  {
+    "distance": 371,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 25,
+    "min": 25,
+    "max": 25,
+    "median": 25
+  },
+  {
+    "distance": 372,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 26,
+    "min": 26,
+    "max": 26,
+    "median": 26
+  },
+  {
+    "distance": 377,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 26,
+    "min": 26,
+    "max": 26,
+    "median": 26
+  },
+  {
+    "distance": 384,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 25,
+    "min": 25,
+    "max": 25,
+    "median": 25
+  },
+  {
+    "distance": 385,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 27,
+    "min": 27,
+    "max": 27,
+    "median": 27
+  },
+  {
+    "distance": 386,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 25.5,
+    "min": 25,
+    "max": 26,
+    "median": 25.5
+  },
+  {
+    "distance": 387,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 26,
+    "min": 26,
+    "max": 26,
+    "median": 26
+  },
+  {
+    "distance": 388,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 26,
+    "min": 26,
+    "max": 26,
+    "median": 26
+  },
+  {
+    "distance": 389,
+    "count": 3,
+    "stdDev": 0.4714045207910317,
+    "mean": 25.666666666666668,
+    "min": 25,
+    "max": 26,
+    "median": 26
+  },
+  {
+    "distance": 390,
+    "count": 2,
+    "stdDev": 0.5,
+    "mean": 24.5,
+    "min": 24,
+    "max": 25,
+    "median": 24.5
+  },
+  {
+    "distance": 394,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 25,
+    "min": 25,
+    "max": 25,
+    "median": 25
+  },
+  {
+    "distance": 396,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 25,
+    "min": 25,
+    "max": 25,
+    "median": 25
+  },
+  {
+    "distance": 397,
+    "count": 1,
+    "stdDev": 0,
+    "mean": 24,
+    "min": 24,
+    "max": 24,
+    "median": 24
+  },
+  {
+    "distance": 65535,
+    "count": 2,
+    "stdDev": 0,
+    "mean": 29,
+    "min": 29,
+    "max": 29,
+    "median": 29
+  }
+]
