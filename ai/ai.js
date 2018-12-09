@@ -1515,7 +1515,7 @@ function handleMotionFindBasket() {
     } else {
         setMotionState(motionStates.FIND_BALL);
     }
-    //
+
     if (basket && (closestBall || throwerState === throwerStates.THROW_BALL)) {
         const technique = getAllowedThrowerTechnique();
         const basketCenterX = basket.cx + calibration.getCenterOffset(
@@ -1526,13 +1526,10 @@ function handleMotionFindBasket() {
         isBasketErrorXSmallEnough = Math.abs(basketErrorX) < 40;
         rotationSpeed = maxRotationSpeed * -basketErrorX / (frameWidth / 2);
 
-        if (isBasketErrorXSmallEnough && mainboardState.lidarDistance > 350) {
-            setMotionState(motionStates.DRIVE_GRAB_BALL);
-            setThrowerState(throwerStates.GRAB_BALL);
-        }
-
         if (isBasketErrorXSmallEnough && isBallCloseEnough) {
-            if (mainboardState.lidarDistance > 350) {
+            // TODO: Thrower motor driver firmware can't handle changing to open loop
+            //  when motor is running in closed loop.
+            /*if (mainboardState.lidarDistance > 350) {
                 isDriveWithBallToBasket = true;
                 setMotionState(motionStates.DRIVE_GRAB_BALL);
                 setThrowerState(throwerStates.GRAB_BALL);
@@ -1543,14 +1540,14 @@ function handleMotionFindBasket() {
                     driveWithBallToBasketCount = 0;
                     isDriveWithBallToBasket = false;
                 } else {
-                    */isDriveWithBallToBasket = true;
+                    isDriveWithBallToBasket = true;
                 //}
 
                 setMotionState(motionStates.DRIVE_GRAB_BALL);
                 setThrowerState(throwerStates.GRAB_BALL);
-            } else {
-                setThrowerState(throwerStates.THROW_BALL);
-            }
+            } else {*/
+            setThrowerState(throwerStates.THROW_BALL);
+            //}
         }
     }
 
