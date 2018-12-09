@@ -1420,10 +1420,12 @@ function handleMotionFindBasket() {
     let isBasketErrorXSmallEnough = false;
     let isBallCloseEnough = false;
 
-    aiState.basketBottomFilterThreshold =
-        util.mapFromRangeToRange(elapsedTime, 1000, 2000, defaultBasketBottomFilterThreshold, 0);
+    if (throwerState !== throwerStates.THROW_BALL && aiState.basketBottomFilterThreshold > 0) {
+        aiState.basketBottomFilterThreshold =
+            util.mapFromRangeToRange(elapsedTime, 1000, 2000, defaultBasketBottomFilterThreshold, 0);
 
         //console.log('aiState.basketBottomFilterThreshold', aiState.basketBottomFilterThreshold);
+    }
 
     if (elapsedTime > basketNotFoundTimeLimit) {
         console.log('basket not found in', basketNotFoundTimeLimit);
