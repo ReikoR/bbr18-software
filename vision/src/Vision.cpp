@@ -1652,8 +1652,7 @@ Object::StraightAheadInfo Vision::getStraightAheadMetric(
 		for (auto ball : balls) {
 			if (
 					ball->y <= y &&
-					ball->y > (y - yStep) &&
-					std::abs(ball->x - Config::cameraWidth) > 50
+					ball->y > (y - yStep)
 					) {
 				if (std::abs(ball->x - Config::cameraWidth) > 50) {
 					ball->straightAheadInfo = Object::StraightAheadInfo{
