@@ -1002,19 +1002,9 @@ let forwardSpeedMultiplier = 1;
 
 const maxDriveToBallTime = 5000;
 
-function getDriveToBallMaxSpeed(startTime, startSpeed, speedLimit) {
-    const currentTime = Date.now();
-    const timeDiff = currentTime - startTime;
-    const speedDiff = speedLimit - startSpeed;
-    const rampUpTime = 1000;
-    const timePassedPercent = timeDiff / rampUpTime;
-
-    if (timeDiff >= rampUpTime) {
-        return speedLimit;
-    }
-
-    return startSpeed + speedDiff * Math.pow(timePassedPercent, 2);
-}
+const driveToBallForwardSpeedRampUpper = util.getRampUpper(
+    driveToBallStartSpeed, driveToBallMaxSpeed, 1000, false
+);
 
 function handleMotionDriveToBall() {
     if (isTooCloseToEdge()) {
@@ -1031,6 +1021,7 @@ function handleMotionDriveToBall() {
 
     if (!driveToBallStartTime) {
         driveToBallStartTime = Date.now();
+        driveToBallForwardSpeedRampUpper({startTime: driveToBallStartTime});
     }
 
     if (Date.now() - driveToBallStartTime > maxDriveToBallTime) {
@@ -1057,10 +1048,15 @@ function handleMotionDriveToBall() {
         const centerY = closestBall.cy;
         const errorX = centerX - frameCenterX;
         const errorY = 0.8 * frameHeight - centerY;
+        const normalizedErrorY = errorY / frameHeight;
         const maxSideSpeed = 5;
-        const maxForwardSpeed = getDriveToBallMaxSpeed(
-            driveToBallStartTime, driveToBallStartSpeed, driveToBallMaxSpeed
+
+        const newForwardSpeedRampUpStartValue = util.mapFromRangeToRange(
+            normalizedErrorY, 0, 0.5, driveToBallMaxSpeed, driveToBallStartSpeed
         );
+        driveToBallForwardSpeedRampUpper({startValue: newForwardSpeedRampUpStartValue});
+
+        const maxForwardSpeed = driveToBallForwardSpeedRampUpper();
         const maxRotationSpeed = driveToBallCurrentRotationSpeedLimit;
         const maxErrorForwardSpeed = 5;
         const maxErrorRotationSpeed = 16;
