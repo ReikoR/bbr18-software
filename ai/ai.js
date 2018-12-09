@@ -1559,7 +1559,9 @@ function handleMotionFindBasket() {
 
     if (throwerState === throwerStates.THROW_BALL) {
         xSpeed = 0;
-    } else {
+    }
+    // TODO: Ball was pushed too early or in wrong situation. Needs to be smarter than just elapsed time check.
+    /* else {
         if (elapsedTime > 3000 && elapsedTime < 4000) {
             rotationSpeed = 16 * -ballErrorX / frameWidth;
             xSpeed = 0;
@@ -1568,7 +1570,7 @@ function handleMotionFindBasket() {
         } else if (throwerState === throwerStates.PUSH_BALL) {
             setThrowerState(throwerStates.IDLE);
         }
-    }
+    }*/
 
     xSpeed = util.clamped(xSpeed, -maxSideSpeed, maxSideSpeed);
     forwardSpeed = util.clamped(forwardSpeed, -maxForwardSpeed, maxForwardSpeed);
