@@ -1622,12 +1622,13 @@ function handleMotionNudgeBall() {
     if (nudgeBallTimeout === null) {
         nudgeBallTimeout = setTimeout(() => {
             setMotionState(motionStates.FIND_BALL);
-        }, 500);
+        }, 400);
     }
 }
 
 function resetNudgeBall() {
     clearTimeout(nudgeBallTimeout);
+    nudgeBallTimeout = null;
 }
 
 let moveBallAwayTimeout = null;
