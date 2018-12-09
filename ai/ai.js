@@ -1695,7 +1695,7 @@ function handleMotionMoveBallAwayFromObstacle() {
             if (basket) {
                 moveBallAwayDirection = basket.cx < frameCenterX ? -1 : 1;
             } else {
-                moveBallAwayDirection = processedVisionState.lastVisibleBasketDirection;
+                moveBallAwayDirection = processedVisionState.basketDirection;
             }
         }
 
@@ -1723,7 +1723,7 @@ function handleMotionMoveBallAwayFromObstacle() {
             } else if (basket) {
                 rotationSpeed += -2 * (basket.cy - frameCenterX) / frameCenterX;
             } else {
-                rotationSpeed += 2 * processedVisionState.lastVisibleBasketDirection;
+                rotationSpeed += 2 * processedVisionState.basketDirection;
             }
         }
 
