@@ -34,9 +34,30 @@ module.exports = {
     getRampUpper: (startValue, maxValue, rampUpTime = 1000, isLinear = true) => {
         let startTime = Date.now();
 
-        return function(newStartTime) {
-            if (newStartTime) {
-                startTime = newStartTime;
+        /**
+         * @param [Object] newValues
+         * @param [number] newValues.startTime
+         * @param [number] newValues.startValue
+         * @param [number] newValues.maxValue
+         * @param [number] newValues.rampUpTime
+         */
+        return function(newValues) {
+            if (newValues) {
+                if (newValues.startTime) {
+                    startTime = newValues.startTime;
+                }
+
+                if (newValues.startValue) {
+                    startValue = newValues.startValue;
+                }
+
+                if (newValues.maxValue) {
+                    maxValue = newValues.maxValue;
+                }
+
+                if (newValues.rampUpTime) {
+                    rampUpTime = newValues.rampUpTime;
+                }
             }
 
             const currentTime = Date.now();

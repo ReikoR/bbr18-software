@@ -1699,7 +1699,7 @@ function handleMotionMoveBallAwayFromObstacle() {
             if (sideMetric > 0.1) {
                 if (moveBallAwayStartTime === null) {
                     moveBallAwayStartTime = Date.now();
-                    moveBallAwayRotationRampUpper(moveBallAwayStartTime);
+                    moveBallAwayRotationRampUpper({startTime: moveBallAwayStartTime});
                 }
 
                 const maxRotationSpeed = moveBallAwayRotationRampUpper();
