@@ -24,7 +24,7 @@ function handleInfo(info) {
 function handleAiState(state) {
     if (state.basket && Math.abs(state.basket.cx - 640) < 5) {
         const distance = state.lidarDistance;
-        const y2 = state.basket.y2;
+        const y2 = state.basket.w;
 
         console.log(distance, y2);
 
