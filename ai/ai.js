@@ -1840,10 +1840,11 @@ const throwBallTimeoutDelay = 3000;
 
 function handleThrowerThrowBall() {
     const technique = getAllowedThrowerTechnique();
-    aiState.speeds[4] = calibration.getThrowerSpeed(technique, mainboardState.lidarDistance);
+    const lidarDistance = mainboardState.lidarDistance;
+    aiState.speeds[4] = calibration.getThrowerSpeed(technique, lidarDistance);
 
     aiState.ballThrowSpeed = aiState.speeds[4];
-    aiState.ballThrowLidarDistance = mainboardState.lidarDistance;
+    aiState.ballThrowLidarDistance = lidarDistance;
 
     if (throwBallTimeout === null) {
         throwBallTimeout = setTimeout(() => {
