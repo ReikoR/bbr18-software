@@ -3,9 +3,13 @@ const socket = dgram.createSocket('udp4');
 const publicConf = require('./public-conf.json');
 
 const steam = require('./steam-controller');
+const ps4 = require('./ps4-controller');
 const controller = new steam.SteamController();
+const ps4Controller = new ps4.PS4Controller();
 
-controller.connect();
+//controller.connect();
+
+ps4Controller.connect();
 
 const robotName = process.argv[2];
 
@@ -99,29 +103,18 @@ let ySpeed = 0;
 let xSpeed = 0;
 let rotation = 0;
 
-const minServo = 1050;
+const minServo = 1085;
 const maxServo = 1650;
 const servoRange = maxServo - minServo;
 let servo = minServo;
-
 const feederOnSpeed = 20;
 let feederSpeed = 0;
-
 let defaultMaxSpeed = 1.0;
 let maxSpeed = defaultMaxSpeed;
 let defaultMaxRotation = 1.0;
 let maxRotation = defaultMaxRotation;
 
 let prevButtons = {};
-let prevTriggers = {};
-
-/*
-speeds[1] = speed1;
-speeds[2] = speed2;
-speeds[0] = speed3;
-speeds[3] = speed4;
-speeds[4] = speed5;
- */
 
 let robotConfig = {
     robotRadius: 0.14,
@@ -143,10 +136,10 @@ if (robotName === '001TRT') {
         robotRadius: 0.14,
         wheelRadius: 0.035,
         wheelFromCenter: 0.117,
-        wheel1Angle: -135,
-        wheel2Angle: 45,
-        wheel3Angle: -45,
-        wheel4Angle: 135,
+        wheel1Angle: 225,
+		wheel2Angle: 45,
+		wheel3Angle: 315,
+		wheel4Angle: 135,
         wheel1AxisAngle: 135,
         wheel2AxisAngle: 45,
         wheel3AxisAngle: -135,
@@ -178,80 +171,74 @@ function clone(obj) {
 function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
 }
-
-controller.on('data', (data) => {
+ps4Controller.on('data', (data) => {
     //console.log(data.center);//, data.bottom);
 
-    //console.log(data.status);
+    //console.log(data);
 
-    if (data.status !== 'input') {
+    /*if (data.status !== 'input') {
         return;
+    }*/
+	
+	if (!prevButtons.psButton && data.psButton) {
+        console.log(data);
     }
 
-    if (!prevButtons.L && data.center.L) {
-        console.log('L');
+    if (!prevButtons.circle && data.circle) {
+        console.log('circle - changing basket colors');
 
         toggleBasketColour();
     }
 
-    if (!prevButtons.R && data.center.R) {
-        console.log('R');
+    if (!prevButtons.cross && data.cross) {
+        console.log('cross - toggle competition mode');
 
         toggleIsCompetition();
     }
 
-    if (!prevButtons.A && data.button.A) {
-        console.log('A');
+    if (!prevButtons.triangle && data.triangle) {
+        console.log('TRIANGLE - resetting speeds');
         maxSpeed = defaultMaxSpeed;
         maxRotation = defaultMaxRotation;
         console.log(maxSpeed);
     }
 
-    if (!prevButtons.B && data.button.B) {
-        console.log('B');
+    if (!prevButtons.square && data.square) {
+        console.log('square - toggle controller');
         toggleController();
     }
 
-    if (!prevButtons.X && data.button.X) {
-        console.log('X');
+    if (!prevButtons.dPadDown && data.dPadDown) {
+        console.log('dPadDown - decreasing speeds by 2x');
         maxSpeed /= 2;
         maxRotation /= 2;
         console.log(maxSpeed);
     }
 
-    if (!prevButtons.Y && data.button.Y) {
-        console.log('Y');
+    if (!prevButtons.dPadUp && data.dPadUp) {
+        console.log('dPadUp - increasing speeds by 2x');
         maxSpeed *= 2;
         maxRotation *= 2;
         console.log(maxSpeed);
     }
 
-    if (!prevButtons.LB && data.button.LB) {
-        console.log('LB');
+    if (!prevButtons.l1 && data.l1) {
+        console.log('L1 - toggleing game logic');
 
-        if (robotName === '001TRT') {
-            if (feederSpeed === 0) {
-                feederSpeed = feederOnSpeed;
-            } else {
-                feederSpeed = 0;
-            }
-
-        } else {
-            if (state === states.IDLE) {
-                state = states.GRAB_BALL;
-            }
-            else if (state === states.GRAB_BALL) {
-                state = states.IDLE;
-            }
-            else if (state === states.HOLD_BALL) {
-                state = states.EJECT_BALL;
-                startTimeEject = Date.now();
-            }
+        if (state === states.IDLE) {
+            state = states.GRAB_BALL;
+        }
+        else if (state === states.GRAB_BALL) {
+            state = states.IDLE;
+        }
+        else if (state === states.HOLD_BALL) {
+            state = states.EJECT_BALL;
+            startTimeEject = Date.now();
         }
     }
 
-    if (!prevButtons.RB && data.button.RB) {
-        console.log('RB');
+    if (!prevButtons.r1 && data.r1) {
+        console.log('R1 - toggleing throwing ball');
 
         if (state === states.IDLE || state === states.GRAB_BALL) {
             state = states.THROW_BALL;
@@ -259,8 +246,12 @@ controller.on('data', (data) => {
             state = states.IDLE;
         }
     }
+	
+	const analogMax = 255;
+	const deadZone = 5;
 
-    if (prevTriggers.right < 230 && data.trigger.right === 255) {
+    if (!prevButtons.r2 && data.r2) {
+		console.log('R2 - toggleing thrower angle');
         if (servo === minServo) {
             servo = maxServo;
         } else if (servo === maxServo) {
@@ -268,33 +259,34 @@ controller.on('data', (data) => {
         } else {
             servo = minServo;
         }
-
         console.log('servo', servo);
     }
-
-
-    prevTriggers = clone(data.trigger);
-
-    prevButtons = clone({ ...data.button, ...data.center });
-
-    xSpeed = data.joystick.x / 32768 * maxSpeed;
-    ySpeed = data.joystick.y / 32768 * maxSpeed;
-
-    rotation = -data.mouse.x / 32768 * maxRotation;
-
-    /*const servoLow = maxServo - (clamp(data.trigger.left, 0, 200) / 200) * servoRange;
-    const servoHigh = minServo + (clamp(data.trigger.right, 0, 200) / 200) * servoRange;
-
-    if (servo > servoLow) {
-        servo = Math.floor(servoLow);
+	
+	if (!prevButtons.l2 && data.l2) {
+		console.log('R2 - toggleing feeder motor');
+		feederSpeed = feederSpeed > 0 ? 0 : feederOnSpeed;
     }
+	
+	
+    prevButtons = clone({ ...data});
 
-    if (servo < servoHigh) {
-        servo = Math.ceil(servoHigh);
-    }*/
+    xSpeed = (inInDeadZone(data.leftAnalogX, 128, deadZone) - 128.0) / (analogMax / 2.0) * maxSpeed;
+    ySpeed = -(inInDeadZone(data.leftAnalogY, 128, deadZone) - 128.0) / (analogMax / 2.0) * maxSpeed;
+
+    rotation = -(inInDeadZone(data.rightAnalogX, 128, deadZone) - 128.0) / (analogMax / 2.0) * maxRotation;
 
     //console.log(data);
 });
+
+ps4Controller.on('error', (error) => {
+	console.log(error);
+	ps4Controller.connect();
+});
+
+function inInDeadZone(value, zeroPosition, deadZone) {
+	
+	return Math.abs(Math.abs(value) - zeroPosition) < deadZone ? zeroPosition : value;
+}
 
 function handleInfo(info) {
     switch (info.topic) {
