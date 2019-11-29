@@ -99,7 +99,7 @@ let rotation = 0;
 
 let defaultMaxSpeed = 1.0;
 let maxSpeed = defaultMaxSpeed;
-let defaultMaxRotation = 1.0;
+let defaultMaxRotation = 2.0;
 let maxRotation = defaultMaxRotation;
 
 let prevButtons = {};
