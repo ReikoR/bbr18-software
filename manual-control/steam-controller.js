@@ -22,8 +22,41 @@ let controllerStatusBinary = {
     0x03: 'hotplug',
 };
 
-function SteamController() {
+/*
+{
+  vendorId: 10462,
+  productId: 4418,
+  path: '\\\\?\\hid#vid_28de&pid_1142&mi_01#7&30b6336f&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}',
+  manufacturer: 'Valve Software',
+  product: 'Steam Controller',
+  release: 1,
+  interface: 1,
+  usagePage: 65280,
+  usage: 1
+}
+ */
+function isWirelessDevice(device) {
+    return device.vendorId === 10462 && device.productId === 4418 && device.interface === 1;
+}
 
+/*
+{
+  vendorId: 10462,
+  productId: 4354,
+  path: '\\\\?\\hid#vid_28de&pid_1102&mi_02#7&e316191&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}',
+  manufacturer: 'Valve Software',
+  product: 'Valve',
+  release: 256,
+  interface: 2,
+  usagePage: 65280,
+  usage: 1
+}
+ */
+function isWiredDevice(device) {
+    return device.vendorId === 10462 && device.productId === 4354 && device.interface === 2;
+}
+
+function SteamController() {
     SteamController.prototype.connect = function () {
         //device = new HID.HID(vid, pid);
 
@@ -31,7 +64,13 @@ function SteamController() {
         var steamDevices = [];
 
         devices.forEach(function (device) {
-            if (device.manufacturer === 'Valve Software' && device.interface === 1) {
+            if (isWiredDevice(device)) {
+                // Prefer wired
+                steamDevices.unshift(device);
+                console.log(device);
+            }
+
+            if (isWirelessDevice(device)) {
                 steamDevices.push(device);
                 console.log(device);
             }
