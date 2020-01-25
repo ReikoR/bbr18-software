@@ -119,10 +119,6 @@ function renderControls() {
     throwerControls.appendChild(throwerSpeedInput);
     elControls.appendChild(throwerControls);
 
-    elControls.appendChild(createButton('Get frame', () => {
-        wsSend({type: 'get_frame'});
-    }));
-
     stateNamesMotion.forEach((stateName) => {
         motionStateControls.appendChild(createButton(stateName, () => {
             wsSend({type: 'ai_command', info: {command: 'set_motion_state', state: stateName}});

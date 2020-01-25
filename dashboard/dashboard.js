@@ -101,12 +101,6 @@ function handleWsMessage(message) {
             topic: 'mainboard_command',
             command: message.info
         });
-    } else if (message.type === 'get_frame') {
-        sendToHub({
-            type: 'message',
-            topic: 'save_frame',
-            command: message.info
-        });
     }
 }
 
