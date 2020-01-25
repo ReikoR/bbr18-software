@@ -119,6 +119,7 @@ private:
 	int mouseX;
 	int mouseY;
 	bool mouseDown;
+	bool prevMouseDown;
 	bool quitRequested;
 	bool clustering;
 	MouseListener::MouseBtn mouseBtn;

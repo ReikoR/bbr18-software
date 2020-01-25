@@ -26,7 +26,10 @@ Blobber::Blobber() {
 
 	//https://software.intel.com/en-us/articles/getting-the-most-from-opencl-12-how-to-increase-performance-by-minimizing-buffer-copies-on-intel-processor-graphics
 	colors_lookup = (unsigned char*)_aligned_malloc((size_t) COLORS_LOOKUP_SIZE, 4096);
-	
+	prev_colors_lookup = (unsigned char*)_aligned_malloc((size_t) COLORS_LOOKUP_SIZE, 4096);
+
+	hasLookupChanged = false;
+
 	int i;
 	for (i = 0; i < COLOR_COUNT; i++) {
 		colors[i].list = NULL;
@@ -119,6 +122,7 @@ Blobber::~Blobber() {
     }
 
 	_aligned_free(colors_lookup);
+	_aligned_free(prev_colors_lookup);
 
 	delete openCLCompute;
 }
@@ -150,6 +154,8 @@ void Blobber::setPixelColor(unsigned char r, unsigned char g, unsigned char b, u
     }*/
 
 	colors_lookup[b + (g << 8) + (r << 16)] = color;
+
+    hasLookupChanged = true;
 }
 
 void Blobber::setPixelColorRange(ImageProcessor::RGBRange rgbRange, unsigned char color) {
@@ -160,6 +166,8 @@ void Blobber::setPixelColorRange(ImageProcessor::RGBRange rgbRange, unsigned cha
 			}
 		}
 	}
+
+    hasLookupChanged = true;
 }
 
 void Blobber::setPixelClusterRange(unsigned char *centroids, int centroidIndex, int centroidCount, unsigned char color) {
@@ -281,6 +289,7 @@ void Blobber::fillAdjacentColorPixels(unsigned char r, unsigned char g, unsigned
                     if (color1 == color2) {
                         setPixelColor(r, g, b, color);
                         //std::cout << "filled " << +r << " " << +g << " " << +b << std::endl;
+                        hasLookupChanged = true;
                         break;
                     }
                 }
@@ -295,6 +304,63 @@ unsigned char Blobber::getLookupColor(int r, int g, int b) {
     }
 
     return colors_lookup[b + (g << 8) + (r << 16)];
+}
+
+void Blobber::undo() {
+    if (lookupChangeHistory.empty()) {
+        return;
+    }
+
+    __int64 startTime = Util::timerStart();
+
+    auto changes = lookupChangeHistory.back();
+
+    for (auto change: changes) {
+        colors_lookup[change.index] = change.prevColor;
+    }
+
+    lookupChangeHistory.pop_back();
+
+    memcpy(prev_colors_lookup, colors_lookup, COLORS_LOOKUP_SIZE);
+
+    std::cout << "! undo time: " << Util::timerEnd(startTime) << "; change count:" << + changes.size() << std::endl;
+}
+
+void Blobber::createHistoryEntry() {
+    if (!hasLookupChanged) {
+        return;
+    }
+
+    hasLookupChanged = false;
+
+    __int64 startTime = Util::timerStart();
+
+    std::vector<Blobber::LookupPixelChange> changes;
+
+    for (unsigned int r = 0; r < 256 ; r++) {
+        for (unsigned int g = 0; g < 256; g++) {
+            for (unsigned int b = 0; b < 256; b++) {
+                unsigned int index = b + (g << 8) + (r << 16);
+                unsigned char prev = prev_colors_lookup[index];
+                unsigned char current = colors_lookup[index];
+
+                if (prev != current) {
+                    changes.push_back(Blobber::LookupPixelChange{
+                        .index = index,
+                        .prevColor = prev,
+                        .newColor = current
+                    });
+                }
+            }
+        }
+    }
+
+    if (!changes.empty()) {
+        lookupChangeHistory.push_back(changes);
+        memcpy(prev_colors_lookup, colors_lookup, COLORS_LOOKUP_SIZE);
+    }
+
+    std::cout << "! create history entry time: " << Util::timerEnd(startTime) << "; change count:" << + changes.size() << std::endl;
 }
 
 void Blobber::setActivePixels(unsigned char *data) {
@@ -797,6 +863,7 @@ bool Blobber::loadColors(std::string filename) {
     }
 
     fread(colors_lookup, sizeof(char), COLORS_LOOKUP_SIZE, file);
+    memcpy(prev_colors_lookup, colors_lookup, COLORS_LOOKUP_SIZE);
 
     fclose(file);
 
@@ -832,6 +899,8 @@ Blobber::BlobColor Blobber::getColorAt(int x, int y) {
 
 void Blobber::clearColors() {
 	memset(colors_lookup, 0, COLORS_LOOKUP_SIZE);
+
+    hasLookupChanged = true;
 }
 
 void Blobber::clearColor(unsigned char colorIndex) {
@@ -840,6 +909,8 @@ void Blobber::clearColor(unsigned char colorIndex) {
 			colors_lookup[i] = 0;
         }
     }
+
+    hasLookupChanged = true;
 }
 
 void Blobber::clearColor(std::string colorName) {
@@ -854,4 +925,7 @@ void Blobber::clearColor(std::string colorName) {
 			colors_lookup[i] = 0;
 		}
 	}
+
+    hasLookupChanged = true;
 }
+

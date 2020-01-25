@@ -107,6 +107,7 @@ Gui::Gui(HINSTANCE instance, Blobber* blobber, int width, int height) : instance
 	mouseX = 0;
 	mouseY = 0;
 	mouseDown = false;
+	prevMouseDown = false;
 	mouseBtn = MouseListener::MouseBtn::LEFT;
 	brushRadius = 50;
 
@@ -136,6 +137,7 @@ Gui::Gui(HINSTANCE instance, Blobber* blobber, int width, int height) : instance
 	clearSelectedBtn = createButton("Clear selected", 20 + 280 + 10, 40, 140, 3, false);
 
 	createButton("Quit", Config::cameraWidth - 80, 20, 60, 4);
+    createButton("Undo", Config::cameraWidth - 160, 20, 60, 9);
 
 	createButton("Clustering mode", Config::cameraWidth - 80 - 85, 38, 145, 5);
 	clustering = false;
@@ -444,6 +446,13 @@ void Gui::handleColorThresholding(unsigned char* rgbData, unsigned char* rgb) {
             blobber->clearColor(selectedColorName);
 		}
 	}
+
+    if (prevMouseDown && !mouseDown) {
+        std::cout << "MOUSE UP" << std::endl;
+        blobber->createHistoryEntry();
+    }
+
+    prevMouseDown = mouseDown;
 }
 
 void Gui::handleElements() {
@@ -524,7 +533,10 @@ void Gui::onElementClick(Element* element) {
 		} else if (button->type == 8) {
 			clusterer->setCentroidCount(clusterer->centroidCount + 1);
 			centroidCountButton->text = std::to_string(clusterer->centroidCount);
-		}
+		} else if (button->type == 9) {
+            std::cout << "! UNDO" << std::endl;
+            blobber->undo();
+        }
 	}
 }
 

@@ -37,6 +37,12 @@ public:
 		int parent, next;
 	} BlobberRun;
 
+    typedef struct {
+        unsigned int index;
+        unsigned char prevColor;
+        unsigned char newColor;
+    } LookupPixelChange;
+
 	enum BlobColor {
 		unknown,
 		green,
@@ -94,6 +100,8 @@ public:
         Offset3 a, b;
     } Offset3Pair;
 
+	void undo();
+	void createHistoryEntry();
 	void setColorMinArea(int color, int min_area);
 	void setColors(unsigned char *data);
     void setPixelColor(unsigned char r, unsigned char g, unsigned char b, unsigned char color);
@@ -135,8 +143,12 @@ private:
 
 	//unsigned char colors_lookup[0x1000000];//all possible bgr combinations lookup table/
 	unsigned char* colors_lookup;//all possible bgr combinations lookup table/
+    unsigned char* prev_colors_lookup;
+    std::vector<std::vector<LookupPixelChange>> lookupChangeHistory;
 	unsigned char pixel_active[MAX_WIDTH * MAX_HEIGHT];//0=ignore in segmentation, 1=use pixel
 	//unsigned char *segmented;//segmented image buffer 0-9
+
+	bool hasLookupChanged;
 
 	unsigned short *pout;//Temp out buffer (for blobs)
 	int width, height, bpp;
@@ -152,6 +164,7 @@ private:
 	int max_area;
 	int passes;
 
+	std::vector<Offset3Pair> fillerOffsetPairs;
 	void createFillerOffsetPairs();
 };
 
