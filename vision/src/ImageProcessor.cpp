@@ -57,7 +57,7 @@ ImageProcessor::RGBInfo ImageProcessor::extractColors(unsigned char* rgb, int im
 
             RGBColor* pixel = getRgbPixelAt(rgb, imageWidth, imageHeight, x + centerX, y + centerY);
 
-            if (pixel != NULL) {
+            if (pixel != nullptr) {
                 allPixels.push_back(*(pixel));
 
                 R = pixel->r;
@@ -80,24 +80,30 @@ ImageProcessor::RGBInfo ImageProcessor::extractColors(unsigned char* rgb, int im
     float gStdDev = Math::standardDeviation(gValues, gMean);
     float bStdDev = Math::standardDeviation(bValues, bMean);
 
-    RGBRange range;
+    RGBRange range{};
 
-    range.minR = (int)(rMean - (float)rStdDev * stdDev);
-    range.maxR = (int)(rMean + (float)rStdDev * stdDev);
-    range.minG = (int)(gMean - (float)gStdDev * stdDev);
-    range.maxG = (int)(gMean + (float)gStdDev * stdDev);
-    range.minB = (int)(bMean - (float)bStdDev * stdDev);
-    range.maxB = (int)(bMean + (float)bStdDev * stdDev);
+    range.minR = Math::max<int>((int)(rMean - (float)rStdDev * stdDev), 0);
+    range.maxR = Math::min<int>((int)(rMean + (float)rStdDev * stdDev), 255);
+    range.minG = Math::max<int>((int)(gMean - (float)gStdDev * stdDev), 0);
+    range.maxG = Math::min<int>((int)(gMean + (float)gStdDev * stdDev), 255);
+    range.minB = Math::max<int>((int)(bMean - (float)bStdDev * stdDev), 0);
+    range.maxB = Math::min<int>((int)(bMean + (float)bStdDev * stdDev), 255);
 
-    for (unsigned int i = 0; i < allPixels.size(); i++) {
-        RGBColor pixel = allPixels.at(i);
+    /*std::cout << "mean: " << +rMean << " " << +gMean << "; "  << +bMean << std::endl;
+    std::cout << "stdDev: " << +rStdDev << " " << +gStdDev << "; "  << +bStdDev << std::endl;
 
+    std::cout << "range: "
+        << +range.minR << " " << +range.maxR << "; "
+        << +range.minG << " " << +range.maxG << "; "
+        << +range.minB << " " << +range.maxB << std::endl;*/
+
+    for (auto pixel : allPixels) {
         if (range.isInRange(pixel)){
             filteredPixels.push_back(pixel);
         }
     }
 
-    RGBColor* filteredPixelsArray = new RGBColor[filteredPixels.size()];
+    auto* filteredPixelsArray = new RGBColor[filteredPixels.size()];
 
     for (unsigned int i = 0; i < filteredPixels.size(); i++) {
         filteredPixelsArray[i] = filteredPixels.at(i);

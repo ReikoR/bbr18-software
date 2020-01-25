@@ -13,8 +13,8 @@ const int Blobber::COLORS_LOOKUP_SIZE = 0x1000000;
 
 Blobber::Blobber() {
 	bpp = 1;
-	width = 0;
-	height = 0;
+	width = 1280;
+	height = 1024;
 	segmented = nullptr;
 	bgr = nullptr;
 	pout = (unsigned short *) malloc(10000 * 9 * sizeof(unsigned short));
@@ -75,9 +75,6 @@ Blobber::Blobber() {
 	for (i = 0; i < MAX_WIDTH * MAX_HEIGHT; i++) {
 		pixel_active[i] = 1;
 	}
-
-	width = 1280;
-	height = 1024;
 
 	int size = width * width;
 
@@ -622,7 +619,7 @@ Blobber::BlobInfo* Blobber::getBlobs(BlobColor colorIndex) {
 }
 
 bool Blobber::saveColors(std::string filename) {
-    FILE* file = fopen(filename.c_str(), "w");
+    FILE* file = fopen(filename.c_str(), "wb");
 
     if (!file) {
         return false;
@@ -636,7 +633,7 @@ bool Blobber::saveColors(std::string filename) {
 }
 
 bool Blobber::loadColors(std::string filename) {
-    FILE* file = fopen(filename.c_str(), "r");
+    FILE* file = fopen(filename.c_str(), "rb");
 
     if (!file) {
         return false;

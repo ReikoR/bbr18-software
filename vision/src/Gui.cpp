@@ -377,13 +377,13 @@ void Gui::handleColorThresholding(unsigned char* rgbData, unsigned char* rgb) {
     }
 
     if (mouseDown) {
-		float stdDev = 1.0f;
+		float stdDev = 2.0f;
 
 		//ImageProcessor::RGBInfo rgbInfo = ImageProcessor::extractColors(rgbData, width, height, mouseX, mouseY, brushRadius, stdDev);
-		ImageProcessor::RGBRange rgbRange = ImageProcessor::extractColorRange(rgbData, width, height, mouseX, mouseY, brushRadius, stdDev);
+		/*ImageProcessor::RGBRange rgbRange = ImageProcessor::extractColorRange(rgbData, width, height, mouseX, mouseY, brushRadius, stdDev);
         std::cout << "rgbRange " << +rgbRange.minR << " " << +rgbRange.maxR << "; "
                   << +rgbRange.minG << " " << +rgbRange.maxG << "; "
-                  << +rgbRange.minB << " " << +rgbRange.maxB << " " << std::endl;
+                  << +rgbRange.minB << " " << +rgbRange.maxB << " " << std::endl;*/
 
         if (mouseBtn == MouseListener::MouseBtn::LEFT) {
             /*unsigned char b = rgb[mouseY * width + mouseX];
@@ -398,7 +398,7 @@ void Gui::handleColorThresholding(unsigned char* rgbData, unsigned char* rgb) {
 
             Blobber::ColorClassState* selectedColor = blobber->getColor(selectedColorName);
 
-            if (selectedColor != NULL) {
+            if (selectedColor != nullptr) {
                 if (clustering) {
                     blobber->setPixelClusterRange(
                     		clusterer->centroids,
@@ -407,10 +407,21 @@ void Gui::handleColorThresholding(unsigned char* rgbData, unsigned char* rgb) {
 							selectedColor->color
 					);
                 } else {
-                    blobber->setPixelColorRange(rgbRange, selectedColor->color);
+                    //blobber->setPixelColorRange(rgbRange, selectedColor->color);
+
+                    ImageProcessor::RGBInfo rgbInfo = ImageProcessor::extractColors(rgbData, width, height, mouseX, mouseY, brushRadius, stdDev);
+
+                    for (int i = 0; i < rgbInfo.count; i++) {
+                        ImageProcessor::RGBColor pixel = rgbInfo.pixels[i];
+                        blobber->setPixelColor(pixel.r, pixel.g, pixel.b, selectedColor->color);
+                    }
+
+                    for (int i = 0; i < rgbInfo.count; i++) {
+                        ImageProcessor::RGBColor pixel = rgbInfo.pixels[i];
+                        blobber->fillAdjacentColorPixels(pixel.r, pixel.g, pixel.b, selectedColor->color);
+                    }
                 }
             }
-
 		} else if (mouseBtn == MouseListener::MouseBtn::RIGHT) {
         	if (clustering) {
 				blobber->setPixelClusterRange(
@@ -420,7 +431,14 @@ void Gui::handleColorThresholding(unsigned char* rgbData, unsigned char* rgb) {
 						0
 				);
         	} else {
-				blobber->setPixelColorRange(rgbRange, 0);
+				//blobber->setPixelColorRange(rgbRange, 0);
+
+                ImageProcessor::RGBInfo rgbInfo = ImageProcessor::extractColors(rgbData, width, height, mouseX, mouseY, brushRadius, stdDev);
+
+                for (int i = 0; i < rgbInfo.count; i++) {
+                    ImageProcessor::RGBColor pixel = rgbInfo.pixels[i];
+                    blobber->setPixelColor(pixel.r, pixel.g, pixel.b, 0);
+                }
 			}
 		} else if (mouseBtn == MouseListener::MouseBtn::MIDDLE) {
             blobber->clearColor(selectedColorName);
