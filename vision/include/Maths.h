@@ -8,6 +8,7 @@
 #include <vector>
 #include <queue>
 #include <numeric>
+#include <algorithm>
 
 #undef min
 #undef max
@@ -18,15 +19,18 @@ const float PI = 3.14159265358979f;
 const float TWO_PI = 6.283185307f;
 const float E = 2.718f;
 
-static float max(float a, float b) {
+template <typename T>
+static T max(T a, T b) {
 	return (a < b) ? b : a;
 }
 
-static float min(float a, float b) {
+template <typename T>
+static T min(T a, T b) {
 	return (a < b) ? a : b;
 }
 
-static float limit(float value, float min, float max) {
+template <typename T>
+static T limit(T value, T min, T max) {
 	if (value < min) {
 		return min;
 	} else if (value > max) {
@@ -166,6 +170,12 @@ static float standardDeviation(std::vector<float> elements, float& mean) {
 	float sqSum = (float)std::inner_product(elements.begin(), elements.end(), elements.begin(), 0.0);
 
 	return std::sqrt(sqSum / elements.size() - mean * mean);
+}
+
+static int middleElement(std::vector<int> &v) {
+	size_t n = v.size() / 2;
+	std::nth_element(v.begin(), v.begin()+n, v.end());
+	return v[n];
 }
 
 static float getAngleDir(float from, float to) {

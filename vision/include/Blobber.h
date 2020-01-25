@@ -83,9 +83,22 @@ public:
 		unsigned short count;
 	} BlobInfo;
 
+    typedef struct Offset3 {
+        Offset3() : x(0), y(0), z(0) {}
+        Offset3(int x, int y, int z) : x(x), y(y), z(z) {}
+
+        int x, y, z;
+    } Offset3;
+
+    typedef struct Offset3Pair {
+        Offset3 a, b;
+    } Offset3Pair;
+
 	void setColorMinArea(int color, int min_area);
 	void setColors(unsigned char *data);
     void setPixelColor(unsigned char r, unsigned char g, unsigned char b, unsigned char color);
+    void fillAdjacentColorPixels(unsigned char r, unsigned char g, unsigned char b, unsigned char color);
+    unsigned char getLookupColor(int r, int g, int b);
 	void setPixelColorRange(ImageProcessor::RGBRange rgbRange, unsigned char color);
 	void setPixelClusterRange(unsigned char *centroids, int centroidIndex, int centroidCount, unsigned char color);
 	void setActivePixels(unsigned char *data);
@@ -138,6 +151,8 @@ private:
 	int region_c;
 	int max_area;
 	int passes;
+
+	void createFillerOffsetPairs();
 };
 
 #endif //XIMEA_TEST_BLOBBER_H

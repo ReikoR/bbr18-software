@@ -8,6 +8,8 @@
 #include <Blobber.h>
 #include <Util.h>
 #include <Config.h>
+#include <Maths.h>
+#include <boost/geometry.hpp>
 
 const int Blobber::COLORS_LOOKUP_SIZE = 0x1000000;
 
@@ -87,6 +89,8 @@ Blobber::Blobber() {
 	//openCLCompute->setup();
 
 	openCLCompute = &OpenCLCompute::getInstance();
+
+	createFillerOffsetPairs();
 }
 
 Blobber::~Blobber() {
@@ -132,6 +136,19 @@ void Blobber::setColors(unsigned char *data) {
 }
 
 void Blobber::setPixelColor(unsigned char r, unsigned char g, unsigned char b, unsigned char color) {
+    /*unsigned char blockSize = 2;
+    unsigned char firstR = (r / blockSize) * blockSize;
+    unsigned char firstG = (g / blockSize) * blockSize;
+    unsigned char firstB = (b / blockSize) * blockSize;
+
+    for (unsigned int ri = firstR; ri < firstR + blockSize ; ri++) {
+        for (unsigned int gi = firstG; gi < firstG + blockSize; gi++) {
+            for (unsigned int bi = firstB; bi < firstB + blockSize; bi++) {
+                colors_lookup[bi + (gi << 8) + (ri << 16)] = color;
+            }
+        }
+    }*/
+
 	colors_lookup[b + (g << 8) + (r << 16)] = color;
 }
 
@@ -147,6 +164,137 @@ void Blobber::setPixelColorRange(ImageProcessor::RGBRange rgbRange, unsigned cha
 
 void Blobber::setPixelClusterRange(unsigned char *centroids, int centroidIndex, int centroidCount, unsigned char color) {
 	openCLCompute->generateLookupTable(centroids, colors_lookup, centroidIndex, centroidCount, color);
+}
+
+void Blobber::createFillerOffsetPairs() {
+    fillerOffsetPairs.clear();
+
+    int maxOffset = 1;
+
+    int sideLength = maxOffset * 2 + 1;
+    int pointCount = sideLength * sideLength * sideLength;
+    char* processedLinesMap = new char[pointCount * pointCount];
+    memset(processedLinesMap, 0, pointCount * pointCount);
+    int processedLinesCount = 0;
+    int totalLineCount = pointCount * pointCount + 1; // zero point line will be duplicated
+
+    int count = 0;
+    int point1Index = -1;
+    int point2Index = -1;
+
+    typedef boost::geometry::model::point<int, 3, boost::geometry::cs::cartesian> point_t;
+    typedef boost::geometry::model::segment<point_t> segment_t;
+
+    point_t point(0, 0, 0);
+
+    for (int x1 = -maxOffset; x1 <= maxOffset; x1++) {
+        for (int y1 = -maxOffset; y1 <= maxOffset; y1++) {
+            for (int z1 = -maxOffset; z1 <= maxOffset; z1++) {
+                point1Index++;
+
+                point2Index = -1;
+
+                for (int x2 = -maxOffset; x2 <= maxOffset; x2++) {
+                    for (int y2 = -maxOffset; y2 <= maxOffset; y2++) {
+                        for (int z2 = -maxOffset; z2 <= maxOffset; z2++) {
+                            point2Index++;
+
+                            if (
+                                !processedLinesMap[point1Index * pointCount + point2Index] &&
+                                !(x1 == 0 && y1 == 0 && z1 == 0) &&
+                                !(x2 == 0 && y2 == 0 && z2 == 0)
+                            ) {
+                                segment_t segment(point_t(x1, y1, z1), point_t(x2, y2, z2));
+
+                                double distance = boost::geometry::distance(point, segment);
+
+                                if (distance < 0.3) {
+                                    std::cout << (++count) << "; " << x1 << " " << y1 << " " << z1 << "; "
+                                        << x2 << " " << y2 << " " << z2 << "; " << distance << std::endl;
+
+                                    fillerOffsetPairs.push_back(Offset3Pair{
+                                        .a = Offset3(x1, y1, z1),
+                                        .b = Offset3(x2, y2, z2)
+                                    });
+                                }
+                            }
+
+                            processedLinesMap[point1Index * pointCount + point2Index] = 1;
+                            processedLinesMap[point2Index * pointCount + point1Index] = 1;
+                            processedLinesCount += 2;
+
+                            if (processedLinesCount >= totalLineCount) {
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void Blobber::fillAdjacentColorPixels(unsigned char r, unsigned char g, unsigned char b, unsigned char color) {
+    /*int offsetPairs[13][2][3] = {
+            {{-1, -1, -1}, {1, 1, 1}},
+            {{-1, -1, 0}, {1, 1, 0}},
+            {{-1, -1, 1}, {1, 1, -1}},
+            {{-1, 0, -1}, {1, 0, 1}},
+            {{-1, 0, 0}, {1, 0, 0}},
+            {{-1, 0, 1}, {1, 0, -1}},
+            {{-1, 1, -1}, {1, -1, 1}},
+            {{-1, 1, 0}, {1, -1, 0}},
+            {{-1, 1, 1}, {1, -1, -1}},
+            {{0, -1, -1}, {0, 1, 1}},
+            {{0, -1, 0}, {0, 1, 0}},
+            {{0, -1, 1}, {0, 1, -1}},
+            {{0, 0, -1}, {0, 0, 1}}
+    };*/
+
+    int maxOffset = 1;
+
+    for (int ri = Math::max<int>(-maxOffset, 0); ri <= Math::min<int>(maxOffset, 255); ri++) {
+        for (int gi = Math::max<int>(-maxOffset, 0); gi <= Math::min<int>(maxOffset, 255); gi++) {
+            for (int bi = Math::max<int>(-maxOffset, 0); bi <= Math::min<int>(maxOffset, 255); bi++) {
+                unsigned char currentColor = getLookupColor(ri, gi, bi);
+
+                if (currentColor == color) {
+                    // Already same color
+                    continue;
+                }
+
+                for (auto pair : fillerOffsetPairs) {
+                    auto offset1 = pair.a;
+                    unsigned char color1 = getLookupColor(ri + offset1.x, gi + offset1.y, bi + offset1.z);
+
+                    if (color1 != color) {
+                        continue;
+                    }
+
+                    auto offset2 = pair.b;
+                    unsigned char color2 = getLookupColor(ri + offset2.x, gi + offset2.y, bi + offset2.z);
+
+                    if (color1 != color) {
+                        continue;
+                    }
+
+                    if (color1 == color2) {
+                        setPixelColor(r, g, b, color);
+                        //std::cout << "filled " << +r << " " << +g << " " << +b << std::endl;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+unsigned char Blobber::getLookupColor(int r, int g, int b) {
+    if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
+        return 0;
+    }
+
+    return colors_lookup[b + (g << 8) + (r << 16)];
 }
 
 void Blobber::setActivePixels(unsigned char *data) {
