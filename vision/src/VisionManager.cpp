@@ -6,6 +6,9 @@
 #include "Util.h"
 #include <algorithm>
 #include <json.hpp>
+#include <jpge.h>
+//#include <turbojpeg.h>
+#include "webp/encode.h"
 
 VisionManager::VisionManager() :
 	frontCamera(nullptr),
@@ -16,7 +19,8 @@ VisionManager::VisionManager() :
 	hubCom(nullptr),
 	running(false), debugVision(false),
 	dt(0.01666f), lastStepTime(0.0), totalTime(0.0f),
-	debugCameraDir(Dir::FRONT)
+	debugCameraDir(Dir::FRONT),
+	isImageSaved(false)
 {
 	visionResult = new Vision::Result();
 	visionResult->vision = vision;
@@ -151,6 +155,13 @@ void VisionManager::run() {
 			}
 		}
 
+        if (!isImageSaved) {
+            //isImageSaved = saveFrame("frame.png");
+            isImageSaved = saveRawFrame("frame.webp");
+            saveRawSegmentedFrame("segmented.webp");
+            isImageSaved = true;
+        }
+
 		//__int64 startTime = Util::timerStart();
 
 		//std::cout << "! Total time: " << Util::timerEnd(startTime) << std::endl;
@@ -261,14 +272,14 @@ void VisionManager::setupHubCom() {
 
 	hubCom->run();
 
-	/*auto jsonString = R"(
+	auto jsonString = R"(
 	  {
 		"type": "subscribe",
-		"topics": ["vision_close"]
+		"topics": ["save_frame"]
 	  }
 	)"_json.dump();
 
-	hubCom->send(const_cast<char *>(jsonString.c_str()), jsonString.length());*/
+	hubCom->send(const_cast<char *>(jsonString.c_str()), jsonString.length());
 }
 
 void VisionManager::sendState() {
@@ -393,7 +404,11 @@ void VisionManager::handleCommunicationMessage(std::string message) {
 
 	if ((jsonMessage["topic"] == "vision_close")) {
 		running = false;
-	}
+	} else if ((jsonMessage["topic"] == "save_frame")) {
+        saveRawFrame("frame.webp");
+        //saveRawSegmentedFrame("segmented.raw");
+        //saveFrame("frame.png");
+    }
 }
 
 bool VisionManager::isBlobBall(Blobber::Blob blob) {
@@ -454,3 +469,256 @@ bool VisionManager::isBlobBall(Blobber::Blob blob) {
 
 	return true;
 }
+
+bool VisionManager::saveRawFrame(std::string filename) {
+    __int64 startTime = Util::timerStart();
+
+    /*FILE* file = fopen(filename.c_str(), "wb");
+
+    if (!file) {
+        return false;
+    }
+
+    fwrite(blobber->bgr, sizeof(char), 3 * Config::cameraWidth * Config::cameraHeight, file);
+
+    fclose(file);*/
+
+    int width = Config::cameraWidth;
+    int height = Config::cameraHeight;
+
+    saveWebP(blobber->bgr, filename, width, height);
+
+    std::cout << "! save raw frame time: " << Util::timerEnd(startTime) << std::endl;
+
+    return true;
+}
+bool VisionManager::saveRawSegmentedFrame(std::string filename) {
+    __int64 startTime = Util::timerStart();
+
+    /*FILE* file = fopen(filename.c_str(), "wb");
+
+    if (!file) {
+        return false;
+    }*/
+
+    int width = Config::cameraWidth;
+    int height = Config::cameraHeight;
+
+    auto segmentedRgb = new unsigned char[3 * width * height];
+    blobber->getSegmentedRgb(segmentedRgb);
+
+    /*fwrite(segmentedRgb, sizeof(char), 3 * width * height, file);
+
+    fclose(file);*/
+
+    saveWebP(segmentedRgb, filename, width, height);
+
+    std::cout << "! save raw segmented frame time: " << Util::timerEnd(startTime) << std::endl;
+
+    return true;
+}
+
+bool VisionManager::saveFrame(std::string filename) {
+    __int64 startTime = Util::timerStart();
+
+    /* create file */
+    FILE *fp = fopen(filename.c_str(), "wb");
+    if (!fp)
+        std::cout << "[write_png_file] File could not be opened for writing" << std::endl;
+
+    __int64 encodeStartTime = Util::timerStart();
+
+    /* initialize stuff */
+    png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
+
+    if (!png_ptr)
+        std::cout << "[write_png_file] png_create_write_struct failed" << std::endl;
+
+    png_infop info_ptr = png_create_info_struct(png_ptr);
+    if (!info_ptr)
+        std::cout << "[write_png_file] png_create_info_struct failed" << std::endl;
+
+    if (setjmp(png_jmpbuf(png_ptr)))
+        std::cout << "[write_png_file] Error during init_io" << std::endl;
+
+    png_set_bgr(png_ptr);
+    png_init_io(png_ptr, fp);
+    png_set_compression_level(png_ptr, 3);
+
+    /* write header */
+    if (setjmp(png_jmpbuf(png_ptr)))
+        std::cout << "[write_png_file] Error during writing header" << std::endl;
+
+    png_set_IHDR(png_ptr, info_ptr, Config::cameraWidth, Config::cameraHeight,
+                 8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+                 PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+
+    png_write_info(png_ptr, info_ptr);
+
+
+    /* write bytes */
+    if (setjmp(png_jmpbuf(png_ptr)))
+        std::cout << "[write_png_file] Error during writing bytes" << std::endl;
+
+    auto row_pointers = (png_bytep*) malloc(sizeof(png_bytep) * Config::cameraHeight);;
+
+    for (int i = 0; i < Config::cameraHeight; i++) {
+        row_pointers[i] = &blobber->bgr[i * Config::cameraWidth * 3];
+    }
+
+    png_write_image(png_ptr, row_pointers);
+
+    /* end write */
+    if (setjmp(png_jmpbuf(png_ptr)))
+        std::cout << "[write_png_file] Error during end of write" << std::endl;
+
+    png_write_end(png_ptr, nullptr);
+
+    std::cout << "! PNG encode time: " << Util::timerEnd(startTime) << std::endl;
+
+    /* cleanup heap allocation */
+    /*for (int y = 0; y < Config::cameraHeight; y++) {
+        free(row_pointers[y]);
+    }*/
+
+    free(row_pointers);
+
+    fclose(fp);
+
+    std::cout << "! save frame time: " << Util::timerEnd(startTime) << std::endl;
+
+    return true;
+}
+
+bool VisionManager::saveJPEG(unsigned char* data, std::string filename, int width, int height, int channels) {
+    __int64 startTime = Util::timerStart();
+    bool isSuccess = jpge::compress_image_to_jpeg_file(filename.c_str(), width, height, channels, data);
+    std::cout << "! save jpeg " << filename <<" time: " << Util::timerEnd(startTime) << std::endl;
+    return isSuccess;
+}
+
+/*bool VisionManager::saveWebP(unsigned char* data, std::string filename, int width, int height) {
+    __int64 startTime = Util::timerStart();
+
+    FILE* file = fopen(filename.c_str(), "wb");
+
+    if (!file) {
+        return false;
+    }
+
+    uint8_t** output = nullptr;
+
+    size_t outputSize = WebPEncodeBGR(blobber->bgr, width, height, width * 3, 80.0, output);
+
+    std::cout << "! webp outputSize" << +outputSize << std::endl;
+
+    fwrite(output, sizeof(char), outputSize, file);
+
+    fclose(file);
+
+    WebPFree(output);
+
+    std::cout << "! save webp " << filename << " time: " << Util::timerEnd(startTime) << std::endl;
+
+    return true;
+}*/
+
+bool VisionManager::saveWebP(unsigned char* data, std::string filename, int width, int height) {
+    __int64 startTime = Util::timerStart();
+
+    FILE* file = fopen(filename.c_str(), "wb");
+
+    if (!file) {
+        return false;
+    }
+
+    WebPConfig config;
+
+    //if (!WebPConfigPreset(&config, WEBP_PRESET_DEFAULT, 80)) return false;   // version error
+
+    WebPConfigInit(&config);
+
+    /*config.lossless = 1;
+    config.quality = 0;
+    config.method = 0;
+    config.image_hint = WEBP_HINT_DEFAULT;*/
+
+    config.method = 0;
+    config.quality = 80;
+
+    int config_error = WebPValidateConfig(&config);
+
+    std::cout << "config_error: " << config_error << std::endl;
+
+    WebPPicture pic;
+
+    if (!WebPPictureInit(&pic)) return false;  // version error
+    pic.width = width;
+    pic.height = height;
+    if (!WebPPictureAlloc(&pic)) return false;   // memory error
+
+    __int64 importBGRStartTime = Util::timerStart();
+    WebPPictureImportBGR(&pic, data, 3 * width);
+    std::cout << "! import bgr " << filename << " time: " << Util::timerEnd(importBGRStartTime) << std::endl;
+
+    WebPMemoryWriter writer;
+    WebPMemoryWriterInit(&writer);
+    pic.writer = WebPMemoryWrite;
+    pic.custom_ptr = &writer;
+
+    __int64 encodeStartTime = Util::timerStart();
+    int ok = WebPEncode(&config, &pic);
+    std::cout << "! encode webp " << filename << " time: " << Util::timerEnd(encodeStartTime) << std::endl;
+
+    if (!ok) {
+        printf("Encoding error: %d\n", pic.error_code);
+    } else {
+        printf("Output size: %d\n", writer.size);
+
+        fwrite(writer.mem, sizeof(char), writer.size, file);
+    }
+
+    fclose(file);
+
+    WebPPictureFree(&pic);   // Always free the memory associated with the input.
+
+    std::cout << "! save webp " << filename << " time: " << Util::timerEnd(startTime) << std::endl;
+
+    return true;
+}
+
+/*bool VisionManager::saveJPEGTurbo(unsigned char* data, std::string filename, int width, int height, int channels) {
+    __int64 startTime = Util::timerStart();
+
+    FILE* file = fopen(filename.c_str(), "wb");
+
+    if (!file) {
+        return false;
+    }
+
+    const int JPEG_QUALITY = 75;
+    int _width = Config::cameraWidth;
+    int _height = Config::cameraHeight;
+    long unsigned int _jpegSize = 0;
+    unsigned char* _compressedImage = nullptr; //!< Memory is allocated by tjCompress2 if _jpegSize == 0
+
+    tjhandle _jpegCompressor = tjInitCompress();
+
+    tjCompress2(_jpegCompressor, data, _width, 0, _height, TJPF_BGR,
+                &_compressedImage, &_jpegSize, TJSAMP_444, JPEG_QUALITY,
+                TJFLAG_FASTDCT);
+
+    tjDestroy(_jpegCompressor);
+
+    fwrite(_compressedImage, sizeof(char), _jpegSize, file);
+
+    fclose(file);
+
+    //to free the memory allocated by TurboJPEG (either by tjAlloc(),
+    //or by the Compress/Decompress) after you are done working on it:
+    tjFree(_compressedImage);
+
+    bool isSuccess = jpge::compress_image_to_jpeg_file(filename.c_str(), width, height, channels, data);
+    std::cout << "! save jpeg " << filename <<" time: " << Util::timerEnd(startTime) << std::endl;
+    return isSuccess;
+}*/
