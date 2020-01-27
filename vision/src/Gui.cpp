@@ -135,6 +135,7 @@ Gui::Gui(HINSTANCE instance, Blobber* blobber, int width, int height) : instance
 	clearSelectedBtn = createButton("Clear selected", 20 + 280 + 10, 40, 140, ButtonType::clearColor, false);
 
 	createButton("Quit", width - 80, 20, 60, ButtonType::quit);
+    createButton("Save", width - 160, 20, 60, ButtonType::save);
     createButton("Undo", width - 240, 20, 60, ButtonType::undo);
 
 	createButton("Clustering mode", width - 80 - 85, 50, 145, ButtonType::toggleClustering);
@@ -533,6 +534,9 @@ void Gui::onElementClick(Element* element) {
 		} else if (button->type == ButtonType::undo) {
             std::cout << "! UNDO" << std::endl;
             blobber->undo();
+        } else if (button->type == ButtonType::save) {
+            std::cout << "! Save" << std::endl;
+            blobber->saveColors("colors.dat");
         }
 	}
 }

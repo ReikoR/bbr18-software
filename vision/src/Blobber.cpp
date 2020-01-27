@@ -843,6 +843,8 @@ bool Blobber::saveColors(std::string filename) {
 
     fclose(file);
 
+    std::cout << "! Colors lookup saved" << std::endl;
+
     return true;
 }
 

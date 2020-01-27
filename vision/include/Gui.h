@@ -31,6 +31,7 @@ class Gui : public MouseListener {
         increaseClusters,
         decreaseClusters,
         undo,
+        save
     };
 
 public:
