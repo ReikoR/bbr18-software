@@ -3,8 +3,6 @@
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
-#include <array>
-#include <cstring>
 #include <Blobber.h>
 #include <Util.h>
 #include <Config.h>
@@ -32,12 +30,12 @@ Blobber::Blobber() {
 
 	int i;
 	for (i = 0; i < COLOR_COUNT; i++) {
-		colors[i].list = NULL;
+		colors[i].list = nullptr;
 		colors[i].num = 0;
 		colors[i].min_area = MAX_INT;
 		colors[i].color = i;
 
-        switch(i) {
+        switch (i) {
             case 1:
                 colors[i].name = const_cast<char *>("green");
 				colors[i].r = 19;
@@ -98,8 +96,8 @@ Blobber::Blobber() {
 
 Blobber::~Blobber() {
 	// clear blobs cache
-	for (int i = 0; i < COLOR_COUNT; ++i) {
-		blobInfoCache[i] = nullptr;
+	for (auto & colorBlobInfoCache : blobInfoCache) {
+        colorBlobInfoCache = nullptr;
 	}
 
 	//exit, free resources
@@ -370,47 +368,17 @@ void Blobber::setActivePixels(unsigned char *data) {
 	memcpy(pixel_active, data, size);
 }
 
-void Blobber::refreshSize() {
-	//set cam size and allocate buffers
-	
-	//self->width = (int)self->image.width;
-	//self->height = (int)self->image.height;
-
-    /*width = 1280;
-    height = 1024;
-
-	int size = width * width;
-	
-	if (segmented != nullptr) {
-		_aligned_free(segmented);
-	}
-
-	segmented = (unsigned char *)_aligned_malloc(size * sizeof(unsigned char), 4096);
-	memset(segmented, 0, size * sizeof(unsigned char));
-	
-	if (bgr != nullptr) {
-		_aligned_free(bgr);
-	}
-
-	bgr = (unsigned char *)_aligned_malloc(size * sizeof(unsigned char) * 3, 4096);*/
-}
-
-void Blobber::start() {
-	//start capture
-	refreshSize();
-}
-
 void Blobber::segEncodeRuns() {
 // Changes the flat array version of the thresholded image into a run
 // length encoded version, which speeds up later processing since we
 // only have to look at the points where values change.
 	unsigned char m, save;
-	unsigned char *row = NULL;
+	unsigned char *row = nullptr;
 	int x, y, j, l;
 	BlobberRun r;
 	unsigned char *map = segmented;
 	BlobberRun *rle = this->rle;
-	
+
 	int w = width;
 	int h = height;
 
@@ -525,11 +493,6 @@ void Blobber::segConnectComponents() {
 	}
 }
 
-int Blobber::rangeSum(int x, int w) {
-	//foo bar
-	return(w*(2*x + w-1) / 2);
-}
-
 void Blobber::segExtractRegions() {
 // Takes the list of runs and formats them into a region table,
 // gathering the various statistics along the way.	num is the number
@@ -599,7 +562,7 @@ void Blobber::segSeparateRegions() {
 // each color.	The lists are threaded through the table using the
 // region's 'next' field.	Returns the maximal area of the regions,
 // which can be used later to speed up sorting.
-	BlobberRegion *p = NULL;
+	BlobberRegion *p = nullptr;
 	int i;
 	int c;
 	int area;
@@ -609,7 +572,7 @@ void Blobber::segSeparateRegions() {
 
 	// clear out the region list head table
 	for(i=0; i<COLOR_COUNT; i++) {
-		color[i].list = NULL;
+		color[i].list = nullptr;
 		color[i].num	= 0;
 	}
 	// step over the table, adding successive
@@ -632,7 +595,7 @@ void Blobber::segSeparateRegions() {
 Blobber::BlobberRegion* Blobber::segSortRegions(BlobberRegion *list, int passes) {
 // Sorts a list of regions by their area field.
 // Uses a linked list based radix sort to process the list.
-	BlobberRegion *tbl[CMV_RADIX]={NULL}, *p=NULL, *pn=NULL;
+	BlobberRegion *tbl[CMV_RADIX]={nullptr}, *p=nullptr, *pn=nullptr;
 	int slot, shift;
 	int i, j;
 
@@ -640,7 +603,7 @@ Blobber::BlobberRegion* Blobber::segSortRegions(BlobberRegion *list, int passes)
 	if(!list || !list->next) return(list);
 
 	// Initialize table
-	for(j=0; j<CMV_RADIX; j++) tbl[j] = NULL;
+	for(j=0; j<CMV_RADIX; j++) tbl[j] = nullptr;
 
 	for(i=0; i<passes; i++){
 		// split list into buckets
@@ -655,10 +618,10 @@ Blobber::BlobberRegion* Blobber::segSortRegions(BlobberRegion *list, int passes)
 		}
 
 		// integrate back into partially ordered list
-		list = NULL;
+		list = nullptr;
 		for(j=0; j<CMV_RADIX; j++){
 			p = tbl[j];
-			tbl[j] = NULL; // clear out table for next pass
+			tbl[j] = nullptr; // clear out table for next pass
 			while(p){
 				pn = p->next;
 				p->next = list;
@@ -693,79 +656,9 @@ void Blobber::getSegmentedRgb(unsigned char* out) {
 
 void Blobber::analyse(unsigned char *frame) {
 	//get new frame and find blobs
-	
-	/*
-	//use CameraRefreshFrame to convert RGGB to BGR. slower, but shorter code
-	CameraRefreshFrame(self);
-	int w = width;
-	int h = height;
-	
-	unsigned char *f;
-	f = bgr;
-	int y, x;
-	for (y=1; y<h-1; y++) {//threshold
-		for (x=1; x<w-1; x++) {
-			segmented[y*w+x] = colors_lookup[f[y*w*3+x*3] + (f[y*w*3+x*3+1] << 8) + (f[y*w*3+x*3+2] << 16)];
-		}
-	}
-	*/
-
-    //unsigned char *f = frame;
-
-	//__int64 startTime = Util::timerStart();
-
-	/*int w = width;
-	int h = height;*/
 
 	openCLCompute->deBayer(frame, bgr, colors_lookup, segmented, width, height, COLORS_LOOKUP_SIZE);
 	
-	/*#pragma omp parallel for
-	for (int y = 1; y < h - 1; y += 2) {//threshold RGGB Bayer matrix
-		for (int x = 1; x < w - 1; x += 2) {//ignore sides
-			//http://en.wikipedia.org/wiki/Bayer_filter
-			//current block is BGGR
-			//blue f[y*w+x],green1 f[y*w+x+1],green2 f[y*w+x+w],red f[y*w+x+w+1]
-			int xy = y * w + x;
-			int b;//blue
-			int g;//green
-			int r;//red
-
-			if (pixel_active[xy]) {
-				b = f[xy];
-				//g = (f[xy-1]+f[xy+1]+f[xy-w]+f[xy+w]+2) >> 2;//left,right,up,down
-				g = f[xy - 1];//left,right,up,down
-				r = (f[xy - w - 1] + f[xy - w + 1] + f[xy + w - 1] + f[xy + w + 1] + 2) >> 2;//diagonal
-				segmented[xy] = colors_lookup[b + (g << 8) + (r << 16)];
-			}
-
-			xy += 1;
-			if (pixel_active[xy]) {
-				b = (f[xy - 1] + f[xy + 1] + 1) >> 1;//left,right
-				g = f[xy];
-				r = (f[xy - w] + f[xy + w] + 1) >> 1;//up,down
-				segmented[xy] = colors_lookup[b + (g << 8) + (r << 16)];
-			}
-
-			xy += w - 1;
-			if (pixel_active[xy]) {
-				b = (f[xy - w] + f[xy + w] + 1) >> 1;//up,down
-				g = f[xy];
-				r = (f[xy - 1] + f[xy + 1] + 1) >> 1;//left,right
-				segmented[xy] = colors_lookup[b + (g << 8) + (r << 16)];
-			}
-
-			xy += 1;
-			if (pixel_active[xy]) {
-				b = (f[xy - w - 1] + f[xy - w + 1] + f[xy + w - 1] + f[xy + w + 1] + 2) >> 2;//diagonal
-				g = (f[xy - 1] + f[xy + 1] + f[xy - w] + f[xy + w] + 2) >> 2;//left,right,up,down
-				r = f[xy];
-				segmented[xy] = colors_lookup[b + (g << 8) + (r << 16)];
-			}
-		}
-	}*/
-
-	//std::cout << "! Total time: " << Util::timerEnd(startTime) << std::endl;
-
 	segEncodeRuns();
 	segConnectComponents();
 	segExtractRegions();
@@ -773,15 +666,15 @@ void Blobber::analyse(unsigned char *frame) {
 
 	// do minimal number of passes sufficient to touch all set bits
 	int y = 0;
-	while( max_area != 0 ) {
+	while (max_area != 0) {
 		max_area >>= CMV_RBITS;
 		y++;
 	}
 	passes = y;
 
 	// clear blobs cache
-	for (int i = 0; i < COLOR_COUNT; ++i) {
-		blobInfoCache[i] = nullptr;
+	for (auto & colorBlobInfoCache : blobInfoCache) {
+        colorBlobInfoCache = nullptr;
 	}
 }
 
@@ -801,7 +694,7 @@ Blobber::BlobInfo* Blobber::getBlobs(BlobColor colorIndex) {
 	unsigned short cen_x, cen_y;
 	//unsigned short *pout = (unsigned short *) malloc(rows * cols * sizeof(unsigned short));
     Blob* blobs = new Blob[rows];
-    BlobInfo* blobInfo = new BlobInfo();
+    auto* blobInfo = new BlobInfo();
 
     blobInfo->count = rows;
     blobInfo->blobs = blobs;
@@ -832,7 +725,7 @@ Blobber::BlobInfo* Blobber::getBlobs(BlobColor colorIndex) {
 	return blobInfo;
 }
 
-bool Blobber::saveColors(std::string filename) {
+bool Blobber::saveColors(const std::string& filename) {
     FILE* file = fopen(filename.c_str(), "wb");
 
     if (!file) {
@@ -848,7 +741,7 @@ bool Blobber::saveColors(std::string filename) {
     return true;
 }
 
-bool Blobber::loadColors(std::string filename) {
+bool Blobber::loadColors(const std::string& filename) {
     FILE* file = fopen(filename.c_str(), "rb");
 
     if (!file) {
@@ -880,14 +773,14 @@ Blobber::ColorClassState* Blobber::getColor(BlobColor colorIndex) {
     return &colors[colorIndex];
 }
 
-Blobber::ColorClassState* Blobber::getColor(std::string name) {
+Blobber::ColorClassState* Blobber::getColor(const std::string& name) {
 	for (int i = 0; i < getColorCount(); i++) {
-		if (colors[i].name != NULL && strcmp(colors[i].name, name.c_str()) == 0) {
+		if (colors[i].name != nullptr && strcmp(colors[i].name, name.c_str()) == 0) {
 			return &colors[i];
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 Blobber::BlobColor Blobber::getColorAt(int x, int y) {
@@ -918,7 +811,7 @@ void Blobber::clearColor(unsigned char colorIndex) {
 void Blobber::clearColor(std::string colorName) {
     ColorClassState* color = getColor(std::move(colorName));
 
-    if (color == NULL) {
+    if (color == nullptr) {
         return;
     }
 

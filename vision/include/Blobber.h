@@ -110,8 +110,6 @@ public:
 	void setPixelColorRange(ImageProcessor::RGBRange rgbRange, unsigned char color);
 	void setPixelClusterRange(unsigned char *centroids, int centroidIndex, int centroidCount, unsigned char color);
 	void setActivePixels(unsigned char *data);
-	void refreshSize();
-	void start();
 	void segEncodeRuns();
 	void segConnectComponents();
 
@@ -124,12 +122,12 @@ public:
 	void getSegmentedRgb(unsigned char* out);
     unsigned char *segmented;//segmented image buffer 0-9
 
-	bool saveColors(std::string filename);
-    bool loadColors(std::string filename);
+	bool saveColors(const std::string& filename);
+    bool loadColors(const std::string& filename);
 
     int getColorCount();
     ColorClassState* getColor(BlobColor colorIndex);
-    ColorClassState* getColor(std::string name);
+    ColorClassState* getColor(const std::string& name);
     BlobColor getColorAt(int x, int y);
 
 	void clearColors();
@@ -139,13 +137,11 @@ public:
 	unsigned char *bgr;//BGR buffer
 
 private:
-	int rangeSum(int x, int w);
-
 	//unsigned char colors_lookup[0x1000000];//all possible bgr combinations lookup table/
 	unsigned char* colors_lookup;//all possible bgr combinations lookup table/
     unsigned char* prev_colors_lookup;
     std::vector<std::vector<LookupPixelChange>> lookupChangeHistory;
-	unsigned char pixel_active[MAX_WIDTH * MAX_HEIGHT];//0=ignore in segmentation, 1=use pixel
+	unsigned char pixel_active[MAX_WIDTH * MAX_HEIGHT]{};//0=ignore in segmentation, 1=use pixel
 	//unsigned char *segmented;//segmented image buffer 0-9
 
 	bool hasLookupChanged;
@@ -155,14 +151,18 @@ private:
 
 	OpenCLCompute* openCLCompute;
 
-	BlobberRun rle[MAX_RUNS];
-	BlobberRegion regions[MAX_REG];
-	ColorClassState colors[COLOR_COUNT];
-	BlobInfo* blobInfoCache[COLOR_COUNT];
+	BlobberRun rle[MAX_RUNS]{};
+	BlobberRegion regions[MAX_REG]{};
+	ColorClassState colors[COLOR_COUNT]{};
+	BlobInfo* blobInfoCache[COLOR_COUNT]{};
 	int run_c;
 	int region_c;
 	int max_area;
-	int passes;
+	int passes{};
+
+	static int rangeSum(int x, int w) {
+        return w * (2 * x + w - 1) / 2;
+    }
 
 	std::vector<Offset3Pair> fillerOffsetPairs;
 	void createFillerOffsetPairs();

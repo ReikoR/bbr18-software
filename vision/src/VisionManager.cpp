@@ -248,8 +248,6 @@ void VisionManager::setupVision() {
 	blobber->setColorMinArea(6, 100);
 
 	vision = new Vision(blobber, Dir::FRONT, Config::cameraWidth, Config::cameraHeight);
-
-	blobber->start();
 }
 
 void VisionManager::setupHubCom() {

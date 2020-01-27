@@ -11,67 +11,6 @@
 
 LRESULT CALLBACK WinProc(HWND hWnd,UINT message,WPARAM wParam,LPARAM lParam);
 
-//Gui::Gui(HINSTANCE instance, CameraTranslator* frontCameraTranslator, CameraTranslator* rearCameraTranslator, Blobber* blobberFront, Blobber* blobberRear, int width, int height) : instance(instance), frontCameraTranslator(frontCameraTranslator), rearCameraTranslator(rearCameraTranslator), blobberFront(blobberFront), blobberRear(blobberRear), width(width), height(height), activeWindow(NULL), quitRequested(false) {
-//	WNDCLASSEX wClass;
-//	ZeroMemory(&wClass, sizeof(WNDCLASSEX));
-//
-//	wClass.cbClsExtra = 0;
-//	wClass.cbSize = sizeof(WNDCLASSEX);
-//	wClass.cbWndExtra = 0;
-//	wClass.hbrBackground = (HBRUSH)COLOR_WINDOW;
-//	wClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-//	wClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-//	wClass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-//	wClass.hInstance = instance;
-//	wClass.lpfnWndProc = (WNDPROC)WinProc;
-//	wClass.lpszClassName = "Window Class";
-//	wClass.lpszMenuName = NULL;
-//	wClass.style = CS_HREDRAW | CS_VREDRAW;
-//
-//	if (!RegisterClassEx(&wClass)) {
-//		int nResult = GetLastError();
-//
-//		MessageBox(
-//				NULL,
-//				"Window class creation failed",
-//				"Window Class Failed",
-//				MB_ICONERROR
-//		);
-//	}
-//
-//	ZeroMemory(&msg, sizeof(MSG));
-//
-//	addMouseListener(this);
-//
-//	mouseX = 0;
-//	mouseY = 0;
-//	mouseDown = false;
-//	mouseBtn = MouseListener::MouseBtn::LEFT;
-//	brushRadius = 50;
-//
-//	frontRGB = createWindow(width, height, "Camera 1 RGB");
-//	//rearRGB = createWindow(width, height, "Camera 2 RGB");
-//	//frontClassification = createWindow(width, height, "Camera 1 classification");
-//	//rearClassification = createWindow(width, height, "Camera 2 classification");
-//
-//	selectedColorName = "";
-//
-//	/*Blobber::Color* color;
-//
-//	for (int i = 0; i < blobberFront->getColorCount(); i++) {
-//		color = blobberFront->getColor(i);
-//
-//		createButton(color->name, 20, 40 + i * 18, 160, 1);
-//	}*/
-//
-//	createButton("green", 20, 40, 160, 1);
-//
-//	createButton("Clear all", 20 + 160 + 10, 40, 100, 2);
-//	clearSelectedBtn = createButton("Clear selected", 20 + 280 + 10, 40, 140, 3, false);
-//
-//	createButton("Quit", Config::cameraWidth - 80, 20, 60, 4);
-//}
-
 Gui::Gui(HINSTANCE instance, Blobber* blobber, int width, int height) : instance(instance), blobber(blobber), width(width), height(height), activeWindow(NULL), quitRequested(false) {
     WNDCLASSEX wClass;
     ZeroMemory(&wClass, sizeof(WNDCLASSEX));
@@ -170,7 +109,7 @@ Gui::~Gui() {
 }
 
 DisplayWindow* Gui::createWindow(int width, int height, std::string name) {
-	DisplayWindow* window = new DisplayWindow(instance, width, height, name, this);
+	auto* window = new DisplayWindow(instance, width, height, name, this);
 
 	windows.push_back(window);
 
@@ -235,8 +174,8 @@ void Gui::processFrame(unsigned char* bgr) {
 
 
 void Gui::drawElements(unsigned char* image, int width, int height) {
-	for (std::vector<Element*>::const_iterator i = elements.begin(); i != elements.end(); i++) {
-		(*i)->draw(image, width, height);
+	for (auto element : elements) {
+		element->draw(image, width, height);
 	}
 }
 
@@ -267,8 +206,8 @@ void Gui::drawMouse(CameraTranslator* cameraTranslator, unsigned char* image, in
 }
 
 bool Gui::isMouseOverElement(int x, int y) {
-	for (std::vector<Element*>::const_iterator i = elements.begin(); i != elements.end(); i++) {
-		if ((*i)->contains(x, y)) {
+	for (auto element : elements) {
+		if (element->contains(x, y)) {
 			return true;
 		}
 	}
@@ -279,7 +218,7 @@ bool Gui::isMouseOverElement(int x, int y) {
 bool Gui::update(Vision::Result* visionResult) {
 	setFrontImages(rgb, rgbData, visionResult);
 
-	while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) != 0) {
+	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE) != 0) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 
@@ -294,29 +233,6 @@ bool Gui::update(Vision::Result* visionResult) {
 void Gui::addMouseListener(MouseListener* listener) {
 	mouseListeners.push_back(listener);
 	auto size = this->mouseListeners.size();
-}
-
-void Gui::setFrontImages(unsigned char* rgb, unsigned char* yuyv, unsigned char* dataY, unsigned char* dataU, unsigned char* dataV, unsigned char* classification) {
-	DebugRenderer::renderFPS(rgb, fps);
-
-	drawElements(rgb, width, height);
-	//drawElements(classification, width, height);
-	//drawMouse(frontCameraTranslator, rgb, width, height);
-
-	//if (activeWindow == frontClassification || activeWindow == frontRGB) {
-	if (activeWindow == frontRGB) {
-		if (!isMouseOverElement(mouseX, mouseY)) {
-			if (selectedColorName.length() > 0) {
-				//handleColorThresholding(dataY, dataU, dataV, rgb, classification);
-				//handleColorThresholding(rgbData, rgb);
-			}
-		} else {
-			handleElements();
-		}
-	}
-
-	frontClassification->setImage(classification, true);
-	frontRGB->setImage(rgb, true);
 }
 
 void Gui::setFrontImages(unsigned char* rgb, unsigned char* rgbData, Vision::Result* visionResult) {
@@ -351,29 +267,7 @@ void Gui::setFrontImages(unsigned char* rgb, unsigned char* rgbData, Vision::Res
 	frontRGB->setImage(rgb, true);
 }
 
-//void Gui::setRearImages(unsigned char* rgb, unsigned char* yuyv, unsigned char* dataY, unsigned char* dataU, unsigned char* dataV, unsigned char* classification) {
-//	DebugRenderer::renderFPS(rgb, fps);
-//
-//	drawElements(rgb, width, height);
-//	drawElements(classification, width, height);
-//	drawMouse(rearCameraTranslator, rgb, width, height);
-//
-//	if (activeWindow == rearClassification || activeWindow == rearRGB) {
-//		if (!isMouseOverElement(mouseX, mouseY)) {
-//			if (selectedColorName.length() > 0) {
-//				//handleColorThresholding(dataY, dataU, dataV, rgb, classification);
-//				handleColorThresholding(rgb);
-//			}
-//		} else {
-//			handleElements();
-//		}
-//	}
-//
-//	rearRGB->setImage(rgb, true);
-//	rearClassification->setImage(classification, true);
-//}
 
-//void Gui::handleColorThresholding(unsigned char* dataY, unsigned char* dataU, unsigned char* dataV, unsigned char* rgb, unsigned char* classification) {
 void Gui::handleColorThresholding(unsigned char* rgbData, unsigned char* rgb) {
     if (!clustering) {
         DebugRenderer::renderBrush(rgb, mouseX, mouseY, brushRadius, mouseDown);
@@ -589,26 +483,26 @@ void Gui::onMouseWheel(int delta, DisplayWindow* win) {
 }
 
 void Gui::emitMouseDown(int x, int y, MouseListener::MouseBtn btn, DisplayWindow* win) {
-    for (std::vector<MouseListener*>::const_iterator i = mouseListeners.begin(); i != mouseListeners.end(); i++) {
-		(*i)->onMouseDown(x, y, btn, win);
+    for (auto mouseListener : mouseListeners) {
+		mouseListener->onMouseDown(x, y, btn, win);
 	}
 }
 
 void Gui::emitMouseUp(int x, int y, MouseListener::MouseBtn btn, DisplayWindow* win) {
-    for (std::vector<MouseListener*>::const_iterator i = mouseListeners.begin(); i != mouseListeners.end(); i++) {
-		(*i)->onMouseUp(x, y, btn, win);
+    for (auto mouseListener : mouseListeners) {
+		mouseListener->onMouseUp(x, y, btn, win);
 	}
 }
 
 void Gui::emitMouseMove(int x, int y, DisplayWindow* win) {
-	for (std::vector<MouseListener*>::const_iterator i = mouseListeners.begin(); i != mouseListeners.end(); i++) {
-		(*i)->onMouseMove(x, y, win);
+	for (auto mouseListener : mouseListeners) {
+		mouseListener->onMouseMove(x, y, win);
 	}
 }
 
 void Gui::emitMouseWheel(int delta, DisplayWindow* win) {
-    for (std::vector<MouseListener*>::const_iterator i = mouseListeners.begin(); i != mouseListeners.end(); i++) {
-		(*i)->onMouseWheel(delta, win);
+    for (auto mouseListener : mouseListeners) {
+		mouseListener->onMouseWheel(delta, win);
 	}
 }
 
@@ -631,12 +525,12 @@ void Gui::Button::draw(unsigned char* image, int imageWidth, int imageHeight) {
 	canvas.data = image;
 
 	if (active) {
-		canvas.fillBox(x, y, getWidth(), getHeight(), 255, 0, 0);
+	    canvas.fillBox(x, y, getWidth(), getHeight(), 255, 0, 0);
 		canvas.drawBox(x, y, getWidth(), getHeight(), 255, over ? 0 : 255, over ? 0 : 255);
 		canvas.drawText(x + 6, y + 4, text, 255, 255, 255, false);
 	} else {
-		canvas.drawBox(x, y, getWidth(), getHeight(), over ? 255 : 0, over ? 0 : 0, over ? 0 : 255);
-		canvas.drawText(x + 6, y + 4, text, over ? 255 : 0, over ? 0 : 0, over ? 0 : 255, false);
+		canvas.drawBox(x, y, getWidth(), getHeight(), over ? 255 : 0, 0, over ? 0 : 255);
+		canvas.drawText(x + 6, y + 4, text, over ? 255 : 0, 0, over ? 0 : 255, false);
 	}
 }
 
@@ -680,9 +574,9 @@ LRESULT CALLBACK WinProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 		default:
 			//DisplayWindow* displayWindow = (DisplayWindow*)GetWindowLong(hWnd, GWL_USERDATA);
-			DisplayWindow* displayWindow = (DisplayWindow*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+			auto* displayWindow = (DisplayWindow*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
 
-			if (displayWindow != NULL) {
+			if (displayWindow != nullptr) {
 				return displayWindow->handleMessage(hWnd, msg, wParam, lParam);
 			} else {
 				return DefWindowProc(hWnd, msg, wParam, lParam);
