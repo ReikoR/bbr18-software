@@ -21,6 +21,17 @@ class Clusterer;
 class ParticleFilterLocalizer;
 
 class Gui : public MouseListener {
+    enum ButtonType {
+        unknown,
+        selectColor,
+        clearAll,
+        clearColor,
+        quit,
+        toggleClustering,
+        increaseClusters,
+        decreaseClusters,
+        undo,
+    };
 
 public:
 	class Element : public MouseListener {
@@ -62,7 +73,7 @@ public:
 	~Gui();
 
 	DisplayWindow* createWindow(int width, int height, std::string name);
-	Button* createButton(std::string text, int x, int y, int width = 0, int type = 0, bool visible = true, void* data = NULL);
+	Button* createButton(std::string text, int x, int y, int width = 0, ButtonType type = ButtonType::unknown, bool visible = true, void* data = NULL);
 
 	unsigned char* rgb;
 

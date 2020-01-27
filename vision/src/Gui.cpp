@@ -125,27 +125,25 @@ Gui::Gui(HINSTANCE instance, Blobber* blobber, int width, int height) : instance
 	for (int i = 0, y = 0; i < blobber->getColorCount(); i++) {
 		color = blobber->getColor(Blobber::BlobColor(i));
 
-        if (color->name != NULL) {
-            createButton(color->name, 20, 40 + y * 18, 160, 1);
+        if (color->name != nullptr) {
+            createButton(color->name, 20, 40 + y * 18, 160, ButtonType::selectColor);
             y++;
         }
 	}
 
-	//createButton("green", 20, 40, 160, 1);
+	createButton("Clear all", 20 + 160 + 10, 40, 100, ButtonType::clearAll);
+	clearSelectedBtn = createButton("Clear selected", 20 + 280 + 10, 40, 140, ButtonType::clearColor, false);
 
-	createButton("Clear all", 20 + 160 + 10, 40, 100, 2);
-	clearSelectedBtn = createButton("Clear selected", 20 + 280 + 10, 40, 140, 3, false);
+	createButton("Quit", width - 80, 20, 60, ButtonType::quit);
+    createButton("Undo", width - 240, 20, 60, ButtonType::undo);
 
-	createButton("Quit", Config::cameraWidth - 80, 20, 60, 4);
-    createButton("Undo", Config::cameraWidth - 160, 20, 60, 9);
-
-	createButton("Clustering mode", Config::cameraWidth - 80 - 85, 38, 145, 5);
+	createButton("Clustering mode", width - 80 - 85, 50, 145, ButtonType::toggleClustering);
 	clustering = false;
 	clusterer = new Clusterer();
 
-	createButton("-", Config::cameraWidth - 80 - 85, 56, 20, 6);
-	centroidCountButton = createButton(std::to_string(clusterer->centroidCount), Config::cameraWidth - 80 - 85 + 20, 56, 30, 7);
-	createButton("+", Config::cameraWidth - 80 - 85 + 50, 56, 20, 8);
+	createButton("-", width - 80 - 85, 68, 20, ButtonType::decreaseClusters);
+	centroidCountButton = createButton(std::to_string(clusterer->centroidCount), width - 80 - 85 + 20, 68, 30, ButtonType::unknown);
+	createButton("+", width - 80 - 85 + 50, 68, 20, ButtonType::increaseClusters);
 }
 
 Gui::~Gui() {
@@ -170,8 +168,8 @@ DisplayWindow* Gui::createWindow(int width, int height, std::string name) {
 	return window;
 }
 
-Gui::Button* Gui::createButton(std::string text, int x, int y, int width, int type, bool visible, void* data) {
-	Button* button = new Button(text, x, y, width, type, visible, data);
+Gui::Button* Gui::createButton(std::string text, int x, int y, int width, ButtonType type, bool visible, void* data) {
+	auto* button = new Button(text, x, y, width, type, visible, data);
 
 	addMouseListener(button);
 
@@ -472,17 +470,17 @@ void Gui::handleElements() {
 }
 
 void Gui::onElementClick(Element* element) {
-	Button* button = dynamic_cast<Button*>(element);
+	auto* button = dynamic_cast<Button*>(element);
 	bool unset = false;
 
-	if (button != NULL) {
+	if (button != nullptr) {
 		if (Util::duration(button->lastInteractionTime) < 0.2) {
 			return;
 		}
 
 		button->lastInteractionTime = Util::millitime();
 
-		if (button->type == 1) {
+		if (button->type == ButtonType::selectColor) {
 			std::cout << "! Button '" << button->text << "' clicked" << std::endl;
 
 			if (button->type == 1) {
@@ -501,39 +499,38 @@ void Gui::onElementClick(Element* element) {
 			Element* el;
 			Button* btn;
 
-			for (std::vector<Element*>::const_iterator i = elements.begin(); i != elements.end(); i++) {
-				el = *i;
+			for (auto element : elements) {
+				el = element;
 				btn = dynamic_cast<Button*>(el);
 
-				if (btn == NULL) {
+				if (btn == nullptr) {
 					continue;
 				}
 
 				if (btn == button) {
-					btn->active = unset ? false : true;
+					btn->active = !unset;
 				} else {
 					btn->active = false;
 				}
 			}
-		} else if (button->type == 2) {
+		} else if (button->type == ButtonType::clearAll) {
             blobber->clearColors();
-		} else if (button->type == 3) {
+            blobber->createHistoryEntry();
+		} else if (button->type == ButtonType::clearColor) {
             blobber->clearColor(selectedColorName);
-		} else if (button->type == 4) {
+            blobber->createHistoryEntry();
+		} else if (button->type == ButtonType::quit) {
 			quitRequested = true;
-		} else if (button->type == 5) {
+		} else if (button->type == ButtonType::toggleClustering) {
 		    clustering = !clustering;
-
-		    if (clustering) {
-				//clusterer->processFrame(rgbData, 5);
-			}
-		}  else if (button->type == 6) {
+		    button->active = clustering;
+		} else if (button->type == ButtonType::decreaseClusters) {
 			clusterer->setCentroidCount(std::max(clusterer->centroidCount - 1, 1));
 			centroidCountButton->text = std::to_string(clusterer->centroidCount);
-		} else if (button->type == 8) {
+		} else if (button->type == ButtonType::increaseClusters) {
 			clusterer->setCentroidCount(clusterer->centroidCount + 1);
 			centroidCountButton->text = std::to_string(clusterer->centroidCount);
-		} else if (button->type == 9) {
+		} else if (button->type == ButtonType::undo) {
             std::cout << "! UNDO" << std::endl;
             blobber->undo();
         }
