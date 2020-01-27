@@ -31,6 +31,8 @@ class Gui : public MouseListener {
         increaseClusters,
         decreaseClusters,
         undo,
+        increaseStdDev,
+        decreaseStdDev,
         save
     };
 
@@ -123,6 +125,7 @@ private:
 	Clusterer* clusterer;
 	Button* clearSelectedBtn;
 	Button* centroidCountButton;
+	Button* colorSelectionStdDevButton;
 	std::vector<Element*> elements;
 	std::string selectedColorName;
 	int width;
@@ -139,6 +142,7 @@ private:
 	unsigned char* segmentedRgb;
 
 	unsigned char* rgbData;
+    float colorSelectionStdDev;
 };
 
 #endif // GUI_H

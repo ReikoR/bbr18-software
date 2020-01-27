@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <vector>
 #include <iterator>
+#include <iomanip>
 
 class Util {
 
@@ -60,6 +61,12 @@ public:
         std::string result = ss.str();
 
         return "[\"" + result.substr(0, result.length() - 4) + "\"]";
+    }
+
+    static std::string floatToString(float value, int precision) {
+        std::stringstream stream;
+        stream << std::fixed << std::setprecision(precision) << value;
+        return stream.str();
     }
 
     static inline int toInt(const std::string str) {

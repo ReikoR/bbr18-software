@@ -120,6 +120,8 @@ Gui::Gui(HINSTANCE instance, Blobber* blobber, int width, int height) : instance
 
 	selectedColorName = "";
 
+    colorSelectionStdDev = 2.0f;
+
 	Blobber::ColorClassState* color;
 
 	for (int i = 0, y = 0; i < blobber->getColorCount(); i++) {
@@ -145,6 +147,10 @@ Gui::Gui(HINSTANCE instance, Blobber* blobber, int width, int height) : instance
 	createButton("-", width - 80 - 85, 68, 20, ButtonType::decreaseClusters);
 	centroidCountButton = createButton(std::to_string(clusterer->centroidCount), width - 80 - 85 + 20, 68, 30, ButtonType::unknown);
 	createButton("+", width - 80 - 85 + 50, 68, 20, ButtonType::increaseClusters);
+
+    createButton("-", width - 360, 20, 20, ButtonType::decreaseStdDev);
+    colorSelectionStdDevButton = createButton(Util::floatToString(colorSelectionStdDev, 1), width - 360 + 20, 20, 60, ButtonType::unknown);
+    createButton("+", width - 360 + 80, 20, 20, ButtonType::increaseStdDev);
 }
 
 Gui::~Gui() {
@@ -378,8 +384,6 @@ void Gui::handleColorThresholding(unsigned char* rgbData, unsigned char* rgb) {
     }
 
     if (mouseDown) {
-		float stdDev = 2.0f;
-
 		//ImageProcessor::RGBInfo rgbInfo = ImageProcessor::extractColors(rgbData, width, height, mouseX, mouseY, brushRadius, stdDev);
 		/*ImageProcessor::RGBRange rgbRange = ImageProcessor::extractColorRange(rgbData, width, height, mouseX, mouseY, brushRadius, stdDev);
         std::cout << "rgbRange " << +rgbRange.minR << " " << +rgbRange.maxR << "; "
@@ -410,7 +414,7 @@ void Gui::handleColorThresholding(unsigned char* rgbData, unsigned char* rgb) {
                 } else {
                     //blobber->setPixelColorRange(rgbRange, selectedColor->color);
 
-                    ImageProcessor::RGBInfo rgbInfo = ImageProcessor::extractColors(rgbData, width, height, mouseX, mouseY, brushRadius, stdDev);
+                    ImageProcessor::RGBInfo rgbInfo = ImageProcessor::extractColors(rgbData, width, height, mouseX, mouseY, brushRadius, colorSelectionStdDev);
 
                     for (int i = 0; i < rgbInfo.count; i++) {
                         ImageProcessor::RGBColor pixel = rgbInfo.pixels[i];
@@ -434,7 +438,7 @@ void Gui::handleColorThresholding(unsigned char* rgbData, unsigned char* rgb) {
         	} else {
 				//blobber->setPixelColorRange(rgbRange, 0);
 
-                ImageProcessor::RGBInfo rgbInfo = ImageProcessor::extractColors(rgbData, width, height, mouseX, mouseY, brushRadius, stdDev);
+                ImageProcessor::RGBInfo rgbInfo = ImageProcessor::extractColors(rgbData, width, height, mouseX, mouseY, brushRadius, colorSelectionStdDev);
 
                 for (int i = 0; i < rgbInfo.count; i++) {
                     ImageProcessor::RGBColor pixel = rgbInfo.pixels[i];
@@ -537,6 +541,12 @@ void Gui::onElementClick(Element* element) {
         } else if (button->type == ButtonType::save) {
             std::cout << "! Save" << std::endl;
             blobber->saveColors("colors.dat");
+        } else if (button->type == ButtonType::decreaseStdDev) {
+            colorSelectionStdDev = std::max(colorSelectionStdDev - 1, 1.0f);
+            colorSelectionStdDevButton->text = Util::floatToString(colorSelectionStdDev, 1);
+        } else if (button->type == ButtonType::increaseStdDev) {
+            colorSelectionStdDev += 1;
+            colorSelectionStdDevButton->text = Util::floatToString(colorSelectionStdDev, 1);
         }
 	}
 }
