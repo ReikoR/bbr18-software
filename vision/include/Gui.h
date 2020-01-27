@@ -133,6 +133,8 @@ private:
 	int fps;
 	int mouseX;
 	int mouseY;
+	int mouseStartX;
+	int mouseStartY;
 	bool mouseDown;
 	bool prevMouseDown;
 	bool quitRequested;

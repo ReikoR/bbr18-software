@@ -106,6 +106,8 @@ Gui::Gui(HINSTANCE instance, Blobber* blobber, int width, int height) : instance
 
 	mouseX = 0;
 	mouseY = 0;
+    mouseStartX = -1;
+    mouseStartY = -1;
 	mouseDown = false;
 	prevMouseDown = false;
 	mouseBtn = MouseListener::MouseBtn::LEFT;
@@ -340,13 +342,8 @@ void Gui::setFrontImages(unsigned char* rgb, unsigned char* rgbData, Vision::Res
 
 	//if (activeWindow == frontClassification || activeWindow == frontRGB) {
 	if (activeWindow == frontRGB || activeWindow == frontClassification) {
-		if (!isMouseOverElement(mouseX, mouseY)) {
-			if (selectedColorName.length() > 0) {
-				//handleColorThresholding(dataY, dataU, dataV, rgb, classification);
-				handleColorThresholding(rgbData, rgb);
-			}
-		} else {
-			handleElements();
+		if (selectedColorName.length() > 0 && !isMouseOverElement(mouseStartX, mouseStartY)) {
+            handleColorThresholding(rgbData, rgb);
 		}
 	}
 
@@ -459,17 +456,14 @@ void Gui::handleColorThresholding(unsigned char* rgbData, unsigned char* rgb) {
 }
 
 void Gui::handleElements() {
-	if (!mouseDown) {
-		return;
-	}
-
 	Element* element;
 
-	for (std::vector<Element*>::const_iterator i = elements.begin(); i != elements.end(); i++) {
-		element = *i;
+	for (auto i : elements) {
+		element = i;
 
-		if (element->contains(mouseX, mouseY)) {
+		if (element->contains(mouseStartX, mouseStartY) && element->contains(mouseX, mouseY)) {
 			onElementClick(element);
+			break;
 		}
 	}
 }
@@ -561,17 +555,27 @@ void Gui::onMouseMove(int x, int y, DisplayWindow* win) {
 }
 
 void Gui::onMouseDown(int x, int y, MouseListener::MouseBtn btn, DisplayWindow* win) {
-	mouseDown = true;
+    std::cout << "onMouseDown " << +x << " " << +y << std::endl;
+    mouseStartX = x;
+    mouseStartY = y;
+
+    mouseDown = true;
 	mouseBtn = btn;
 
 	activeWindow = win;
 }
 
 void Gui::onMouseUp(int x, int y, MouseListener::MouseBtn btn, DisplayWindow* win) {
+    std::cout << "onMouseUp " << +x << " " << +y << std::endl;
 	mouseDown = false;
 	mouseBtn = btn;
 
 	activeWindow = win;
+
+	handleElements();
+
+    mouseStartX = -1;
+    mouseStartY = -1;
 }
 
 void Gui::onMouseWheel(int delta, DisplayWindow* win) {
