@@ -20,6 +20,7 @@
     "eslint": "^4.19.1"
   },
   "dependencies": {
-    "simple-linear-regression": "^1.0.3"
+    "simple-linear-regression": "^1.0.3",
+    "ws": "^7.2.1"
   }
 }
