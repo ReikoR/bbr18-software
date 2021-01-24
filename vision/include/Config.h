@@ -46,9 +46,9 @@ namespace Config {
 	//const float cameraFovAngle = 56.0f * 3.14f / 180.0f;
 	const float cameraFovAngle = 100.0f * 3.14f / 180.0f;
 	const float cameraFovWidth = tan(cameraFovAngle / 2.0f) * cameraFovDistance * 2.0f;
-	const float cameraGain = 0.0;
+	const float cameraGain = 2.0;
 	//const int cameraGain = 6;
-	const int cameraExposure = 10000;
+	const int cameraExposure = 8000;
 
 	// default startup controller name
 	const std::string defaultController = "test";
