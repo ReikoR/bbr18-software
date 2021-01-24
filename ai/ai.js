@@ -5,6 +5,57 @@ const HubCom = require('../common/HubCom');
 const omniMotion = require('./omni-motion');
 const util = require('./util');
 const calibration = require('../calibration/calibration');
+const WebsocketManager = require('./websocket-manager');
+const wsManager = new WebsocketManager('192.168.2.220:8111');
+const robotID = 'io';
+
+wsManager.on('open', () => {
+    wsManager.send({method: 'get_active_game_state', id: 1});
+});
+
+wsManager.on('message', onRefereeMessage);
+
+function onRefereeMessage(message) {
+    console.log(message);
+
+    try {
+        const info = JSON.parse(message);
+        const {signal, targets, isRunning} = info;
+
+        if (Array.isArray(targets) && targets.includes(robotID)) {
+            if (!aiState.isCompetition) {
+                return;
+            }
+
+            if (signal === 'stop') {
+                console.log('STOP');
+
+                //if (aiState.isCompetition) {
+                    stopGame();
+                //}
+            } else if (signal === 'start' || isRunning === true) {
+                console.log('START');
+
+                const {baskets} = info;
+                const robotIdIndex = targets.indexOf(robotID);
+
+                if (Array.isArray(baskets) && (robotIdIndex === 0 || robotIdIndex === 1)) {
+                    const basket = baskets[robotIdIndex];
+
+                    //if (basket === 'blue' || basket === 'magenta') {
+                        setBasketColour(basket);
+                    //}
+                }
+
+                //if (aiState.isCompetition) {
+                    startGame();
+                //}
+            }
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
 
 const hubCom = new HubCom(publicConf.port, publicConf.hubIpAddress, publicConf.hubPort, () => {
     hubCom.send({ type: 'message', topic: 'ai_event', event: 'ai_closed' });
@@ -775,12 +826,20 @@ function handleRefereeCommandChanged() {
     if (mainboardState.refereeCommand === 'P') {
         aiState.shouldSendAck = true;
     } else if (mainboardState.refereeCommand === 'S') {
-        setMotionState(motionStates.FIND_BALL);
-        setThrowerState(throwerStates.IDLE);
+        startGame();
     } else if (mainboardState.refereeCommand === 'T') {
-        setMotionState(motionStates.IDLE);
-        setThrowerState(throwerStates.IDLE);
+        stopGame();
     }
+}
+
+function startGame() {
+    setMotionState(motionStates.FIND_BALL);
+    setThrowerState(throwerStates.IDLE);
+}
+
+function stopGame() {
+    setMotionState(motionStates.IDLE);
+    setThrowerState(throwerStates.IDLE);
 }
 
 function handleMainboardButtonChanged() {
