@@ -138,7 +138,7 @@ void Blobber::setColors(unsigned char *data) {
 }
 
 void Blobber::setPixelColor(unsigned char r, unsigned char g, unsigned char b, unsigned char color) {
-    /*unsigned char blockSize = 2;
+    unsigned char blockSize = 4;
     unsigned char firstR = (r / blockSize) * blockSize;
     unsigned char firstG = (g / blockSize) * blockSize;
     unsigned char firstB = (b / blockSize) * blockSize;
@@ -149,9 +149,7 @@ void Blobber::setPixelColor(unsigned char r, unsigned char g, unsigned char b, u
                 colors_lookup[bi + (gi << 8) + (ri << 16)] = color;
             }
         }
-    }*/
-
-	colors_lookup[b + (g << 8) + (r << 16)] = color;
+    }
 
     hasLookupChanged = true;
 }
